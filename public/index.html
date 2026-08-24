@@ -2,38 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Binary Trading Platform</title>
+    <title>Pocket Option Pro - Trading</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="trading-container">
-        <header>
-            <h2>PocketStyle Trade</h2>
-            <div class="wallet">Balance: $<span id="balance">1000</span></div>
+    <div class="app-container">
+        <!-- হেডার -->
+        <header class="header">
+            <h2>PocketOption <span style="font-size:12px; color:#26a69a;">PRO LIVE</span></h2>
+            <div class="user-info">
+                <span>Demo/Live Balance: $<span id="balance">1000</span></span>
+                <button class="nav-btn" onclick="openModal('depositModal')">Deposit</button>
+                <button class="nav-btn" onclick="openModal('withdrawModal')">Withdraw</button>
+                <a href="admin.html" target="_blank" class="nav-btn admin-link">Admin Panel</a>
+            </div>
         </header>
-        <div class="main-content">
-            <div class="chart-box">
-                <h3>Live Asset Price: <span id="price">1.0820</span></h3>
-                <div class="timeframes">
-                    <button onclick="setTimeframe(5)">5s</button>
-                    <button onclick="setTimeframe(60)">1m</button>
-                    <button onclick="setTimeframe(300)">5m</button>
-                    <button onclick="setTimeframe(1800)">30m</button>
+
+        <!-- মূল ট্রেডিং রুম -->
+        <div class="trading-layout">
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h3>EUR/USD (OTC) <span id="price" style="color: #26a69a;">1.0820</span></h3>
+                    <div class="timeframes">
+                        <button onclick="setTimeframe(5)">5s</button>
+                        <button onclick="setTimeframe(60)" class="active">1m</button>
+                        <button onclick="setTimeframe(300)">5m</button>
+                        <button onclick="setTimeframe(1800)">30m</button>
+                    </div>
+                </div>
+                <div class="fake-chart-box">
+                    <div class="pulse-line"></div>
+                    <p style="text-align:center; padding-top:100px; color:#777;">Real-time Live Broker Chart Active</p>
                 </div>
             </div>
-            <div class="trade-panel">
-                <label>Amount ($):</label>
+
+            <div class="control-panel">
+                <label>Investment Amount ($):</label>
                 <input type="number" id="amount" value="10">
-                <button class="btn-up" onclick="placeTrade('UP')">UP (Call)</button>
-                <button class="btn-down" onclick="placeTrade('DOWN')">DOWN (Put)</button>
-                <p id="result-msg"></p>
+                
+                <div class="trade-buttons">
+                    <button class="btn-up" onclick="placeTrade('UP')">UP (CALL) 🟢</button>
+                    <button class="btn-down" onclick="placeTrade('DOWN')">DOWN (PUT) 🔴</button>
+                </div>
+                <p id="result-msg" style="font-weight:bold; text-align:center; margin-top:15px;"></p>
             </div>
         </div>
-        <div class="deposit-section">
-            <h3>Deposit via বিকাশ, নগদ, Binance</h3>
-            <p>Admin Live 24h Deposit/Withdraw Tracking Active</p>
+    </div>
+
+    <!-- ডিপোজিট মোডাল (বিকাশ, নগদ, বাইনান্স) -->
+    <div id="depositModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('depositModal')">&times;</span>
+            <h3>Deposit Money</h3>
+            <p>Bkash/Nagad Personal: <b>01700000000</b> (Send Money)</p>
+            <p>Binance USDT ID: <b>123456789</b></p>
+            <select id="depMethod">
+                <option value="Bkash">Bkash</option>
+                <option value="Nagad">Nagad</option>
+                <option value="Binance">Binance (USDT)</option>
+            </select>
+            <input type="number" id="depAmount" placeholder="Amount in USD/BDT">
+            <input type="text" id="trxId" placeholder="Enter TrxID / Hash">
+            <button onclick="submitDeposit()" class="submit-btn">Submit Deposit</button>
         </div>
     </div>
+
+    <!-- উইথড্রল মোডাল -->
+    <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('withdrawModal')">&times;</span>
+            <h3>Withdraw Money</h3>
+            <select id="wdMethod">
+                <option value="Bkash">Bkash</option>
+                <option value="Nagad">Nagad</option>
+                <option value="Binance">Binance</option>
+            </select>
+            <input type="number" id="wdAmount" placeholder="Amount">
+            <input type="text" id="wdAccount" placeholder="Account Number / Wallet Address">
+            <button onclick="submitWithdraw()" class="submit-btn">Request Withdrawal</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
