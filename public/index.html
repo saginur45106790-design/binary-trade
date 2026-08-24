@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Binary Trading Platform</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="trading-container">
+        <header>
+            <h2>PocketStyle Trade</h2>
+            <div class="wallet">Balance: $<span id="balance">1000</span></div>
+        </header>
+        <div class="main-content">
+            <div class="chart-box">
+                <h3>Live Asset Price: <span id="price">1.0820</span></h3>
+                <div class="timeframes">
+                    <button onclick="setTimeframe(5)">5s</button>
+                    <button onclick="setTimeframe(60)">1m</button>
+                    <button onclick="setTimeframe(300)">5m</button>
+                    <button onclick="setTimeframe(1800)">30m</button>
+                </div>
+            </div>
+            <div class="trade-panel">
+                <label>Amount ($):</label>
+                <input type="number" id="amount" value="10">
+                <button class="btn-up" onclick="placeTrade('UP')">UP (Call)</button>
+                <button class="btn-down" onclick="placeTrade('DOWN')">DOWN (Put)</button>
+                <p id="result-msg"></p>
+            </div>
+        </div>
+        <div class="deposit-section">
+            <h3>Deposit via বিকাশ, নগদ, Binance</h3>
+            <p>Admin Live 24h Deposit/Withdraw Tracking Active</p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
