@@ -1,0 +1,13 @@
+{
+  "name": "binary-trading-platform",
+  "version": "1.0.0",
+  "description": "Custom Binary Trading Platform with Admin Control",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.16.0"
+  }
+}
