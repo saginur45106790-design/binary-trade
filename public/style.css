@@ -1,25 +1,25 @@
-body { background-color: #121418; color: #fff; font-family: Arial, sans-serif; margin: 0; }
-.header { display: flex; justify-content: space-between; align-items: center; background: #1e222d; padding: 15px 20px; border-bottom: 1px solid #333; }
-.user-info { display: flex; gap: 15px; align-items: center; }
-.nav-btn { background: #2962ff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-.admin-link { background: #ff9800; text-decoration: none; }
-.trading-layout { display: flex; height: calc(100vh - 70px); }
-.chart-section { flex: 3; padding: 20px; display: flex; flex-direction: column; }
-.chart-header { display: flex; justify-content: space-between; align-items: center; }
-.timeframes button { background: #2a2e39; color: #fff; border: none; padding: 6px 12px; cursor: pointer; border-radius: 4px; }
+body { background-color: #0b0e14; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 0; }
+.header { display: flex; justify-content: space-between; align-items: center; background: #131722; padding: 12px 20px; border-bottom: 1px solid #1f293d; }
+.user-info { display: flex; gap: 12px; align-items: center; }
+.balance-box { background: #1f293d; padding: 6px 12px; border-radius: 4px; font-weight: bold; font-size: 14px; }
+.nav-btn { border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+.dep-btn { background: #26a69a; color: white; }
+.wd-btn { background: #ef5350; color: white; }
+.trading-layout { display: flex; height: calc(100vh - 65px); }
+.chart-section { flex: 3; padding: 15px; display: flex; flex-direction: column; }
+.chart-header { display: flex; justify-content: space-between; align-items: center; background: #131722; padding: 8px 12px; border-radius: 6px; }
+.timeframes button { background: #1f293d; color: #fff; border: none; padding: 5px 10px; cursor: pointer; border-radius: 4px; }
 .timeframes button.active, .timeframes button:hover { background: #2962ff; }
-.fake-chart-box { flex: 1; background: #181c24; border: 1px solid #333; border-radius: 8px; margin-top: 10px; position: relative; }
-.control-panel { flex: 1; background: #1e222d; padding: 20px; display: flex; flex-direction: column; gap: 15px; border-left: 1px solid #333; }
-input, select { padding: 12px; background: #2a2e39; border: 1px solid #444; color: #fff; border-radius: 4px; width: 100%; box-sizing: border-box; }
-.trade-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
-.btn-up { background: #26a69a; color: white; padding: 15px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
-.btn-down { background: #ef5350; color: white; padding: 15px; font-size: 16px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
+.control-panel { flex: 1; background: #131722; padding: 20px; display: flex; flex-direction: column; gap: 15px; border-left: 1px solid #1f293d; }
+.control-group { display: flex; flex-direction: column; gap: 5px; }
+input, select { padding: 10px; background: #1f293d; border: 1px solid #2a3447; color: #fff; border-radius: 4px; width: 100%; box-sizing: border-box; }
+.trade-buttons { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.btn-up { background: #26a69a; color: white; padding: 14px; font-size: 15px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
+.btn-down { background: #ef5350; color: white; padding: 14px; font-size: 15px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; }
 
-/* মোডাল ডিজাইন */
-.modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
-.modal-content { background: #1e222d; margin: 10% auto; padding: 20px; width: 350px; border-radius: 8px; display: flex; flex-direction: column; gap: 15px; border: 1px solid #444; }
-.close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; align-self: flex-end; }
+/* মোডাল */
+.modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+.modal-content { background: #131722; margin: 12% auto; padding: 20px; width: 340px; border-radius: 8px; display: flex; flex-direction: column; gap: 12px; border: 1px solid #2a3447; }
+.close { color: #aaa; float: right; font-size: 24px; font-weight: bold; cursor: pointer; align-self: flex-end; }
 .submit-btn { background: #26a69a; color: white; border: none; padding: 10px; font-weight: bold; border-radius: 4px; cursor: pointer; }
-.admin-stats { display: flex; gap: 20px; margin-bottom: 20px; }
-.stat-card { background: #1e222d; padding: 15px; border-radius: 6px; border: 1px solid #444; font-size: 18px; font-weight: bold; }
-table th, table td { padding: 10px; text-align: center; }
+table th, table td { padding: 8px; text-align: center; font-size: 13px; border-color: #2a3447; }
