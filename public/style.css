@@ -10,9 +10,10 @@
 body, html {
     width: 100%;
     height: 100%;
-    background-color: #171d28;
+    background-color: #121722;
     color: #fff;
     overflow: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
 .app-root {
@@ -25,26 +26,26 @@ body, html {
 /* টপ বার */
 .top-bar {
     height: 48px;
-    background: #1b2230;
+    background: #171d2a;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 12px;
-    border-bottom: 1px solid #232c3d;
+    border-bottom: 1px solid #202738;
 }
 
 .account-select-pill {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #222b3d;
-    padding: 4px 10px;
+    background: #1f2738;
+    padding: 5px 10px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 700;
 }
-.acc-icon { font-size: 12px; }
+.acc-icon { font-size: 13px; }
 .acc-label { color: #f5a623; font-size: 11px; }
 .acc-bal { color: #fff; font-size: 13px; font-weight: 700; }
 .chevron { font-size: 9px; color: #8c9ba5; }
@@ -82,11 +83,11 @@ body, html {
     cursor: pointer;
 }
 
-/* চার্ট এরিয়া */
+/* চার্ট ভিউপোর্ট */
 .chart-box-container {
     flex: 1;
     position: relative;
-    background: #131924;
+    background: #121722;
     overflow: hidden;
 }
 
@@ -101,49 +102,129 @@ body, html {
     top: 50%;
     left: 45%;
     transform: translate(-50%, -50%);
-    font-size: 75px;
+    font-size: 80px;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.025);
     letter-spacing: 12px;
     pointer-events: none;
 }
 
-.chart-meta-tags {
+.chart-top-actions {
     position: absolute;
     top: 8px;
     left: 10px;
-    right: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    pointer-events: none;
-    font-size: 10px;
-    color: #6a7c94;
+    z-index: 5;
 }
-.sub-menu-btn, .briefcase-btn, .info-circle {
-    background: #1c2536;
-    padding: 3px 6px;
-    border-radius: 4px;
+.briefcase-btn {
+    background: #1c2434;
+    padding: 4px 8px;
+    border-radius: 6px;
     color: #8fa0b5;
-    pointer-events: auto;
-    font-size: 11px;
+    font-size: 12px;
+    display: inline-block;
 }
 .sub-badge {
     background: #2a66e4;
     color: #fff;
-    font-size: 8px;
-    padding: 1px 3px;
+    font-size: 9px;
+    padding: 1px 4px;
     border-radius: 4px;
-    margin-left: 2px;
+    margin-left: 3px;
 }
-.trade-phase-tag { margin-left: 4px; }
-.trade-end-tag { margin-left: auto; }
 
-/* টোস্ট ব্যানার */
+/* সেন্টারিং বাটন (ভিডিও অনুযায়ী সাদা গোল অ্যারো) */
+.center-chart-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 34px;
+    height: 34px;
+    background: #ffffff;
+    color: #121722;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+/* টাইম পপআপ (ভিডিওর মতো হুবহু গ্রিড) */
+.time-popup-dialog {
+    display: none;
+    position: absolute;
+    bottom: 10px;
+    left: 14px;
+    width: 250px;
+    background: #1a2232;
+    border: 1px solid #283348;
+    border-radius: 8px;
+    padding: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.7);
+    z-index: 30;
+}
+.time-tabs {
+    display: flex;
+    background: #121722;
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 10px;
+}
+.t-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #798b9f;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.t-tab.active {
+    background: #2a66e4;
+    color: #fff;
+}
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.time-grid button {
+    background: #212c3f;
+    border: 1px solid #2d3b52;
+    color: #fff;
+    padding: 6px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.time-grid button.selected {
+    background: #2a66e4;
+    border-color: #2a66e4;
+}
+.set-manually-btn {
+    width: 100%;
+    background: #212c3f;
+    border: 1px solid #2d3b52;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 8px;
+    cursor: pointer;
+}
+
+/* টোস্ট ও রেজাল্ট বাবল */
 .open-trade-toast {
     display: none;
     position: absolute;
-    top: 8px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     background: #00b074;
@@ -152,16 +233,14 @@ body, html {
     border-radius: 6px;
     font-size: 11px;
     font-weight: 600;
-    display: flex;
     align-items: center;
     gap: 8px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     z-index: 20;
     max-width: 90%;
 }
-.toast-close { cursor: pointer; font-size: 12px; margin-left: 6px; opacity: 0.8; }
+.toast-close { cursor: pointer; font-size: 12px; margin-left: 6px; }
 
-/* উইন রেজাল্ট পপআপ বাবল (স্ক্রিনশট ৭৫১ অনুযায়ী) */
 .result-popup-bubble {
     display: none;
     position: absolute;
@@ -178,8 +257,8 @@ body, html {
 
 /* বটম ডক প্যানেল */
 .dock-panel {
-    background: #1b2230;
-    border-top: 1px solid #232c3d;
+    background: #171d2a;
+    border-top: 1px solid #202738;
     padding: 10px 14px 6px;
     display: flex;
     flex-direction: column;
@@ -199,15 +278,43 @@ body, html {
     font-weight: 700;
 }
 .payout-pill { color: #f5a623; font-size: 12px; }
+
 .pending-toggle {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     font-size: 10px;
-    color: #5d718b;
+    color: #63758d;
     font-weight: 700;
 }
-.switch-ui { accent-color: #2a66e4; cursor: pointer; }
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 32px;
+    height: 18px;
+}
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background-color: #2a3449;
+    transition: .3s;
+    border-radius: 18px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 12px;
+    width: 12px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+}
+input:checked + .slider { background-color: #2a66e4; }
+input:checked + .slider:before { transform: translateX(14px); }
 
 .dock-row-2 {
     display: flex;
@@ -215,13 +322,14 @@ body, html {
 }
 .timer-box, .invest-box {
     flex: 1;
-    background: #222b3d;
-    border: 1px solid #2d3950;
+    background: #1f2738;
+    border: 1px solid #29344a;
     border-radius: 6px;
     padding: 6px 10px;
     display: flex;
     flex-direction: column;
     position: relative;
+    cursor: pointer;
 }
 .box-lbl { font-size: 10px; color: #6e829c; }
 .box-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
@@ -247,7 +355,7 @@ body, html {
     left: 50%;
     transform: translateX(-50%);
     font-size: 8px;
-    background: #1b2230;
+    background: #171d2a;
     color: #2a66e4;
     padding: 0 4px;
     font-weight: 800;
@@ -262,7 +370,7 @@ body, html {
     overflow: hidden;
     white-space: nowrap;
 }
-.payout-dots { color: #2d3950; letter-spacing: 2px; flex: 1; text-align: center; }
+.payout-dots { color: #232c3d; letter-spacing: 2px; flex: 1; text-align: center; }
 .payout-amt { color: #fff; font-size: 13px; font-weight: 800; }
 
 .dock-actions {
@@ -273,14 +381,14 @@ body, html {
     flex: 1;
     border: none;
     border-radius: 8px;
-    padding: 10px 14px;
+    padding: 11px 14px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
 }
 .btn-trade.up { background: #00b074; color: #fff; }
-.btn-trade.down { background: #ff4747; color: #fff; }
+.btn-trade.down { background: #eb5757; color: #fff; }
 .btn-trade .txt { font-size: 15px; font-weight: 800; }
 .circle-arrow {
     background: rgba(255,255,255,0.25);
@@ -300,7 +408,7 @@ body, html {
     justify-content: space-around;
     align-items: center;
     padding-top: 6px;
-    border-top: 1px solid #232c3d;
+    border-top: 1px solid #202738;
 }
 .f-icon {
     font-size: 17px;
@@ -321,12 +429,12 @@ body, html {
     border-radius: 8px;
 }
 
-/* অ্যাকাউন্ট ড্রপডাউন কার্ড (স্ক্রিনশট ৭৪৬) */
-.acc-modal-overlay {
+/* ড্রপডাউন ও মডাল */
+.acc-modal-overlay, .std-modal {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.6);
     z-index: 100;
 }
 .acc-dropdown-card {
@@ -375,22 +483,12 @@ body, html {
     background: #20293a;
     margin-top: 8px;
 }
-.acc-option:hover { background: #263347; }
 .opt-title { font-size: 12px; color: #a4b3c7; }
 .opt-bal { font-size: 14px; font-weight: 700; margin: 2px 0; }
 .opt-sub { font-size: 9px; color: #6e829c; }
 .blue-link { color: #2a66e4; }
 
-/* সাধারণ মডাল */
-.std-modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-}
+.std-modal { align-items: center; justify-content: center; }
 .std-modal-box {
     background: #19202c;
     border: 1px solid #263245;

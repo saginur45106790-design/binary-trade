@@ -11,21 +11,15 @@ const wss = new WebSocket.Server({ server });
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ইউজার ও ব্যালেন্স ডেটাবেজ
 let users = {
-  "demo_user": { 
-    liveBalance: 0.03, 
-    demoBalance: 11061.07, 
-    activeAccount: "demo", 
-    control: "normal" 
-  }
+  "demo_user": { liveBalance: 0.03, demoBalance: 11061.07, activeAccount: "demo", control: "normal" }
 };
 let transactions = [];
 
 // AUD/JPY লাইফ-টাইম ৬০ সেকেন্ড ক্যান্ডেল হিস্ট্রি
 const DATA_FILE = path.join(__dirname, 'candles_audjpy.json');
 let candleHistory = [];
-let currentPrice = 111.650;
+let currentPrice = 111.465;
 
 if (fs.existsSync(DATA_FILE)) {
   try {
@@ -36,13 +30,13 @@ if (fs.existsSync(DATA_FILE)) {
 
 if (candleHistory.length === 0) {
   let nowMinute = Math.floor(Date.now() / 60000) * 60;
-  for (let i = 35; i > 0; i--) {
+  for (let i = 40; i > 0; i--) {
     let t = nowMinute - (i * 60);
     let o = currentPrice;
-    let delta = (Math.random() - 0.49) * 0.040;
+    let delta = (Math.random() - 0.49) * 0.035;
     let c = parseFloat((o + delta).toFixed(3));
-    let h = parseFloat((Math.max(o, c) + Math.random() * 0.020).toFixed(3));
-    let l = parseFloat((Math.min(o, c) - Math.random() * 0.020).toFixed(3));
+    let h = parseFloat((Math.max(o, c) + Math.random() * 0.018).toFixed(3));
+    let l = parseFloat((Math.min(o, c) - Math.random() * 0.018).toFixed(3));
     candleHistory.push({ time: t, open: o, high: h, low: l, close: c });
     currentPrice = c;
   }
@@ -57,15 +51,15 @@ let currentCandle = {
   close: currentPrice
 };
 
-// লাইভ প্রাইস ইঞ্জিন ও ক্যান্ডেল জেনারেটর
 setInterval(() => {
-  let delta = (Math.random() - 0.495) * 0.008;
+  let delta = (Math.random() - 0.495) * 0.006;
   currentPrice = parseFloat((currentPrice + delta).toFixed(3));
 
   let nowMinute = Math.floor(Date.now() / 60000) * 60;
 
   if (nowMinute > currentCandle.time) {
     candleHistory.push({ ...currentCandle });
+    if (candleHistory.length > 200) candleHistory.shift();
     fs.writeFileSync(DATA_FILE, JSON.stringify(candleHistory));
     currentCandle = {
       time: nowMinute,
@@ -99,9 +93,9 @@ setInterval(() => {
 app.post('/api/trade', (req, res) => {
   const { username, amount, direction, accountType } = req.body;
   let user = users[username] || users["demo_user"];
-  let targetBalance = accountType === 'live' ? user.liveBalance : user.demoBalance;
+  let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
-  if (targetBalance < amount) {
+  if (targetBal < amount) {
     return res.json({ success: false, message: "Insufficient balance!" });
   }
 
@@ -113,26 +107,24 @@ app.post('/api/trade', (req, res) => {
   else if (user.control === 'loss') isWin = false;
   else isWin = (Math.random() * 100) < 40; // ৪০% উইন লজিক
 
-  let profit = isWin ? parseFloat((amount * 1.88).toFixed(2)) : 0;
+  let profit = isWin ? parseFloat((amount * 1.92).toFixed(2)) : 0;
   if (isWin) {
     if (accountType === 'live') user.liveBalance += profit;
     else user.demoBalance += profit;
   }
 
-  let finalBalance = accountType === 'live' ? user.liveBalance : user.demoBalance;
-
+  let finalBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
   res.json({
     success: true,
     isWin,
     profit,
     entryPrice: currentPrice.toFixed(3),
-    balance: finalBalance.toFixed(2),
+    balance: finalBal.toFixed(2),
     direction,
     amount
   });
 });
 
-// লাইভ / ডেমো সুইচ API
 app.post('/api/switch-account', (req, res) => {
   const { username, type } = req.body;
   let user = users[username] || users["demo_user"];
@@ -140,11 +132,10 @@ app.post('/api/switch-account', (req, res) => {
   res.json({ success: true, activeAccount: type, balance: type === 'live' ? user.liveBalance : user.demoBalance });
 });
 
-// ডিপোজিট ও উইথড্র
 app.post('/api/deposit', (req, res) => {
   const { username, method, amount, trxId } = req.body;
   transactions.push({ id: Date.now(), username, type: 'Deposit', method, amount, trxId, status: 'Pending' });
-  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট জমা হয়েছে!" });
+  res.json({ success: true, message: "ডিপোজিট সফলভাবে জমা হয়েছে!" });
 });
 
 app.post('/api/withdraw', (req, res) => {
@@ -153,18 +144,11 @@ app.post('/api/withdraw', (req, res) => {
   if (user.liveBalance >= amount) {
     user.liveBalance -= Number(amount);
     transactions.push({ id: Date.now(), username, type: 'Withdraw', method, amount, accountNo, status: 'Pending' });
-    res.json({ success: true, message: "উইথড্র রিকোয়েস্ট সফল!" });
+    res.json({ success: true, message: "উইথড্র রিকোয়েস্ট জমা হয়েছে!" });
   } else res.json({ success: false, message: "পর্যাপ্ত ব্যালেন্স নেই!" });
 });
 
-// অ্যাডমিন রাউট (/admin নিশ্চিত করা হয়েছে)
-app.get('/admin', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-app.get('/admin-secret-panel', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
-
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 app.get('/api/admin/data', (req, res) => {
   let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
   let totalWithdraw = transactions.filter(t => t.type === 'Withdraw' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);

@@ -10,7 +10,7 @@
     <div class="app-root">
         <header class="top-bar">
             <div class="account-select-pill" onclick="toggleAccountModal()">
-                <span id="accountIcon" class="acc-icon demo">🎓</span>
+                <span id="accountIcon" class="acc-icon">🎓</span>
                 <span id="accountLabel" class="acc-label">DEMO</span>
                 <span id="accountBal" class="acc-bal">$11,061.07</span>
                 <span class="chevron">▼</span>
@@ -25,31 +25,48 @@
             </div>
         </header>
 
-        <div class="chart-box-container">
+        <div class="chart-box-container" id="chartContainer">
             <div id="chartWatermark" class="watermark-text">DEMO</div>
 
-            <div class="chart-meta-tags">
-                <div class="sub-menu-btn">•••</div>
+            <div class="chart-top-actions">
                 <div class="briefcase-btn">💼<span class="sub-badge">0</span></div>
-                <div class="utc-clock">🟢 22:58:49 UTC+6</div>
-                <div class="info-circle">ℹ️</div>
-                <div class="trade-phase-tag">Beginning of trade</div>
-                <div class="trade-end-tag">End of trade</div>
             </div>
 
             <canvas id="tradeCanvas"></canvas>
 
-            <div id="tradeOpenToast" class="open-trade-toast">
-                <div class="toast-content">
-                    <span class="toast-dot"></span>
-                    <span id="toastMsg">Trade opened with price: 111.686 AUD/JPY (OTC)</span>
+            <div class="center-chart-btn" onclick="resetPan()">➔</div>
+
+            <div id="timeSelectPopup" class="time-popup-dialog">
+                <div class="time-tabs">
+                    <button class="t-tab" onclick="switchTimeTab('timer')">TIMER</button>
+                    <button class="t-tab active" onclick="switchTimeTab('time')">TIME</button>
                 </div>
+                <div class="time-grid" id="timeGrid">
+                    <button onclick="selectTime('23:15')">23:15</button>
+                    <button onclick="selectTime('23:16')">23:16</button>
+                    <button onclick="selectTime('23:17')">23:17</button>
+                    <button onclick="selectTime('23:18')">23:18</button>
+                    <button onclick="selectTime('23:19')" class="selected">23:19</button>
+                    <button onclick="selectTime('23:24')">23:24</button>
+                    <button onclick="selectTime('23:29')">23:29</button>
+                    <button onclick="selectTime('23:44')">23:44</button>
+                    <button onclick="selectTime('23:59')">23:59</button>
+                    <button onclick="selectTime('00:14')">00:14</button>
+                    <button onclick="selectTime('01:14')">01:14</button>
+                    <button onclick="selectTime('03:14')">03:14</button>
+                </div>
+                <button class="set-manually-btn">Set manually</button>
+            </div>
+
+            <div id="tradeOpenToast" class="open-trade-toast">
+                <span class="toast-dot"></span>
+                <span id="toastMsg">Trade opened with price: 111.465 AUD/JPY (OTC)</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
             <div id="resultBubble" class="result-popup-bubble">
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
-                <div class="res-val" id="resProfitVal">+5.64 $</div>
+                <div class="res-val" id="resProfitVal">+1.92 $</div>
             </div>
         </div>
 
@@ -58,18 +75,21 @@
                 <div class="asset-selector">
                     <span class="flag-icon">🇦🇺🇯🇵</span>
                     <b>AUD/JPY ...</b>
-                    <span class="payout-pill">88% ▼</span>
+                    <span class="payout-pill">92% ▼</span>
                 </div>
                 <div class="pending-toggle">
                     <span>PENDING TRADE</span>
-                    <input type="checkbox" id="pendingSwitch" class="switch-ui">
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
             </div>
 
             <div class="dock-row-2">
-                <div class="timer-box">
-                    <span class="box-lbl">Timer</span>
-                    <div class="box-val">00:01:00</div>
+                <div class="timer-box" onclick="toggleTimePopup()">
+                    <span class="box-lbl">Time</span>
+                    <div class="box-val" id="displayTimeVal">23:19</div>
                 </div>
                 <div class="invest-box">
                     <span class="box-lbl">Investment</span>
@@ -84,8 +104,8 @@
 
             <div class="payout-row">
                 <span class="payout-txt">Payout</span>
-                <span class="payout-dots">...........................................................................</span>
-                <b class="payout-amt" id="calcPayout">1.88 $</b>
+                <span class="payout-dots">....................................................................................</span>
+                <b class="payout-amt" id="calcPayout">1.92 $</b>
             </div>
 
             <div class="dock-actions">
