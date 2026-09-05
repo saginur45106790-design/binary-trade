@@ -16,9 +16,9 @@ let users = {
 };
 let transactions = [];
 
-let currentPrice = 111.950;
+let currentPrice = 111.884;
 let candleHistory = [];
-let currentPayout = 84; // ডাইনামিক পেআউট (৮৪% -> ৭৮%)
+let currentPayout = 84;
 
 function initCandles() {
   let nowSec = Math.floor(Date.now() / 1000);
@@ -45,8 +45,6 @@ let currentCandle = {
   close: currentPrice
 };
 
-// মার্কেট প্রাইস ও লাইভ ক্যান্ডেল ইঞ্জিন
-let payoutCounter = 0;
 setInterval(() => {
   let delta = (Math.random() - 0.495) * 0.005;
   currentPrice = parseFloat((currentPrice + delta).toFixed(3));
@@ -54,12 +52,6 @@ setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
   let nowMinute = Math.floor(sec / 60) * 60;
-
-  // ডাইনামিক পেআউট শিফটিং (ভিডিও অনুযায়ী ৮৪% ও ৭৮% এর মধ্যে মুভ হবে)
-  payoutCounter++;
-  if (payoutCounter % 40 === 0) {
-    currentPayout = currentPayout === 84 ? 78 : 84;
-  }
 
   if (nowMinute > currentCandle.time) {
     candleHistory.push({ ...currentCandle });
@@ -94,9 +86,9 @@ setInterval(() => {
   });
 }, 1000);
 
-// ট্রেড এক্সিকিউশন
+// ট্রেড ওপেন রিকোয়েস্ট (অ্যামাউন্ট সাথে সাথে মাইনাস হবে)
 app.post('/api/trade', (req, res) => {
-  const { username, amount, direction, accountType } = req.body;
+  const { username, amount, direction, accountType, durationSec } = req.body;
   let user = users[username] || users["demo_user"];
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
@@ -104,41 +96,52 @@ app.post('/api/trade', (req, res) => {
     return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
   }
 
+  // সাথে সাথে ব্যালেন্স কাটা
   if (accountType === 'live') user.liveBalance -= amount;
   else user.demoBalance -= amount;
 
-  // উইন/লস কন্ট্রোল (এডমিন প্যানেল থেকে ওভাররাইড সম্ভব)
   let isWin = false;
   if (user.control === 'win') isWin = true;
   else if (user.control === 'loss') isWin = false;
-  else isWin = (Math.random() * 100) < 40; // সাধারণ মোডে ৪০% উইন চান্স
+  else isWin = (Math.random() * 100) < 40; // ডিফল্ট ৪০% উইন লজিক
 
   let profitRatio = 1 + (currentPayout / 100);
-  let profit = isWin ? parseFloat((amount * profitRatio).toFixed(2)) : 0;
+  let profit = parseFloat((amount * profitRatio).toFixed(2));
+
+  let currentBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
+
+  res.json({
+    success: true,
+    isWin,
+    profit,
+    entryPrice: currentPrice.toFixed(3),
+    balance: currentBal.toFixed(2),
+    direction,
+    amount,
+    durationSec
+  });
+});
+
+// ট্রেড সম্পূর্ণ হওয়ার পর প্রফিট যোগ হওয়া
+app.post('/api/settle-trade', (req, res) => {
+  const { username, isWin, profit, accountType } = req.body;
+  let user = users[username] || users["demo_user"];
+
   if (isWin) {
     if (accountType === 'live') user.liveBalance += profit;
     else user.demoBalance += profit;
   }
 
   let finalBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
-  res.json({
-    success: true,
-    isWin,
-    profit,
-    entryPrice: currentPrice.toFixed(3),
-    balance: finalBal.toFixed(2),
-    direction,
-    amount
-  });
+  res.json({ success: true, balance: finalBal.toFixed(2) });
 });
 
 // আর্লি ক্যাশআউট / Sell Trade API
 app.post('/api/sell-trade', (req, res) => {
   const { username, amount, accountType } = req.body;
   let user = users[username] || users["demo_user"];
-  
-  // আংশিক ক্যাশআউট রিফান্ড (যেমন ১ ডলারের ট্রেডে ০.২৫ ডলার ব্যাক)
   let refundAmt = parseFloat((amount * 0.25).toFixed(2));
+
   if (accountType === 'live') user.liveBalance += refundAmt;
   else user.demoBalance += refundAmt;
 
