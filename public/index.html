@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket Option Terminal</title>
-    <link rel="stylesheet" href="style.css?v=1.1">
+    <title>Pocket Trade Pro</title>
+    <link rel="stylesheet" href="style.css?v=2.5">
 </head>
 <body>
     <div class="app-root">
@@ -31,13 +31,15 @@
             <div class="chart-meta-tags">
                 <div class="sub-menu-btn">•••</div>
                 <div class="briefcase-btn">💼<span class="sub-badge">0</span></div>
-                <div class="utc-clock" id="liveUtcClock">🟢 23:24:02 UTC+6</div>
+                <div class="utc-clock" id="liveUtcClock">🟢 00:00:00 UTC+6</div>
                 <div class="info-circle">ℹ️</div>
                 <div class="trade-phase-tag">Beginning of trade</div>
-                <div class="trade-end-tag">End of trade<br><span id="endTradeSub">04:57</span></div>
+                <div class="trade-end-tag">End of trade<br><span id="endTradeSub" style="color:#2a66e4; font-weight:700;">--:--:--</span></div>
             </div>
 
             <canvas id="tradeCanvas"></canvas>
+
+            <div class="center-chart-btn" onclick="resetPan()">➔</div>
 
             <div id="timeSelectPopup" class="time-popup-dialog">
                 <div class="time-tabs">
@@ -45,8 +47,7 @@
                     <button id="tabTimeBtn" class="t-tab active" onclick="switchPopupTab('time')">TIME</button>
                 </div>
 
-                <div class="time-grid" id="gridTimeMode">
-                    </div>
+                <div class="time-grid" id="gridTimeMode"></div>
 
                 <div class="time-grid" id="gridTimerMode" style="display: none;">
                     <button onclick="selectTimer(5, '00:00:05')">00:05</button>
@@ -68,13 +69,13 @@
 
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
-                <span id="toastMsg">Trade opened with price: 111.528 AUD/JPY (OTC)</span>
+                <span id="toastMsg">Trade opened with price: 111.575 AUD/JPY (OTC)</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
             <div id="resultBubble" class="result-popup-bubble">
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
-                <div class="res-val" id="resProfitVal">+1.77 $</div>
+                <div class="res-val" id="resProfitVal">+1.88 $</div>
             </div>
         </div>
 
@@ -96,8 +97,8 @@
 
             <div class="dock-row-2">
                 <div class="timer-box" onclick="toggleTimePopup()">
-                    <span class="box-lbl" id="dockTimeLabel">Time</span>
-                    <div class="box-val" id="dockTimeValue">23:29</div>
+                    <span class="box-lbl" id="dockTimeLabel">Timer</span>
+                    <div class="box-val" id="dockTimeValue">00:01:00</div>
                 </div>
                 <div class="invest-box">
                     <span class="box-lbl">Investment</span>
@@ -113,7 +114,7 @@
             <div class="payout-row">
                 <span class="payout-txt">Payout</span>
                 <span class="payout-dots">....................................................................................</span>
-                <b class="payout-amt" id="calcPayout">1.77 $</b>
+                <b class="payout-amt" id="calcPayout">1.88 $</b>
             </div>
 
             <div class="dock-actions">
@@ -187,6 +188,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=1.1"></script>
+    <script src="script.js?v=2.5"></script>
 </body>
 </html>

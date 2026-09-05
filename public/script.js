@@ -10,14 +10,14 @@ let liveBalance = 0.03;
 let panOffset = 0;
 let remainingCountdown = 60;
 
-// বর্তমান সিলেক্টেড মোড ও ভ্যালু
-let currentMode = 'time'; // 'time' অথবা 'timer'
-let selectedTimeValue = '23:29';
+// মোড ও টাইমিং ভেরিয়েবল
+let currentMode = 'timer'; // ডিফল্ট টাইমার
 let selectedTimerSeconds = 60;
 let selectedTimerDisplay = '00:01:00';
+let selectedTimeValue = '';
 let selectedTargetEpoch = 0;
 
-// রেটিনা ক্রিস্প স্কেলিং
+// রেটিনা স্ক্রিন স্কেলিং
 function fitCanvas() {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.parentElement.getBoundingClientRect();
@@ -31,38 +31,45 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// লাইভ UTC+6 ঘড়ি আপডেট
-function updateClock() {
+// লাইভ ঘড়ি ও "End of trade" প্রতি সেকেন্ডে আপডেট (মোবাইলের ঘড়ির সাথে ১০০% সিঙ্ক)
+function updateClockAndExpiry() {
     let now = new Date();
-    // UTC+6 অফসেট হিসাব
-    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    let dhakaTime = new Date(utc + (3600000 * 6));
-    
-    let h = String(dhakaTime.getHours()).padStart(2, '0');
-    let m = String(dhakaTime.getMinutes()).padStart(2, '0');
-    let s = String(dhakaTime.getSeconds()).padStart(2, '0');
-    document.getElementById('liveUtcClock').innerText = `🟢 ${h}:${m}:${s} UTC+6`;
-}
-setInterval(updateClock, 1000);
-updateClock();
+    let hh = String(now.getHours()).padStart(2, '0');
+    let mm = String(now.getMinutes()).padStart(2, '0');
+    let ss = String(now.getSeconds()).padStart(2, '0');
 
-// TIME মোডের গ্রিড বাটন জেনারেশন (স্ক্রিনশট ৭৫৭ অনুযায়ী রিয়েল টাইম থেকে ক্যালকুলেট)
+    // টপ UTC+6 ঘড়ি (মোবাইলের স্ট্যাটাস বারের সাথে মিলবে)
+    document.getElementById('liveUtcClock').innerText = `🟢 ${hh}:${mm}:${ss} UTC+6`;
+
+    // End of trade ডায়নামিক ক্যালকুলেশন (কখনোই ভুল বা পুরোনো সময় দেখাবে না)
+    if (currentMode === 'timer') {
+        let endD = new Date(now.getTime() + selectedTimerSeconds * 1000);
+        let eh = String(endD.getHours()).padStart(2, '0');
+        let em = String(endD.getMinutes()).padStart(2, '0');
+        let es = String(endD.getSeconds()).padStart(2, '0');
+        document.getElementById('endTradeSub').innerText = `${eh}:${em}:${es}`;
+    } else {
+        document.getElementById('endTradeSub').innerText = `${selectedTimeValue}:00`;
+    }
+}
+setInterval(updateClockAndExpiry, 1000);
+updateClockAndExpiry();
+
+// TIME মোডের গ্রিড জেনারেশন (বর্তমান রিয়েল মিনিট অনুযায়ী)
 function renderTimeModeGrid() {
     let container = document.getElementById('gridTimeMode');
     container.innerHTML = '';
 
     let now = new Date();
-    let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-    let cur = new Date(utc + (3600000 * 6));
-
-    // পরবর্তী নির্দিষ্ট মিনিট অফসেটগুলো: +1, +2, +3, +4, +5, +10, +15, +30, +45, +60, +120, +240 মিনিট
     let offsets = [1, 2, 3, 4, 5, 10, 15, 30, 45, 60, 120, 240];
 
     offsets.forEach((offset, idx) => {
-        let t = new Date(cur.getTime() + offset * 60000);
+        let t = new Date(now.getTime() + offset * 60000);
         let hh = String(t.getHours()).padStart(2, '0');
         let mm = String(t.getMinutes()).padStart(2, '0');
         let timeStr = `${hh}:${mm}`;
+
+        if (idx === 0 && !selectedTimeValue) selectedTimeValue = timeStr;
 
         let btn = document.createElement('button');
         btn.innerText = timeStr;
@@ -75,7 +82,6 @@ function renderTimeModeGrid() {
     });
 }
 
-// পপআপ ট্যাব সুইচ (TIMER <-> TIME)
 function switchPopupTab(tab) {
     currentMode = tab;
     let timerBtn = document.getElementById('tabTimerBtn');
@@ -101,15 +107,14 @@ function switchPopupTab(tab) {
         document.getElementById('dockTimeLabel').innerText = 'Timer';
         document.getElementById('dockTimeValue').innerText = selectedTimerDisplay;
     }
+    updateClockAndExpiry();
 }
 
 function toggleTimePopup() {
     let p = document.getElementById('timeSelectPopup');
     let willOpen = p.style.display !== 'block';
     p.style.display = willOpen ? 'block' : 'none';
-    if (willOpen && currentMode === 'time') {
-        renderTimeModeGrid();
-    }
+    if (willOpen && currentMode === 'time') renderTimeModeGrid();
 }
 
 function selectTime(val, epoch) {
@@ -117,7 +122,7 @@ function selectTime(val, epoch) {
     selectedTargetEpoch = epoch;
     document.getElementById('dockTimeValue').innerText = val;
     document.getElementById('timeSelectPopup').style.display = 'none';
-    renderTimeModeGrid();
+    updateClockAndExpiry();
 }
 
 function selectTimer(sec, display) {
@@ -127,9 +132,12 @@ function selectTimer(sec, display) {
     document.querySelectorAll('#gridTimerMode button').forEach(b => b.classList.remove('selected'));
     event.target.classList.add('selected');
     document.getElementById('timeSelectPopup').style.display = 'none';
+    updateClockAndExpiry();
 }
 
-// চার্ট ড্রয়িং
+function resetPan() { panOffset = 0; drawChart(); }
+
+// মূল ক্যানভাস চার্ট ও সম্পূর্ণ ডায়নামিক টাইমলাইন
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
@@ -150,7 +158,7 @@ function drawChart() {
     let range = (maxP - minP) || 0.040;
     let padY = 35;
 
-    // অনুভূমিক গ্রিড
+    // অনুভূমিক মূল্য গ্রিড
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -167,26 +175,12 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(3), width - 50, y + 4);
     }
 
-    // ভার্টিকাল টাইম গ্রিড
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-    for (let i = 1; i <= 4; i++) {
-        let x = (width / 5) * i;
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, height - 20);
-        ctx.stroke();
-    }
-    ctx.fillStyle = '#596a7d';
-    ctx.font = '10px sans-serif';
-    ctx.fillText('23:28', width * 0.65, height - 6);
-    ctx.fillText('23:36', width * 0.89, height - 6);
-
     let baseRightX = width - 85 + panOffset;
 
-    // ক্যান্ডেলস্টিক
+    // ক্যান্ডেল আঁকা এবং ১০০% রিয়েল ডায়নামিক বটম টাইমলাইন
     allCandles.forEach((c, index) => {
         let x = baseRightX - ((allCandles.length - 1 - index) * totalUnit);
-        if (x < -20 || x > width + 20) return;
+        if (x < -30 || x > width + 30) return;
 
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -196,6 +190,7 @@ function drawChart() {
         let openY = height - padY - ((c.open - minP) / range) * (height - padY * 2);
         let closeY = height - padY - ((c.close - minP) / range) * (height - padY * 2);
 
+        // উইক
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.2;
         ctx.beginPath();
@@ -203,13 +198,32 @@ function drawChart() {
         ctx.lineTo(Math.floor(x + candleWidth / 2) + 0.5, Math.floor(lowY));
         ctx.stroke();
 
+        // বডি
         ctx.fillStyle = color;
         let topY = Math.min(openY, closeY);
         let h = Math.abs(closeY - openY) || 1.5;
         ctx.fillRect(Math.floor(x), Math.floor(topY), candleWidth, Math.ceil(h));
+
+        // প্রতি ৮ ক্যান্ডেল পর পর আসল ক্যান্ডেলের টাইমস্ট্যাম্প অনুযায়ী নিচের টাইমলাইন আঁকা
+        if (index % 8 === 0) {
+            let cDate = new Date(c.time * 1000);
+            let ch = String(cDate.getHours()).padStart(2, '0');
+            let cm = String(cDate.getMinutes()).padStart(2, '0');
+            let timeStr = `${ch}:${cm}`;
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.beginPath();
+            ctx.moveTo(Math.floor(x + candleWidth / 2) + 0.5, 0);
+            ctx.lineTo(Math.floor(x + candleWidth / 2) + 0.5, height - 20);
+            ctx.stroke();
+
+            ctx.fillStyle = '#6e829c';
+            ctx.font = '10px sans-serif';
+            ctx.fillText(timeStr, Math.floor(x - 6), height - 6);
+        }
     });
 
-    // এক্সপায়ারেশন লাইন (End of trade)
+    // এক্সপায়ারেশন ড্যাশ লাইন (End of trade)
     let endTradeX = width - 110;
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
@@ -219,7 +233,7 @@ function drawChart() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // লাইভ প্রাইজ ও কাউন্টডাউন ব্যাজ
+    // লাইভ প্রাইজ ও কাউন্টডাউন
     if (liveCandle) {
         let liveY = height - padY - ((liveCandle.close - minP) / range) * (height - padY * 2);
 
@@ -231,7 +245,7 @@ function drawChart() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // নীল প্রাইস পিল
+        // লাইভ নীল প্রাইজ পিল
         ctx.fillStyle = '#0070f3';
         ctx.beginPath();
         ctx.roundRect(width - 56, liveY - 10, 54, 20, 4);
@@ -241,7 +255,7 @@ function drawChart() {
         ctx.font = 'bold 10px monospace';
         ctx.fillText(liveCandle.close.toFixed(3), width - 51, liveY + 4);
 
-        // এক্সপায়ারেশন ড্যাশ লাইনে কাউন্টডাউন ব্যাজ (যেমন: 00:58)
+        // লাইভ কাউন্টডাউন ব্যাজ (যেমন: - 00:11)
         let secStr = remainingCountdown < 10 ? '0' + remainingCountdown : remainingCountdown;
         ctx.fillStyle = 'rgba(23, 29, 42, 0.85)';
         ctx.fillRect(endTradeX - 25, liveY - 9, 50, 18);
@@ -250,7 +264,7 @@ function drawChart() {
         ctx.fillText(`- 00:${secStr}`, endTradeX - 23, liveY + 4);
     }
 
-    // সক্রিয় ট্রেডের মার্কার (ডট ও লাইন)
+    // ট্রেড মার্কার
     activeTrades.forEach(tr => {
         let entryY = height - padY - ((tr.price - minP) / range) * (height - padY * 2);
 
@@ -272,7 +286,7 @@ function drawChart() {
     });
 }
 
-// WebSocket কানেকশন
+// WebSocket
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -290,27 +304,12 @@ function stepAmt(v) {
     let cur = Number(document.getElementById('invAmt').innerText);
     if (cur + v >= 1) {
         document.getElementById('invAmt').innerText = cur + v;
-        document.getElementById('calcPayout').innerText = ((cur + v) * 1.77).toFixed(2) + " $";
+        document.getElementById('calcPayout').innerText = ((cur + v) * 1.88).toFixed(2) + " $";
     }
 }
 
-// ট্রেড প্লেস (TIME এবং TIMER মোডের পার্থক্য হ্যান্ডেল করা)
 function placeOrder(direction) {
     let amount = Number(document.getElementById('invAmt').innerText);
-
-    // ট্রেডের স্থায়িত্ব নির্ধারণ
-    let executionDelayMs = 3000;
-    if (currentMode === 'timer') {
-        // TIMER মোড: সিলেক্টেড সেকেন্ড অনুযায়ী (যেমন ৫ সেকেন্ড বা ৬০ সেকেন্ড)
-        executionDelayMs = selectedTimerSeconds * 1000;
-    } else {
-        // TIME মোড: রিয়েল ঘড়ির সিলেক্টেড সময় পর্যন্ত অপেক্ষা
-        if (selectedTargetEpoch > Date.now()) {
-            executionDelayMs = selectedTargetEpoch - Date.now();
-        } else {
-            executionDelayMs = 60000; // ডিফল্ট ১ মিনিট
-        }
-    }
 
     fetch('/api/trade', {
         method: 'POST',
@@ -319,10 +318,7 @@ function placeOrder(direction) {
             username: 'demo_user',
             amount,
             direction,
-            accountType: currentAccount,
-            mode: currentMode,
-            durationSec: selectedTimerSeconds,
-            targetTimestamp: selectedTargetEpoch
+            accountType: currentAccount
         })
     })
     .then(r => r.json())
@@ -335,7 +331,6 @@ function placeOrder(direction) {
         let tradeObj = { id: Date.now(), price: parseFloat(data.entryPrice), direction: data.direction };
         activeTrades.push(tradeObj);
 
-        // টোস্ট নোটিফিকেশন
         let toast = document.getElementById('tradeOpenToast');
         document.getElementById('toastMsg').innerText = `Trade opened with price: ${data.entryPrice} AUD/JPY (OTC)`;
         toast.style.display = 'flex';
@@ -343,7 +338,6 @@ function placeOrder(direction) {
 
         drawChart();
 
-        // সঠিক সময় পর ট্রেড ক্লোজ ও রেজাল্ট বাবল দেখানো
         setTimeout(() => {
             activeTrades = activeTrades.filter(t => t.id !== tradeObj.id);
             updateBalanceUI(data.balance);
@@ -357,7 +351,7 @@ function placeOrder(direction) {
                 setTimeout(() => { bubble.style.display = 'none'; }, 4000);
             }
             drawChart();
-        }, Math.min(executionDelayMs, 3000)); // ডেমো রেসপন্সের জন্য স্মুথ টাইমিং
+        }, 3000);
     });
 }
 
@@ -425,6 +419,4 @@ function submitDeposit() {
     });
 }
 
-// ডিফল্ট সেটআপ
-switchPopupTab('time');
 setTimeout(fitCanvas, 200);
