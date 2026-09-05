@@ -1,39 +1,326 @@
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-body { background: #0c0f17; color: #fff; height: 100vh; overflow: hidden; }
-.app-wrap { display: flex; flex-direction: column; height: 100vh; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
 
-.top-nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #131824; border-bottom: 1px solid #1f2638; }
-.brand { font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; }
-.badge { background: #2962ff; font-size: 10px; padding: 2px 6px; border-radius: 3px; }
-.pulse-dot { width: 8px; height: 8px; background: #00e676; border-radius: 50%; display: inline-block; }
+html, body {
+    width: 100%;
+    height: 100%;
+    background-color: #0c1017;
+    color: #ffffff;
+    overflow: hidden;
+}
 
-.user-meta { display: flex; align-items: center; gap: 8px; }
-.bal-badge { background: #1b2234; padding: 5px 8px; border-radius: 4px; font-weight: 600; font-size: 13px; color: #00e676; }
-.nav-btn { border: none; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-size: 12px; cursor: pointer; }
-.dep { background: #00e676; color: #000; }
-.wdr { background: #1b2234; color: #fff; }
+.screen-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    height: 100dvh;
+}
 
-.chart-viewport { flex: 1; position: relative; width: 100%; background: #0a0d14; }
-#candleCanvas { width: 100%; height: 100%; display: block; }
-.chart-stats { position: absolute; top: 12px; left: 14px; display: flex; flex-direction: column; gap: 2px; pointer-events: none; }
-.price-val { font-size: 20px; font-weight: 800; color: #fff; }
-.payout-val { font-size: 11px; color: #00e676; font-weight: 600; }
+/* টপ বার */
+.app-header {
+    height: 52px;
+    background: #121824;
+    border-bottom: 1px solid #1c2638;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 14px;
+}
 
-.trade-dock { background: #131824; padding: 14px; border-top: 1px solid #1f2638; display: flex; flex-direction: column; gap: 10px; }
-.dock-row { display: flex; gap: 10px; }
-.input-box { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.input-box label { font-size: 11px; color: #8c9ba5; }
-input, select { background: #1b2234; border: 1px solid #2a344d; color: #fff; padding: 8px; border-radius: 4px; font-size: 13px; width: 100%; outline: none; }
+.asset-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
 
-.btn-actions { display: flex; gap: 10px; }
-.trade-btn { flex: 1; border: none; padding: 12px; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; }
-.trade-btn.up { background: #00e676; color: #000; }
-.trade-btn.down { background: #ff1744; color: #fff; }
-.trade-btn small { font-size: 10px; font-weight: 600; opacity: 0.8; }
-.notice-bar { text-align: center; font-size: 12px; min-height: 16px; font-weight: 600; }
+.live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #00e676;
+    box-shadow: 0 0 8px #00e676;
+}
 
-.modal-layer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; z-index: 100; }
-.modal-box { background: #131824; border: 1px solid #2a344d; padding: 20px; border-radius: 8px; width: 85%; max-width: 320px; display: flex; flex-direction: column; gap: 10px; position: relative; }
-.modal-close { position: absolute; right: 12px; top: 8px; font-size: 20px; cursor: pointer; }
-.pay-info { font-size: 11px; color: #ffb300; line-height: 1.4; }
-.modal-submit { background: #2962ff; color: #fff; border: none; padding: 10px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+.asset-title {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.otc-tag {
+    font-size: 9px;
+    background: #233149;
+    padding: 2px 5px;
+    border-radius: 3px;
+    color: #7997c6;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wallet-badge {
+    background: #1a2335;
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-align: right;
+}
+
+.wallet-lbl {
+    font-size: 9px;
+    color: #7a8fa6;
+    display: block;
+}
+
+.wallet-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: #00e676;
+}
+
+.action-btn.dep-glow {
+    background: #00e676;
+    color: #000;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* চার্ট এরিয়া */
+.chart-wrapper {
+    flex: 1;
+    position: relative;
+    width: 100%;
+    background: #090c12;
+}
+
+#candleCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.chart-overlay-info {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    pointer-events: none;
+}
+
+.live-price {
+    font-size: 24px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+.candle-timer {
+    font-size: 11px;
+    color: #7a8fa6;
+    margin-top: 2px;
+}
+.candle-timer span {
+    color: #ffb300;
+    font-weight: 700;
+}
+
+/* বটম ট্রেড প্যানেল */
+.bottom-dock {
+    background: #121824;
+    border-top: 1px solid #1c2638;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dock-metrics {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.metric-box {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.m-lbl {
+    font-size: 10px;
+    color: #7a8fa6;
+}
+
+.m-val {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.m-val.profit {
+    color: #00e676;
+}
+
+.amount-stepper {
+    display: flex;
+    align-items: center;
+    background: #1a2335;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.amount-stepper button {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    padding: 3px 8px;
+    cursor: pointer;
+}
+
+.amount-stepper input {
+    width: 45px;
+    background: none;
+    border: none;
+    color: #fff;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    outline: none;
+}
+
+/* কল ও পুট বাটন */
+.action-grid {
+    display: flex;
+    gap: 10px;
+}
+
+.call-btn, .put-btn {
+    flex: 1;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.call-btn {
+    background: #00e676;
+    color: #052613;
+}
+
+.put-btn {
+    background: #ff334b;
+    color: #ffffff;
+}
+
+.btn-txt {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.btn-txt b {
+    font-size: 13px;
+}
+
+.btn-txt small {
+    font-size: 9px;
+    opacity: 0.85;
+}
+
+.quick-nav {
+    display: flex;
+    justify-content: center;
+}
+
+.quick-nav button {
+    background: none;
+    border: none;
+    color: #7a8fa6;
+    font-size: 11px;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.status-toast {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    min-height: 14px;
+}
+
+/* পপআপ মডাল */
+.sheet-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    align-items: flex-end;
+    z-index: 100;
+}
+
+.sheet-box {
+    background: #161e2e;
+    width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 18px;
+}
+
+.sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.close-x {
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.sheet-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.guide-txt {
+    font-size: 11px;
+    color: #ffb300;
+    line-height: 1.4;
+}
+
+select, input {
+    background: #1f2a3f;
+    border: 1px solid #2a3854;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+}
+
+.btn-confirm {
+    background: #00e676;
+    color: #000;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+}

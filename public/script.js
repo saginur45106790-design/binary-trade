@@ -1,127 +1,179 @@
 const canvas = document.getElementById('candleCanvas');
 const ctx = canvas.getContext('2d');
-const priceDisplay = document.getElementById('priceDisplay');
+const livePrice = document.getElementById('livePrice');
+const candleCountdown = document.getElementById('candleCountdown');
 const balanceDisplay = document.getElementById('balance');
-const tradeNotice = document.getElementById('tradeNotice');
+const statusToast = document.getElementById('statusToast');
 
-let candles = [];
-let currentLiveCandle = null;
+let candleHistory = [];
+let liveCandle = null;
+let panOffset = 0;
+let isDragging = false;
+let startX = 0;
 
-function resizeCanvas() {
+function fitCanvas() {
     canvas.width = canvas.parentElement.clientWidth;
     canvas.height = canvas.parentElement.clientHeight;
+    drawChart();
 }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+window.addEventListener('resize', fitCanvas);
 
-// চার্ট রেন্ডারিং ফাংশন
-function renderChart() {
+// টাচ এবং ড্র্যাগ ইভেন্ট (মোবাইলে স্ক্রিন টেনে পেছনের ক্যান্ডেল দেখার জন্য)
+canvas.addEventListener('touchstart', (e) => {
+    isDragging = true;
+    startX = e.touches[0].clientX;
+});
+canvas.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    let currentX = e.touches[0].clientX;
+    let diff = currentX - startX;
+    panOffset += diff * 0.7;
+    startX = currentX;
+    drawChart();
+});
+canvas.addEventListener('touchend', () => { isDragging = false; });
+
+// মাউস ড্র্যাগ (পিসি বা টেস্টের জন্য)
+canvas.addEventListener('mousedown', (e) => { isDragging = true; startX = e.clientX; });
+window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    let diff = e.clientX - startX;
+    panOffset += diff * 0.7;
+    startX = e.clientX;
+    drawChart();
+});
+window.addEventListener('mouseup', () => { isDragging = false; });
+
+function drawChart() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    let allData = [...candles];
-    if (currentLiveCandle) allData.push(currentLiveCandle);
-    if (allData.length === 0) return;
 
-    let prices = allData.flatMap(c => [c.high, c.low]);
-    let minPrice = Math.min(...prices);
-    let maxPrice = Math.max(...prices);
-    let priceRange = (maxPrice - minPrice) || 0.00010;
+    let allCandles = [...candleHistory];
+    if (liveCandle) allCandles.push(liveCandle);
+    if (allCandles.length === 0) return;
 
-    let candleWidth = canvas.width / (allData.length + 2);
-    let padding = 15;
+    let candleWidth = 14;
+    let candleSpacing = 6;
+    let totalUnit = candleWidth + candleSpacing;
 
-    // গ্রিড লাইন
-    ctx.strokeStyle = '#1b202e';
+    // হরিজন্টাল গ্রিড লাইন
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
-    for (let i = 1; i <= 4; i++) {
-        let y = (canvas.height / 5) * i;
+    for (let i = 1; i <= 5; i++) {
+        let y = (canvas.height / 6) * i;
         ctx.beginPath();
         ctx.moveTo(0, y);
         ctx.lineTo(canvas.width, y);
         ctx.stroke();
     }
 
-    // ক্যান্ডেল আঁকা
-    allData.forEach((c, idx) => {
-        let x = idx * candleWidth + 10;
-        let isUp = c.close >= c.open;
-        let color = isUp ? '#00e676' : '#ff1744';
+    // মিনিমাম ও ম্যাক্সিমাম প্রাইস ক্যালকুলেশন
+    let prices = allCandles.flatMap(c => [c.high, c.low]);
+    let minP = Math.min(...prices);
+    let maxP = Math.max(...prices);
+    let range = (maxP - minP) || 0.00010;
+    let padY = 30;
 
-        let highY = canvas.height - padding - ((c.high - minPrice) / priceRange) * (canvas.height - padding * 2);
-        let lowY = canvas.height - padding - ((c.low - minPrice) / priceRange) * (canvas.height - padding * 2);
-        let openY = canvas.height - padding - ((c.open - minPrice) / priceRange) * (canvas.height - padding * 2);
-        let closeY = canvas.height - padding - ((c.close - minPrice) / priceRange) * (canvas.height - padding * 2);
+    // সর্বশেষ ক্যান্ডেলকে ডানপাশে সেট রাখা
+    let baseRightX = canvas.width - 50 + panOffset;
 
-        // উইক (Wick)
+    allCandles.forEach((c, index) => {
+        let x = baseRightX - ((allCandles.length - 1 - index) * totalUnit);
+
+        // স্ক্রিনের বাইরে থাকলে ড্র করার প্রয়োজন নেই
+        if (x < -20 || x > canvas.width + 20) return;
+
+        let isBull = c.close >= c.open;
+        let color = isBull ? '#00e676' : '#ff334b';
+
+        let highY = canvas.height - padY - ((c.high - minP) / range) * (canvas.height - padY * 2);
+        let lowY = canvas.height - padY - ((c.low - minP) / range) * (canvas.height - padY * 2);
+        let openY = canvas.height - padY - ((c.open - minP) / range) * (canvas.height - padY * 2);
+        let closeY = canvas.height - padY - ((c.close - minP) / range) * (canvas.height - padY * 2);
+
+        // ক্যান্ডেলের উইক (Wick)
         ctx.strokeStyle = color;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
-        ctx.moveTo(x + candleWidth * 0.4, highY);
-        ctx.lineTo(x + candleWidth * 0.4, lowY);
+        ctx.moveTo(x + candleWidth / 2, highY);
+        ctx.lineTo(x + candleWidth / 2, lowY);
         ctx.stroke();
 
-        // বডি (Body)
+        // ক্যান্ডেলের বডি (Body)
         ctx.fillStyle = color;
-        let bodyY = Math.min(openY, closeY);
-        let bodyHeight = Math.abs(closeY - openY) || 2;
-        ctx.fillRect(x, bodyY, candleWidth * 0.8, bodyHeight);
+        let topY = Math.min(openY, closeY);
+        let h = Math.abs(closeY - openY) || 2;
+        ctx.fillRect(x, topY, candleWidth, h);
     });
 
-    // লাইভ ডটেড প্রাইস লাইন
-    if (currentLiveCandle) {
-        let lastY = canvas.height - padding - ((currentLiveCandle.close - minPrice) / priceRange) * (canvas.height - padding * 2);
+    // সর্বশেষ লাইভ প্রাইস হরিজন্টাল লাইন
+    if (liveCandle) {
+        let liveY = canvas.height - padY - ((liveCandle.close - minP) / range) * (canvas.height - padY * 2);
         ctx.setLineDash([4, 4]);
         ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(0, lastY);
-        ctx.lineTo(canvas.width, lastY);
+        ctx.moveTo(0, liveY);
+        ctx.lineTo(canvas.width, liveY);
         ctx.stroke();
         ctx.setLineDash([]);
+
+        // ডানপাশের প্রাইস ব্যাজ
+        ctx.fillStyle = '#263345';
+        ctx.fillRect(canvas.width - 65, liveY - 10, 65, 20);
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px monospace';
+        ctx.fillText(liveCandle.close.toFixed(5), canvas.width - 60, liveY + 4);
     }
 }
 
-// WebSocket কানেকশন
+// WebSocket সংযোগ
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
 ws.onmessage = (event) => {
-    const data = JSON.parse(event.data);
-    if (data.type === 'TICK') {
-        priceDisplay.innerText = data.price;
-        currentLiveCandle = data.candle;
-        candles = data.history;
-        renderChart();
+    let msg = JSON.parse(event.data);
+    if (msg.type === 'TICK') {
+        livePrice.innerText = msg.price;
+        liveCandle = msg.candle;
+        candleHistory = msg.history;
+        
+        let sec = msg.countdown;
+        candleCountdown.innerText = `00:${sec < 10 ? '0' + sec : sec}`;
+
+        drawChart();
     }
 };
 
-// ট্রেড ফাংশন
-function executeTrade(direction) {
-    let amount = Number(document.getElementById('tradeAmount').value);
-    let timeframe = document.getElementById('timeframe').value;
+function changeAmt(val) {
+    let cur = Number(document.getElementById('tradeAmt').value);
+    if (cur + val >= 1) document.getElementById('tradeAmt').value = cur + val;
+}
 
-    tradeNotice.innerText = `Trade Active: ${timeframe}s...`;
-    tradeNotice.style.color = '#ffb300';
+function executeTrade(direction) {
+    let amount = Number(document.getElementById('tradeAmt').value);
+    statusToast.innerText = `ট্রেড সক্রিয় হয়েছে (${direction})...`;
+    statusToast.style.color = '#ffb300';
 
     fetch('/api/trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'demo_user', amount, timeframe, direction })
+        body: JSON.stringify({ username: 'demo_user', amount, direction })
     })
     .then(r => r.json())
     .then(data => {
         if (!data.success) {
-            tradeNotice.innerText = data.message;
-            tradeNotice.style.color = '#ff1744';
+            statusToast.innerText = data.message;
+            statusToast.style.color = '#ff334b';
             return;
         }
         setTimeout(() => {
             balanceDisplay.innerText = data.balance.toFixed(2);
             if (data.isWin) {
-                tradeNotice.innerText = `WON: +$${data.profit.toFixed(2)}`;
-                tradeNotice.style.color = '#00e676';
+                statusToast.innerText = `উইন! +$${data.profit.toFixed(2)}`;
+                statusToast.style.color = '#00e676';
             } else {
-                tradeNotice.innerText = `LOST: -$${amount.toFixed(2)}`;
-                tradeNotice.style.color = '#ff1744';
+                statusToast.innerText = `লস! -$${amount.toFixed(2)}`;
+                statusToast.style.color = '#ff334b';
             }
         }, 1500);
     });
@@ -138,7 +190,10 @@ function submitDeposit() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'demo_user', method, amount, trxId })
-    }).then(r => r.json()).then(d => { alert(d.message); closeModal('depModal'); });
+    }).then(r => r.json()).then(d => {
+        alert(d.message);
+        closeModal('depModal');
+    });
 }
 
 function submitWithdraw() {
@@ -149,5 +204,10 @@ function submitWithdraw() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'demo_user', method, amount, accountNo })
-    }).then(r => r.json()).then(d => { alert(d.message); closeModal('wdModal'); location.reload(); });
+    }).then(r => r.json()).then(d => {
+        alert(d.message);
+        closeModal('wdModal');
+    });
 }
+
+setTimeout(fitCanvas, 200);

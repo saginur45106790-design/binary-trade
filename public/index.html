@@ -1,90 +1,117 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Trading Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pro Trading Terminal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-wrap">
-        <header class="top-nav">
-            <div class="brand">
-                <span class="pulse-dot"></span> EUR/USD <span class="badge">OTC</span>
+    <div class="screen-container">
+        <header class="app-header">
+            <div class="asset-pill">
+                <span class="live-dot"></span>
+                <span class="asset-title">EUR/USD</span>
+                <span class="otc-tag">OTC</span>
             </div>
-            <div class="user-meta">
-                <div class="bal-badge">Live: $<span id="balance">1000.00</span></div>
-                <button class="nav-btn dep" onclick="openModal('depModal')">Deposit</button>
-                <button class="nav-btn wdr" onclick="openModal('wdModal')">Withdraw</button>
+            
+            <div class="header-right">
+                <div class="wallet-badge">
+                    <span class="wallet-lbl">Live</span>
+                    <span class="wallet-val">$<span id="balance">1000.00</span></span>
+                </div>
+                <button class="action-btn dep-glow" onclick="openModal('depModal')">+</button>
             </div>
         </header>
 
-        <div class="chart-viewport">
-            <div class="chart-stats">
-                <span class="price-val" id="priceDisplay">1.08500</span>
-                <span class="payout-val">+85% Payout</span>
+        <div class="chart-wrapper">
+            <div class="chart-overlay-info">
+                <div class="live-price" id="livePrice">1.08500</div>
+                <div class="candle-timer">Next Candle: <span id="candleCountdown">00:60</span></div>
             </div>
             <canvas id="candleCanvas"></canvas>
         </div>
 
-        <div class="trade-dock">
-            <div class="dock-row">
-                <div class="input-box">
-                    <label>Duration</label>
-                    <select id="timeframe">
-                        <option value="5">5s (Quick)</option>
-                        <option value="60" selected>1m</option>
-                        <option value="300">5m</option>
-                        <option value="1800">30m</option>
-                    </select>
+        <footer class="bottom-dock">
+            <div class="dock-metrics">
+                <div class="metric-box">
+                    <span class="m-lbl">টাইমফ্রেম</span>
+                    <span class="m-val">1 মিনিট (60s)</span>
                 </div>
-                <div class="input-box">
-                    <label>Investment ($)</label>
-                    <input type="number" id="tradeAmount" value="10" min="1">
+                <div class="metric-box">
+                    <span class="m-lbl">ইনভেস্ট ($)</span>
+                    <div class="amount-stepper">
+                        <button onclick="changeAmt(-5)">-</button>
+                        <input type="number" id="tradeAmt" value="10" min="1">
+                        <button onclick="changeAmt(5)">+</button>
+                    </div>
+                </div>
+                <div class="metric-box right">
+                    <span class="m-lbl">প্রফিট</span>
+                    <span class="m-val profit">+85%</span>
                 </div>
             </div>
-            <div class="btn-actions">
-                <button class="trade-btn up" onclick="executeTrade('UP')">
-                    <span>CALL / UP</span>
-                    <small>▲ High</small>
+
+            <div class="action-grid">
+                <button class="call-btn" onclick="executeTrade('UP')">
+                    <span class="icon">▲</span>
+                    <div class="btn-txt">
+                        <b>UP (CALL)</b>
+                        <small>প্রাইস বৃদ্ধি পাবে</small>
+                    </div>
                 </button>
-                <button class="trade-btn down" onclick="executeTrade('DOWN')">
-                    <span>PUT / DOWN</span>
-                    <small>▼ Low</small>
+                <button class="put-btn" onclick="executeTrade('DOWN')">
+                    <span class="icon">▼</span>
+                    <div class="btn-txt">
+                        <b>DOWN (PUT)</b>
+                        <small>প্রাইস হ্রাস পাবে</small>
+                    </div>
                 </button>
             </div>
-            <div id="tradeNotice" class="notice-bar"></div>
+
+            <div class="quick-nav">
+                <button onclick="openModal('wdModal')">উইথড্র রিকোয়েস্ট</button>
+            </div>
+            <div id="statusToast" class="status-toast"></div>
+        </footer>
+    </div>
+
+    <div id="depModal" class="sheet-modal">
+        <div class="sheet-box">
+            <div class="sheet-header">
+                <h3>ডিপোজিট করুন</h3>
+                <span class="close-x" onclick="closeModal('depModal')">&times;</span>
+            </div>
+            <div class="sheet-body">
+                <p class="guide-txt">বিকাশ / নগদ (Send Money): <b>01700000000</b><br>Binance Pay ID: <b>12345678</b></p>
+                <select id="depMethod">
+                    <option value="Bkash">বিকাশ (Bkash)</option>
+                    <option value="Nagad">নগদ (Nagad)</option>
+                    <option value="Binance">Binance (USDT)</option>
+                </select>
+                <input type="number" id="depAmount" placeholder="ডলার পরিমাণ ($)">
+                <input type="text" id="depTrx" placeholder="Transaction ID (TrxID)">
+                <button class="btn-confirm" onclick="submitDeposit()">কনফার্ম ডিপোজিট</button>
+            </div>
         </div>
     </div>
 
-    <div id="depModal" class="modal-layer">
-        <div class="modal-box">
-            <span class="modal-close" onclick="closeModal('depModal')">&times;</span>
-            <h4>Deposit Balance</h4>
-            <div class="pay-info">Bkash/Nagad: <b>01700000000</b> | Binance ID: <b>98765432</b></div>
-            <select id="depMethod">
-                <option value="Bkash">Bkash</option>
-                <option value="Nagad">Nagad</option>
-                <option value="Binance">Binance Pay (USDT)</option>
-            </select>
-            <input type="number" id="depAmount" placeholder="Amount ($)">
-            <input type="text" id="depTrx" placeholder="Transaction ID (TrxID)">
-            <button class="modal-submit" onclick="submitDeposit()">Submit</button>
-        </div>
-    </div>
-
-    <div id="wdModal" class="modal-layer">
-        <div class="modal-box">
-            <span class="modal-close" onclick="closeModal('wdModal')">&times;</span>
-            <h4>Withdraw Funds</h4>
-            <select id="wdMethod">
-                <option value="Bkash">Bkash</option>
-                <option value="Nagad">Nagad</option>
-                <option value="Binance">Binance</option>
-            </select>
-            <input type="number" id="wdAmount" placeholder="Amount ($)">
-            <input type="text" id="wdAcc" placeholder="Account No / Pay ID">
-            <button class="modal-submit" onclick="submitWithdraw()">Request</button>
+    <div id="wdModal" class="sheet-modal">
+        <div class="sheet-box">
+            <div class="sheet-header">
+                <h3>উইথড্র রিকোয়েস্ট</h3>
+                <span class="close-x" onclick="closeModal('wdModal')">&times;</span>
+            </div>
+            <div class="sheet-body">
+                <select id="wdMethod">
+                    <option value="Bkash">বিকাশ</option>
+                    <option value="Nagad">নগদ</option>
+                    <option value="Binance">Binance</option>
+                </select>
+                <input type="number" id="wdAmount" placeholder="উইথড্র পরিমাণ ($)">
+                <input type="text" id="wdAcc" placeholder="বিকাশ/নগদ নম্বর বা পে আইডি">
+                <button class="btn-confirm" onclick="submitWithdraw()">রিকোয়েস্ট পাঠান</button>
+            </div>
         </div>
     </div>
 
