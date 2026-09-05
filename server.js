@@ -2,7 +2,6 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
-const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -12,39 +11,38 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 let users = {
-  "demo_user": { liveBalance: 0.03, demoBalance: 11061.07, activeAccount: "live", control: "normal" }
+  "demo_user": { liveBalance: 0.03, demoBalance: 11061.07, activeAccount: "demo", control: "normal" }
 };
 let transactions = [];
 
-const DATA_FILE = path.join(__dirname, 'candles_audjpy.json');
+let currentPrice = 111.609;
 let candleHistory = [];
-let currentPrice = 111.575;
 
-// বর্তমান রিয়েল মিনিটের ইউনিক্স টাইম (সেকেন্ডে)
-let nowSec = Math.floor(Date.now() / 1000);
-let currentMinuteEpoch = Math.floor(nowSec / 60) * 60;
-
-// ফ্রেশ হিস্ট্রি তৈরি (বর্তমান ঘড়ির সময় থেকে ঠিক পেছনের ৩০ মিনিট পর্যন্ত)
-for (let i = 35; i > 0; i--) {
-  let t = currentMinuteEpoch - (i * 60);
-  let o = currentPrice;
-  let delta = (Math.random() - 0.49) * 0.025;
-  let c = parseFloat((o + delta).toFixed(3));
-  let h = parseFloat((Math.max(o, c) + Math.random() * 0.012).toFixed(3));
-  let l = parseFloat((Math.min(o, c) - Math.random() * 0.012).toFixed(3));
-  candleHistory.push({ time: t, open: o, high: h, low: l, close: c });
-  currentPrice = c;
+function initCandles() {
+  let nowSec = Math.floor(Date.now() / 1000);
+  let nowMinute = Math.floor(nowSec / 60) * 60;
+  candleHistory = [];
+  for (let i = 40; i > 0; i--) {
+    let t = nowMinute - (i * 60);
+    let o = currentPrice;
+    let delta = (Math.random() - 0.49) * 0.025;
+    let c = parseFloat((o + delta).toFixed(3));
+    let h = parseFloat((Math.max(o, c) + Math.random() * 0.012).toFixed(3));
+    let l = parseFloat((Math.min(o, c) - Math.random() * 0.012).toFixed(3));
+    candleHistory.push({ time: t, open: o, high: h, low: l, close: c });
+    currentPrice = c;
+  }
 }
+initCandles();
 
 let currentCandle = {
-  time: currentMinuteEpoch,
+  time: Math.floor(Date.now() / 60000) * 60,
   open: currentPrice,
   high: currentPrice,
   low: currentPrice,
   close: currentPrice
 };
 
-// লাইভ ব্রডকাস্ট ইঞ্জিন
 setInterval(() => {
   let delta = (Math.random() - 0.495) * 0.005;
   currentPrice = parseFloat((currentPrice + delta).toFixed(3));
@@ -53,7 +51,6 @@ setInterval(() => {
   let sec = Math.floor(now / 1000);
   let nowMinute = Math.floor(sec / 60) * 60;
 
-  // ঠিক ৬০ সেকেন্ড পার হলে নতুন রিয়েল ক্যান্ডেল শুরু হবে
   if (nowMinute > currentCandle.time) {
     candleHistory.push({ ...currentCandle });
     if (candleHistory.length > 200) candleHistory.shift();
@@ -86,23 +83,21 @@ setInterval(() => {
   });
 }, 1000);
 
-// ট্রেড প্রসেসিং
 app.post('/api/trade', (req, res) => {
-  const { username, amount, direction, accountType, mode, durationSec, targetTimestamp } = req.body;
+  const { username, amount, direction, accountType } = req.body;
   let user = users[username] || users["demo_user"];
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
   if (targetBal < amount) {
-    return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
+    return res.json({ success: false, message: "Insufficient balance!" });
   }
 
   if (accountType === 'live') user.liveBalance -= amount;
   else user.demoBalance -= amount;
 
-  let isWin = false;
+  let isWin = (Math.random() * 100) < 40;
   if (user.control === 'win') isWin = true;
-  else if (user.control === 'loss') isWin = false;
-  else isWin = (Math.random() * 100) < 40;
+  if (user.control === 'loss') isWin = false;
 
   let profit = isWin ? parseFloat((amount * 1.88).toFixed(2)) : 0;
   if (isWin) {
@@ -111,7 +106,6 @@ app.post('/api/trade', (req, res) => {
   }
 
   let finalBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
-
   res.json({
     success: true,
     isWin,
@@ -130,45 +124,8 @@ app.post('/api/switch-account', (req, res) => {
   res.json({ success: true, activeAccount: type, balance: type === 'live' ? user.liveBalance : user.demoBalance });
 });
 
-app.post('/api/deposit', (req, res) => {
-  const { username, method, amount, trxId } = req.body;
-  transactions.push({ id: Date.now(), username, type: 'Deposit', method, amount, trxId, status: 'Pending' });
-  res.json({ success: true, message: "ডিপোজিট সফল হয়েছে!" });
-});
-
-app.post('/api/withdraw', (req, res) => {
-  const { username, method, amount, accountNo } = req.body;
-  let user = users[username] || users["demo_user"];
-  if (user.liveBalance >= amount) {
-    user.liveBalance -= Number(amount);
-    transactions.push({ id: Date.now(), username, type: 'Withdraw', method, amount, accountNo, status: 'Pending' });
-    res.json({ success: true, message: "উইথড্র রিকোয়েস্ট জমা হয়েছে!" });
-  } else res.json({ success: false, message: "পর্যাপ্ত ব্যালেন্স নেই!" });
-});
-
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.get('/api/admin/data', (req, res) => {
-  let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
-  let totalWithdraw = transactions.filter(t => t.type === 'Withdraw' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
-  res.json({ users, transactions, totalDeposit, totalWithdraw });
-});
-
-app.post('/api/admin/action', (req, res) => {
-  const { username, action, value } = req.body;
-  if (users[username]) {
-    if (action === 'control') users[username].control = value;
-    res.json({ success: true });
-  } else res.json({ success: false });
-});
-
-app.post('/api/admin/tx-action', (req, res) => {
-  const { txId, status } = req.body;
-  let tx = transactions.find(t => t.id == txId);
-  if (tx) {
-    tx.status = status;
-    res.json({ success: true });
-  } else res.json({ success: false });
-});
+app.get('/api/admin/data', (req, res) => res.json({ users, transactions }));
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

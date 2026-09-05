@@ -3,73 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket Trade Pro</title>
-    <link rel="stylesheet" href="style.css?v=2.5">
+    <title>Pocket Option</title>
+    <link rel="stylesheet" href="style.css?v=3.0">
 </head>
 <body>
     <div class="app-root">
         <header class="top-bar">
             <div class="account-select-pill" onclick="toggleAccountModal()">
-                <span id="accountIcon" class="acc-icon">✈️</span>
-                <span id="accountLabel" class="acc-label live">LIVE</span>
-                <span id="accountBal" class="acc-bal">$0.03</span>
+                <span id="accountIcon" class="acc-icon">🎓</span>
+                <span id="accountLabel" class="acc-label demo">DEMO</span>
+                <span id="accountBal" class="acc-bal">$11,061.95</span>
                 <span class="chevron">▼</span>
             </div>
 
             <div class="top-bar-right">
-                <div class="notification-btn">
+                <div class="notification-btn" onclick="openDrawer('trades')">
                     <span class="bell-icon">🔔</span>
                     <span class="badge-num">13</span>
                 </div>
-                <button class="deposit-btn" onclick="openModal('depModal')">Deposit</button>
+                <button class="deposit-btn" onclick="openDrawer('payments')">Deposit</button>
             </div>
         </header>
 
         <div class="chart-box-container" id="chartContainer">
-            <div id="chartWatermark" class="watermark-text">LIVE</div>
+            <div id="chartWatermark" class="watermark-text">DEMO</div>
 
             <div class="chart-meta-tags">
-                <div class="sub-menu-btn">•••</div>
-                <div class="briefcase-btn">💼<span class="sub-badge">0</span></div>
+                <div class="sub-menu-btn" onclick="toggleToolsMenu()">•••</div>
+                <div class="briefcase-btn" onclick="toggleBottomTrades()">💼<span class="sub-badge" id="openTradesBadge">0</span></div>
                 <div class="utc-clock" id="liveUtcClock">🟢 00:00:00 UTC+6</div>
-                <div class="info-circle">ℹ️</div>
+                <div class="info-circle" onclick="openDrawer('analytics')">ℹ️</div>
                 <div class="trade-phase-tag">Beginning of trade</div>
                 <div class="trade-end-tag">End of trade<br><span id="endTradeSub" style="color:#2a66e4; font-weight:700;">--:--:--</span></div>
+            </div>
+
+            <div id="chartToolsSidebar" class="chart-tools-menu">
+                <div class="tools-tab-content">
+                    <div class="tf-title">TIMEFRAMES</div>
+                    <div class="tf-grid">
+                        <button onclick="setTimeframe('5s')">5s</button>
+                        <button onclick="setTimeframe('10s')">10s</button>
+                        <button onclick="setTimeframe('15s')">15s</button>
+                        <button onclick="setTimeframe('30s')">30s</button>
+                        <button onclick="setTimeframe('1m')" class="active">1m</button>
+                        <button onclick="setTimeframe('2m')">2m</button>
+                        <button onclick="setTimeframe('5m')">5m</button>
+                        <button onclick="setTimeframe('15m')">15m</button>
+                        <button onclick="setTimeframe('30m')">30m</button>
+                        <button onclick="setTimeframe('1h')">1h</button>
+                        <button onclick="setTimeframe('1d')">1d</button>
+                    </div>
+                </div>
             </div>
 
             <canvas id="tradeCanvas"></canvas>
 
             <div class="center-chart-btn" onclick="resetPan()">➔</div>
 
-            <div id="timeSelectPopup" class="time-popup-dialog">
-                <div class="time-tabs">
-                    <button id="tabTimerBtn" class="t-tab" onclick="switchPopupTab('timer')">TIMER</button>
-                    <button id="tabTimeBtn" class="t-tab active" onclick="switchPopupTab('time')">TIME</button>
-                </div>
-
-                <div class="time-grid" id="gridTimeMode"></div>
-
-                <div class="time-grid" id="gridTimerMode" style="display: none;">
-                    <button onclick="selectTimer(5, '00:00:05')">00:05</button>
-                    <button onclick="selectTimer(10, '00:00:10')">00:10</button>
-                    <button onclick="selectTimer(15, '00:00:15')">00:15</button>
-                    <button onclick="selectTimer(30, '00:00:30')">00:30</button>
-                    <button onclick="selectTimer(60, '00:01:00')" class="selected">01:00</button>
-                    <button onclick="selectTimer(120, '00:02:00')">02:00</button>
-                    <button onclick="selectTimer(300, '00:05:00')">05:00</button>
-                    <button onclick="selectTimer(600, '00:10:00')">10:00</button>
-                    <button onclick="selectTimer(900, '00:15:00')">15:00</button>
-                    <button onclick="selectTimer(1800, '00:30:00')">30:00</button>
-                    <button onclick="selectTimer(3600, '01:00:00')">01:00:00</button>
-                    <button onclick="selectTimer(7200, '02:00:00')">02:00:00</button>
-                </div>
-
-                <button class="set-manually-btn">Set manually</button>
-            </div>
-
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
-                <span id="toastMsg">Trade opened with price: 111.575 AUD/JPY (OTC)</span>
+                <span id="toastMsg">Trade opened with price: 111.609 AUD/JPY (OTC)</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
@@ -77,14 +70,24 @@
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
                 <div class="res-val" id="resProfitVal">+1.88 $</div>
             </div>
+
+            <div id="bottomTradesDrawer" class="trades-drawer">
+                <div class="drawer-head" onclick="toggleBottomTrades()">
+                    <span>Trades: <b id="drawerCount">0</b></span>
+                    <span class="close-drawer">▼</span>
+                </div>
+                <div class="drawer-list" id="activeTradesList">
+                    <p style="padding:15px; color:#6e829c; font-size:12px; text-align:center;">No active trades</p>
+                </div>
+            </div>
         </div>
 
         <div class="dock-panel">
             <div class="dock-row-1">
-                <div class="asset-selector">
-                    <span class="flag-icon">🇦🇺🇯🇵</span>
-                    <b>AUD/JPY ...</b>
-                    <span class="payout-pill">88% ▼</span>
+                <div class="asset-selector" onclick="openAssetModal()">
+                    <span class="flag-icon" id="curFlag">🇦🇺🇯🇵</span>
+                    <b id="curName">AUD/JPY ...</b>
+                    <span class="payout-pill" id="curPayout">88% ▼</span>
                 </div>
                 <div class="pending-toggle">
                     <span>PENDING TRADE</span>
@@ -97,8 +100,8 @@
 
             <div class="dock-row-2">
                 <div class="timer-box" onclick="toggleTimePopup()">
-                    <span class="box-lbl" id="dockTimeLabel">Timer</span>
-                    <div class="box-val" id="dockTimeValue">00:01:00</div>
+                    <span class="box-lbl" id="dockTimeLabel">Time</span>
+                    <div class="box-val" id="dockTimeValue">23:53</div>
                 </div>
                 <div class="invest-box">
                     <span class="box-lbl">Investment</span>
@@ -129,12 +132,195 @@
             </div>
 
             <nav class="footer-icons">
-                <div class="f-icon active">📊</div>
-                <div class="f-icon">❔</div>
-                <div class="f-icon">👤</div>
-                <div class="f-icon badge-icon">🏆<span class="f-badge">4</span></div>
-                <div class="f-icon badge-icon">💬<span class="f-badge">4</span></div>
+                <div class="f-icon active" onclick="closeAllDrawers()">📊</div>
+                <div class="f-icon" onclick="openDrawer('faq')">❔</div>
+                <div class="f-icon" onclick="openDrawer('profile')">👤</div>
+                <div class="f-icon badge-icon" onclick="openDrawer('tournaments')">🏆<span class="f-badge">4</span></div>
+                <div class="f-icon badge-icon" onclick="openDrawer('menu')">💬<span class="f-badge">4</span></div>
             </nav>
+        </div>
+    </div>
+
+    <div id="timeSelectPopup" class="time-popup-dialog">
+        <div class="time-tabs">
+            <button id="tabTimerBtn" class="t-tab" onclick="switchPopupTab('timer')">TIMER</button>
+            <button id="tabTimeBtn" class="t-tab active" onclick="switchPopupTab('time')">TIME</button>
+        </div>
+
+        <div class="time-grid" id="gridTimeMode"></div>
+
+        <div class="time-grid" id="gridTimerMode" style="display: none;">
+            <button onclick="selectTimer(5, '00:00:05')">00:05</button>
+            <button onclick="selectTimer(10, '00:00:10')">00:10</button>
+            <button onclick="selectTimer(15, '00:00:15')">00:15</button>
+            <button onclick="selectTimer(30, '00:00:30')">00:30</button>
+            <button onclick="selectTimer(60, '00:01:00')" class="selected">01:00</button>
+            <button onclick="selectTimer(120, '00:02:00')">02:00</button>
+            <button onclick="selectTimer(300, '00:05:00')">05:00</button>
+            <button onclick="selectTimer(600, '00:10:00')">10:00</button>
+            <button onclick="selectTimer(900, '00:15:00')">15:00</button>
+            <button onclick="selectTimer(1800, '00:30:00')">30:00</button>
+            <button onclick="selectTimer(3600, '01:00:00')">01:00:00</button>
+            <button onclick="selectTimer(7200, '02:00:00')">02:00:00</button>
+        </div>
+
+        <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
+    </div>
+
+    <div id="assetModal" class="full-screen-modal">
+        <div class="modal-inner">
+            <div class="modal-header">
+                <h3>Select trade pair</h3>
+                <span class="x-close" onclick="closeAssetModal()">✕</span>
+            </div>
+            <div class="search-box-row">
+                <input type="text" placeholder="Search pair..." id="assetSearch">
+            </div>
+            <div class="asset-list-view">
+                <div class="asset-item" onclick="pickAsset('AUD/JPY (OTC)', '🇦🇺🇯🇵', 88)">
+                    <span>🇦🇺🇯🇵 AUD/JPY (OTC)</span> <b class="green-pct">88%</b>
+                </div>
+                <div class="asset-item" onclick="pickAsset('EUR/USD (OTC)', '🇪🇺🇺🇸', 92)">
+                    <span>🇪🇺🇺🇸 EUR/USD (OTC)</span> <b class="green-pct">92%</b>
+                </div>
+                <div class="asset-item" onclick="pickAsset('USD/INR (OTC)', '🇺🇸🇮🇳', 92)">
+                    <span>🇺🇸🇮🇳 USD/INR (OTC)</span> <b class="green-pct">92%</b>
+                </div>
+                <div class="asset-item" onclick="pickAsset('USD/BDT (OTC)', '🇺🇸🇧🇩', 86)">
+                    <span>🇺🇸🇧🇩 USD/BDT (OTC)</span> <b class="green-pct">86%</b>
+                </div>
+                <div class="asset-item" onclick="pickAsset('Bitcoin (OTC)', '₿', 85)">
+                    <span>₿ Bitcoin (OTC)</span> <b class="green-pct">85%</b>
+                </div>
+                <div class="asset-item" onclick="pickAsset('Binance Coin (OTC)', '🟡', 92)">
+                    <span>🟡 Binance Coin (OTC)</span> <b class="green-pct">92%</b>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="globalDrawer" class="global-drawer-overlay">
+        <div class="drawer-content-card">
+            <div class="drawer-top-bar">
+                <select id="drawerPageSelect" onchange="switchDrawerPage(this.value)">
+                    <option value="profile">My Account</option>
+                    <option value="withdrawal">Withdrawal</option>
+                    <option value="payments">Payments</option>
+                    <option value="trades">Trades</option>
+                    <option value="market">Market</option>
+                    <option value="tournaments">Tournaments</option>
+                    <option value="analytics">Analytics</option>
+                </select>
+                <span class="drawer-x" onclick="closeAllDrawers()">✕</span>
+            </div>
+
+            <div id="page-profile" class="drawer-page-body">
+                <div class="user-avatar-badge">
+                    <div class="avatar-circle">👤</div>
+                    <div>
+                        <b>teachsajib@gmail.com</b>
+                        <div style="font-size:11px; color:#6e829c;">ID: 85857047 <span style="color:#00b074;">✔ Verified</span></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nickname</label>
+                    <input type="text" value="SojibTrader" readonly>
+                </div>
+                <div class="form-group">
+                    <label>First Name</label>
+                    <input type="text" value="MD Sajib" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <input type="text" value="Hossain" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Country</label>
+                    <input type="text" value="Bangladesh" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" value="Akkelpur, Rajshahi, Bangladesh" readonly>
+                </div>
+            </div>
+
+            <div id="page-withdrawal" class="drawer-page-body" style="display:none;">
+                <div class="bal-card">Available for withdrawal: <b>0.03 $</b></div>
+                <div class="form-group">
+                    <label>Amount (USD)</label>
+                    <input type="number" value="10">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select>
+                        <option>Binance Pay</option>
+                        <option>Bkash</option>
+                        <option>Nagad</option>
+                    </select>
+                </div>
+                <button class="primary-btn">Confirm Withdrawal</button>
+                <h4 style="margin-top:15px; font-size:12px;">Recent requests:</h4>
+                <div class="req-item"><span>126022410 (Binance Pay)</span> <b style="color:#00b074;">+13.00 $ Successed</b></div>
+                <div class="req-item"><span>125912179 (Binance Pay)</span> <b style="color:#00b074;">+13.00 $ Successed</b></div>
+            </div>
+
+            <div id="page-payments" class="drawer-page-body" style="display:none;">
+                <h4 style="font-size:12px; margin-bottom:8px;">Transaction History</h4>
+                <div class="req-item"><span>Deposit (Binance Pay)</span> <b style="color:#00b074;">+$13.00</b></div>
+                <div class="req-item"><span>Deposit (Bkash)</span> <b style="color:#00b074;">+$20.00</b></div>
+            </div>
+
+            <div id="page-trades" class="drawer-page-body" style="display:none;">
+                <h4 style="font-size:12px; margin-bottom:8px;">Trade History (Live Account)</h4>
+                <div class="trade-history-item win">
+                    <span>AUD/JPY (OTC)</span> <b>+$1.88</b>
+                </div>
+                <div class="trade-history-item loss">
+                    <span>EUR/USD (OTC)</span> <b>-$1.00</b>
+                </div>
+                <div class="trade-history-item win">
+                    <span>USD/BDT (OTC)</span> <b>+$1.86</b>
+                </div>
+            </div>
+
+            <div id="page-market" class="drawer-page-body" style="display:none;">
+                <div class="market-card">
+                    <h4>🛡️ Risk Free</h4>
+                    <p style="font-size:11px; color:#6e829c;">0 promo codes available</p>
+                </div>
+                <div class="market-card">
+                    <h4>🎁 Cashback</h4>
+                    <p style="font-size:11px; color:#6e829c;">AHAubeFy1q (10%)</p>
+                </div>
+                <div class="market-card">
+                    <h4>💰 Deposit Bonus</h4>
+                    <p style="font-size:11px; color:#6e829c;">DEPOSIT50 (50% Bonus)</p>
+                </div>
+            </div>
+
+            <div id="page-tournaments" class="drawer-page-body" style="display:none;">
+                <div class="tour-card">
+                    <b>Crazy Wednesday</b>
+                    <span style="color:#f5a623;">Prize Pool: $7500</span>
+                    <small>Entry: $10 | Duration: 1 day</small>
+                </div>
+                <div class="tour-card">
+                    <b>Weekend Battle</b>
+                    <span style="color:#f5a623;">Prize Pool: $5000</span>
+                    <small>Entry: $1 | Duration: 2 days</small>
+                </div>
+            </div>
+
+            <div id="page-analytics" class="drawer-page-body" style="display:none;">
+                <div class="stat-circle-row">
+                    <div class="circle-metric">129<br><small>Trades</small></div>
+                    <div style="flex:1;">
+                        <div>Profit: <b style="color:#ff4747;">-51.95 $</b></div>
+                        <div>Profitable trades: <b style="color:#00b074;">47%</b></div>
+                        <div>Net turnover: <b>223.65 $</b></div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -145,49 +331,28 @@
                 <span class="eye-btn">👁️</span>
             </div>
             <div class="user-email-id">
-                <div class="u-mail">user@pocket.com</div>
+                <div class="u-mail">teachsajib@gmail.com</div>
                 <div class="u-id">ID: 85857047</div>
-            </div>
-            <div class="currency-row">
-                <span>Currency: <b>USD</b></span>
-                <button class="btn-change">CHANGE</button>
             </div>
 
             <div class="acc-option" onclick="switchAccount('live')">
-                <input type="radio" name="accType" id="radioLive" checked>
+                <input type="radio" name="accType" id="radioLive">
                 <div class="acc-opt-info">
                     <div class="opt-title">Live Account</div>
                     <div class="opt-bal" id="modalLiveBal">$0.03</div>
-                    <div class="opt-sub">The daily limit is not set <span class="blue-link">SET LIMIT</span></div>
                 </div>
             </div>
 
             <div class="acc-option" onclick="switchAccount('demo')">
-                <input type="radio" name="accType" id="radioDemo">
+                <input type="radio" name="accType" id="radioDemo" checked>
                 <div class="acc-opt-info">
                     <div class="opt-title">Demo Account</div>
-                    <div class="opt-bal" id="modalDemoBal">$11,061.07 🔄</div>
+                    <div class="opt-bal" id="modalDemoBal">$11,061.95 🔄</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="depModal" class="std-modal">
-        <div class="std-modal-box">
-            <span class="close-btn" onclick="closeModal('depModal')">✕</span>
-            <h3>ডিপোজিট ফান্ড</h3>
-            <p class="dep-note">বিকাশ/নগদ: <b>01700000000</b> | Binance ID: <b>85857047</b></p>
-            <select id="depMethod">
-                <option value="Bkash">Bkash</option>
-                <option value="Nagad">Nagad</option>
-                <option value="Binance">Binance Pay (USDT)</option>
-            </select>
-            <input type="number" id="depAmount" placeholder="Amount ($)">
-            <input type="text" id="depTrx" placeholder="Transaction ID (TrxID)">
-            <button class="submit-action" onclick="submitDeposit()">Submit Deposit</button>
-        </div>
-    </div>
-
-    <script src="script.js?v=2.5"></script>
+    <script src="script.js?v=3.0"></script>
 </body>
 </html>

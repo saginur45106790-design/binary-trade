@@ -23,7 +23,7 @@ body, html {
     height: 100dvh;
 }
 
-/* টপ বার */
+/* শীর্ষ বার */
 .top-bar {
     height: 48px;
     background: #1b2230;
@@ -84,7 +84,7 @@ body, html {
     cursor: pointer;
 }
 
-/* চার্ট ভিউপোর্ট */
+/* চার্ট এলাকা */
 .chart-box-container {
     flex: 1;
     position: relative;
@@ -125,11 +125,12 @@ body, html {
 }
 .sub-menu-btn, .briefcase-btn, .info-circle {
     background: #1c2536;
-    padding: 3px 6px;
+    padding: 4px 8px;
     border-radius: 4px;
     color: #8fa0b5;
     pointer-events: auto;
     font-size: 11px;
+    cursor: pointer;
 }
 .sub-badge {
     background: #2a66e4;
@@ -142,71 +143,72 @@ body, html {
 .trade-phase-tag { margin-left: 4px; }
 .trade-end-tag { margin-left: auto; text-align: right; line-height: 1.2; }
 
-/* টাইম ও টাইমার পপআপ ডায়ালগ (স্ক্রিনশট ৭৫৭ ও ৭৫৮ অনুযায়ী) */
-.time-popup-dialog {
+.center-chart-btn {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: #ffffff;
+    color: #171d28;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    z-index: 10;
+}
+
+/* টুলস সাইডবার */
+.chart-tools-menu {
     display: none;
     position: absolute;
-    bottom: 8px;
-    left: 12px;
-    width: 240px;
-    background: #1f2737;
+    top: 38px;
+    left: 10px;
+    background: #1c2536;
     border: 1px solid #2b374d;
-    border-radius: 8px;
-    padding: 10px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    z-index: 50;
-}
-.time-tabs {
-    display: flex;
-    background: #171d28;
     border-radius: 6px;
-    padding: 2px;
-    margin-bottom: 10px;
+    padding: 10px;
+    z-index: 25;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
 }
-.t-tab {
-    flex: 1;
-    background: none;
-    border: none;
-    color: #798b9f;
-    font-size: 11px;
-    font-weight: 800;
+.tf-title { font-size: 10px; color: #6e829c; margin-bottom: 6px; font-weight: 700; }
+.tf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+.tf-grid button {
+    background: #273246;
+    border: 1px solid #324059;
+    color: #fff;
     padding: 6px;
     border-radius: 4px;
-    cursor: pointer;
-}
-.t-tab.active {
-    background: #0070f3;
-    color: #ffffff;
-}
-.time-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-}
-.time-grid button {
-    background: #273246;
-    border: 1px solid #324059;
-    color: #ffffff;
-    padding: 8px 4px;
-    border-radius: 5px;
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
 }
-.time-grid button.selected {
-    background: #0070f3;
-    border-color: #0070f3;
+.tf-grid button.active { background: #0070f3; }
+
+/* বটম ট্রেড ড্রয়ার */
+.trades-drawer {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1b2230;
+    border-top: 1px solid #283348;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 25;
 }
-.set-manually-btn {
-    width: 100%;
-    background: #273246;
-    border: 1px solid #324059;
-    color: #ffffff;
-    padding: 8px;
-    border-radius: 5px;
-    font-size: 11px;
+.drawer-head {
+    background: #222b3d;
+    padding: 8px 12px;
+    font-size: 12px;
     font-weight: 700;
-    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
     cursor: pointer;
 }
 
@@ -225,7 +227,6 @@ body, html {
     font-weight: 600;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
     z-index: 20;
     max-width: 90%;
 }
@@ -238,14 +239,13 @@ body, html {
     color: #fff;
     padding: 6px 12px;
     border-radius: 6px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
     z-index: 25;
 }
 .res-head { font-size: 9px; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; opacity: 0.9; }
 .res-val { font-size: 15px; font-weight: 800; margin-top: 2px; }
 .res-x { cursor: pointer; }
 
-/* বটম ডক প্যানেল */
+/* বটম কন্ট্রোল ডক */
 .dock-panel {
     background: #1b2230;
     border-top: 1px solid #232c3d;
@@ -266,6 +266,7 @@ body, html {
     gap: 6px;
     font-size: 13px;
     font-weight: 700;
+    cursor: pointer;
 }
 .payout-pill { color: #f5a623; font-size: 12px; }
 
@@ -418,14 +419,141 @@ input:checked + .slider:before { transform: translateX(14px); }
     border-radius: 8px;
 }
 
-/* ড্রপডাউন ও মডাল */
-.acc-modal-overlay, .std-modal {
+/* টাইম/টাইমার পপআপ */
+.time-popup-dialog {
+    display: none;
+    position: fixed;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    background: #1f2737;
+    border: 1px solid #2b374d;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 100;
+}
+.time-tabs {
+    display: flex;
+    background: #171d28;
+    border-radius: 6px;
+    padding: 2px;
+    margin-bottom: 10px;
+}
+.t-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #798b9f;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.t-tab.active { background: #0070f3; color: #ffffff; }
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+.time-grid button {
+    background: #273246;
+    border: 1px solid #324059;
+    color: #ffffff;
+    padding: 8px 4px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.time-grid button.selected { background: #0070f3; border-color: #0070f3; }
+.set-manually-btn {
+    width: 100%;
+    background: #0070f3;
+    border: none;
+    color: #ffffff;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+/* কারেন্সি অ্যাসেট সিলেক্টর ও ড্রয়ার পেজসমূহ */
+.full-screen-modal, .global-drawer-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
+    background: rgba(0,0,0,0.7);
+    z-index: 120;
+    align-items: flex-end;
 }
+.modal-inner, .drawer-content-card {
+    background: #171d28;
+    width: 100%;
+    max-height: 80vh;
+    border-radius: 16px 16px 0 0;
+    padding: 16px;
+    overflow-y: auto;
+}
+.modal-header, .drawer-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.x-close, .drawer-x { font-size: 20px; cursor: pointer; }
+.search-box-row input {
+    width: 100%;
+    background: #222b3d;
+    border: 1px solid #2d3950;
+    color: #fff;
+    padding: 8px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    outline: none;
+}
+.asset-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px;
+    border-bottom: 1px solid #202738;
+    cursor: pointer;
+}
+.green-pct { color: #00e676; }
+
+/* প্রোফাইল ও ফর্ম উপাদান */
+.user-avatar-badge { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #222b3d; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.form-group { margin-bottom: 10px; }
+.form-group label { font-size: 11px; color: #6e829c; display: block; margin-bottom: 4px; }
+.form-group input, .form-group select {
+    width: 100%;
+    background: #222b3d;
+    border: 1px solid #2d3950;
+    color: #fff;
+    padding: 8px;
+    border-radius: 4px;
+    outline: none;
+}
+.primary-btn { width: 100%; background: #0070f3; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+.req-item, .market-card, .tour-card, .trade-history-item {
+    background: #202738;
+    padding: 10px;
+    border-radius: 6px;
+    margin-top: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+.trade-history-item.win b { color: #00b074; }
+.trade-history-item.loss b { color: #ff4747; }
+.stat-circle-row { display: flex; gap: 15px; align-items: center; }
+.circle-metric { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #00e676; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; }
+
+.acc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
 .acc-dropdown-card {
     position: absolute;
     top: 50px;
@@ -435,77 +563,8 @@ input:checked + .slider:before { transform: translateX(14px); }
     border: 1px solid #263245;
     border-radius: 8px;
     padding: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
 }
-.acc-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #232c3d;
-    padding-bottom: 8px;
-}
+.acc-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #232c3d; padding-bottom: 8px; }
 .std-badge { font-size: 11px; color: #00b074; }
-.user-email-id { margin-top: 10px; }
-.u-mail { font-size: 13px; font-weight: 700; }
-.u-id { font-size: 11px; color: #6e829c; }
-.currency-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    margin: 10px 0;
-}
-.btn-change {
-    background: #0070f3;
-    color: #fff;
-    border: none;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-.acc-option {
-    display: flex;
-    gap: 10px;
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    background: #20293a;
-    margin-top: 8px;
-}
-.opt-title { font-size: 12px; color: #a4b3c7; }
-.opt-bal { font-size: 14px; font-weight: 700; margin: 2px 0; }
-.opt-sub { font-size: 9px; color: #6e829c; }
-.blue-link { color: #0070f3; }
-
-.std-modal { align-items: center; justify-content: center; }
-.std-modal-box {
-    background: #19202c;
-    border: 1px solid #263245;
-    padding: 18px;
-    border-radius: 8px;
-    width: 85%;
-    max-width: 320px;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.close-btn { position: absolute; right: 12px; top: 8px; cursor: pointer; }
-.dep-note { font-size: 11px; color: #f5a623; }
-.std-modal-box select, .std-modal-box input {
-    background: #222b3d;
-    border: 1px solid #2d3950;
-    color: #fff;
-    padding: 8px;
-    border-radius: 4px;
-    outline: none;
-}
-.submit-action {
-    background: #00b074;
-    color: #fff;
-    border: none;
-    padding: 10px;
-    border-radius: 4px;
-    font-weight: 700;
-    cursor: pointer;
-}
+.user-email-id { margin-top: 10px; font-size: 12px; }
+.acc-option { display: flex; gap: 10px; padding: 8px; border-radius: 6px; cursor: pointer; background: #20293a; margin-top: 8px; }
