@@ -2,100 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Secure Admin Control Panel</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Admin Control Dashboard</title>
+    <style>
+        body { background: #0e131b; color: #fff; font-family: sans-serif; padding: 20px; }
+        .card { background: #19202c; border: 1px solid #263245; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: #131924; }
+        th, td { padding: 10px; border: 1px solid #263245; text-align: center; }
+        button { padding: 5px 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .win { background: #00b074; color: #fff; }
+        .loss { background: #ff4747; color: #fff; }
+        .norm { background: #4f5d73; color: #fff; }
+    </style>
 </head>
-<body style="padding: 20px; background: #0b0e14;">
-    <h2 style="color: #ff9800;">👑 Secure Admin Control Dashboard</h2>
-    <div class="admin-stats" style="display: flex; gap: 20px; margin-bottom: 20px;">
-        <div class="stat-card" style="background:#1e222d; padding:15px; border-radius:6px;">Total Approved Deposit: $<span id="totDep">0</span></div>
-        <div class="stat-card" style="background:#1e222d; padding:15px; border-radius:6px;">Total Approved Withdraw: $<span id="totWd">0</span></div>
+<body>
+    <h2>👑 Master Admin Control Panel</h2>
+    <div class="card">
+        <h3>24 Hours Overview</h3>
+        <p>Total Deposit: $<span id="totDep">0</span> | Total Withdraw: $<span id="totWd">0</span></p>
     </div>
 
-    <h3>User Win/Loss Force Control</h3>
-    <table border="1" style="width:100%; border-collapse: collapse; background:#1e222d; color:#fff;" id="userTable">
-        <tr>
-            <th>Username</th>
-            <th>Balance</th>
-            <th>Current Control</th>
-            <th>Action Control</th>
-        </tr>
-    </table>
+    <div class="card">
+        <h3>User Win/Loss Override</h3>
+        <table id="userTable">
+            <tr><th>Username</th><th>Live Bal</th><th>Demo Bal</th><th>Mode</th><th>Action</th></tr>
+        </table>
+    </div>
 
-    <h3 style="margin-top: 30px;">Deposit & Withdrawal Requests</h3>
-    <table border="1" style="width:100%; border-collapse: collapse; background:#1e222d; color:#fff;" id="txTable">
-        <tr>
-            <th>User</th>
-            <th>Type</th>
-            <th>Method</th>
-            <th>Amount</th>
-            <th>Details (TrxID / Acc)</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-    </table>
+    <div class="card">
+        <h3>Transactions (Deposit / Withdraw)</h3>
+        <table id="txTable">
+            <tr><th>User</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th><th>Action</th></tr>
+        </table>
+    </div>
 
     <script>
-        function loadAdminData() {
-            fetch('/api/admin/data')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('totDep').innerText = data.totalDeposit;
-                document.getElementById('totWd').innerText = data.totalWithdraw;
+        function loadData() {
+            fetch('/api/admin/data').then(r => r.json()).then(d => {
+                document.getElementById('totDep').innerText = d.totalDeposit;
+                document.getElementById('totWd').innerText = d.totalWithdraw;
 
-                let userHtml = `<tr><th>Username</th><th>Balance</th><th>Current Control</th><th>Action Control</th></tr>`;
-                for(let uname in data.users) {
-                    let u = data.users[uname];
-                    userHtml += `<tr>
-                        <td>${uname}</td>
-                        <td>$${u.balance.toFixed(2)}</td>
-                        <td><b>${u.control.toUpperCase()}</b></td>
+                let uHtml = `<tr><th>Username</th><th>Live Bal</th><th>Demo Bal</th><th>Mode</th><th>Action</th></tr>`;
+                for(let u in d.users) {
+                    let usr = d.users[u];
+                    uHtml += `<tr>
+                        <td>${u}</td>
+                        <td>$${usr.liveBalance}</td>
+                        <td>$${usr.demoBalance}</td>
+                        <td><b>${usr.control.toUpperCase()}</b></td>
                         <td>
-                            <button onclick="setUserControl('${uname}', 'win')" style="background:green; color:white; padding:5px 10px; cursor:pointer;">Force Win</button>
-                            <button onclick="setUserControl('${uname}', 'loss')" style="background:red; color:white; padding:5px 10px; cursor:pointer;">Force Loss</button>
-                            <button onclick="setUserControl('${uname}', 'normal')" style="background:gray; color:white; padding:5px 10px; cursor:pointer;">Normal</button>
+                            <button class="win" onclick="setMode('${u}','win')">Force WIN</button>
+                            <button class="loss" onclick="setMode('${u}','loss')">Force LOSS</button>
+                            <button class="norm" onclick="setMode('${u}','normal')">Normal (40%)</button>
                         </td>
                     </tr>`;
                 }
-                document.getElementById('userTable').innerHTML = userHtml;
+                document.getElementById('userTable').innerHTML = uHtml;
 
-                let txHtml = `<tr><th>User</th><th>Type</th><th>Method</th><th>Amount</th><th>Details</th><th>Status</th><th>Action</th></tr>`;
-                data.transactions.forEach(tx => {
-                    txHtml += `<tr>
-                        <td>${tx.username}</td>
-                        <td>${tx.type}</td>
-                        <td>${tx.method}</td>
-                        <td>$${tx.amount}</td>
-                        <td>${tx.trxId || tx.accountNo}</td>
-                        <td>${tx.status}</td>
+                let tHtml = `<tr><th>User</th><th>Type</th><th>Method</th><th>Amount</th><th>Status</th><th>Action</th></tr>`;
+                d.transactions.forEach(t => {
+                    tHtml += `<tr>
+                        <td>${t.username}</td>
+                        <td>${t.type}</td>
+                        <td>${t.method}</td>
+                        <td>$${t.amount}</td>
+                        <td>${t.status}</td>
                         <td>
-                            <button onclick="txAction(${tx.id}, 'Approved')" style="background:green; color:white; padding:5px 10px; cursor:pointer;">Approve</button>
-                            <button onclick="txAction(${tx.id}, 'Rejected')" style="background:red; color:white; padding:5px 10px; cursor:pointer;">Reject</button>
+                            <button class="win" onclick="setTx(${t.id},'Approved')">Approve</button>
+                            <button class="loss" onclick="setTx(${t.id},'Rejected')">Reject</button>
                         </td>
                     </tr>`;
                 });
-                document.getElementById('txTable').innerHTML = txHtml;
+                document.getElementById('txTable').innerHTML = tHtml;
             });
         }
-
-    function setUserControl(username, state) {
-        fetch('/api/admin/action', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, action: 'control', value: state })
-        }).then(() => loadAdminData());
-    }
-
-    function txAction(txId, status) {
-        fetch('/api/admin/tx-action', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ txId, status })
-        }).then(() => loadAdminData());
-    }
-
-    setInterval(loadAdminData, 3000);
-    loadAdminData();
+        function setMode(u, v) {
+            fetch('/api/admin/action', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({username: u, action: 'control', value: v})
+            }).then(() => loadData());
+        }
+        function setTx(id, s) {
+            fetch('/api/admin/tx-action', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({txId: id, status: s})
+            }).then(() => loadData());
+        }
+        setInterval(loadData, 3000);
+        loadData();
     </script>
 </body>
 </html>
