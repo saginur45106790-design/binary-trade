@@ -10,11 +10,13 @@ let liveBalance = 0.03;
 let panOffset = 0;
 let remainingCountdown = 60;
 
-let currentMode = 'time';
+let currentMode = 'time'; // 'time' অথবা 'timer'
 let selectedTimerSeconds = 60;
 let selectedTimerDisplay = '00:01:00';
-let selectedTimeValue = '23:53';
+let selectedTimeValue = ''; 
+let targetExpiryEpoch = 0;
 
+// রেটিনা স্ক্রিন শার্পনেস
 function fitCanvas() {
     const dpr = window.devicePixelRatio || 1;
     const rect = canvas.parentElement.getBoundingClientRect();
@@ -28,26 +30,42 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// লাইভ ঘড়ি ও "End of trade" প্রতি সেকেন্ডে আপডেট
-function updateClockAndExpiry() {
+// রিয়েল ঘড়ির সাথে অটো-সিঙ্ক ও কাউন্টডাউন ইঞ্জিন
+function syncLiveClockAndExpiry() {
     let now = new Date();
     let hh = String(now.getHours()).padStart(2, '0');
     let mm = String(now.getMinutes()).padStart(2, '0');
     let ss = String(now.getSeconds()).padStart(2, '0');
 
+    // টপ লাইভ ঘড়ি (ফোনের ঘড়ির সাথে সেকেন্ডে সেকেন্ডে মিলবে)
     document.getElementById('liveUtcClock').innerText = `🟢 ${hh}:${mm}:${ss} UTC+6`;
 
-    if (currentMode === 'timer') {
-        let endD = new Date(now.getTime() + selectedTimerSeconds * 1000);
-        document.getElementById('endTradeSub').innerText = `${String(endD.getHours()).padStart(2,'0')}:${String(endD.getMinutes()).padStart(2,'0')}:${String(endD.getSeconds()).padStart(2,'0')}`;
+    if (currentMode === 'time') {
+        // যদি টার্গেট সময় পার হয়ে যায় বা সেট না থাকে, পরবর্তী মিনিট অটো সেট হবে
+        if (!targetExpiryEpoch || targetExpiryEpoch <= now.getTime()) {
+            let nextMin = new Date(now.getTime() + 60000);
+            nextMin.setSeconds(0, 0);
+            targetExpiryEpoch = nextMin.getTime();
+            selectedTimeValue = `${String(nextMin.getHours()).padStart(2,'0')}:${String(nextMin.getMinutes()).padStart(2,'0')}`;
+            document.getElementById('dockTimeValue').innerText = selectedTimeValue;
+        }
+
+        // End of trade এ কত মিনিট-সেকেন্ড বাকি তা লাইভ কাউন্টডাউন (ভিডিওর মতো MM:SS)
+        let diffSec = Math.max(0, Math.floor((targetExpiryEpoch - now.getTime()) / 1000));
+        let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
+        let remS = String(diffSec % 60).padStart(2, '0');
+        document.getElementById('endTradeSub').innerText = `${remM}:${remS}`;
     } else {
-        document.getElementById('endTradeSub').innerText = `${selectedTimeValue}:00`;
+        // TIMER মোড
+        let remM = String(Math.floor(remainingCountdown / 60)).padStart(2, '0');
+        let remS = String(remainingCountdown % 60).padStart(2, '0');
+        document.getElementById('endTradeSub').innerText = `${remM}:${remS}`;
     }
 }
-setInterval(updateClockAndExpiry, 1000);
-updateClockAndExpiry();
+setInterval(syncLiveClockAndExpiry, 1000);
+syncLiveClockAndExpiry();
 
-// TIME মোডের ৩×৪ গ্রিড তৈরি
+// TIME মোডের ৩×৪ গ্রিড (বর্তমান লাইভ মিনিট থেকে ডায়নামিক ক্যালকুলেশন)
 function renderTimeModeGrid() {
     let container = document.getElementById('gridTimeMode');
     container.innerHTML = '';
@@ -60,7 +78,15 @@ function renderTimeModeGrid() {
         let btn = document.createElement('button');
         btn.innerText = timeStr;
         if (timeStr === selectedTimeValue) btn.classList.add('selected');
-        btn.onclick = () => selectTime(timeStr);
+        btn.onclick = () => {
+            selectedTimeValue = timeStr;
+            let targetD = new Date(t);
+            targetD.setSeconds(0, 0);
+            targetExpiryEpoch = targetD.getTime();
+            document.getElementById('dockTimeValue').innerText = timeStr;
+            toggleTimePopup();
+            syncLiveClockAndExpiry();
+        };
         container.appendChild(btn);
     });
 }
@@ -83,7 +109,7 @@ function switchPopupTab(tab) {
         document.getElementById('dockTimeLabel').innerText = 'Timer';
         document.getElementById('dockTimeValue').innerText = selectedTimerDisplay;
     }
-    updateClockAndExpiry();
+    syncLiveClockAndExpiry();
 }
 
 function toggleTimePopup() {
@@ -93,24 +119,17 @@ function toggleTimePopup() {
     if (willOpen && currentMode === 'time') renderTimeModeGrid();
 }
 
-function selectTime(val) {
-    selectedTimeValue = val;
-    document.getElementById('dockTimeValue').innerText = val;
-    document.getElementById('timeSelectPopup').style.display = 'none';
-    updateClockAndExpiry();
-}
-
 function selectTimer(sec, display) {
     selectedTimerSeconds = sec;
     selectedTimerDisplay = display;
     document.getElementById('dockTimeValue').innerText = display;
     document.getElementById('timeSelectPopup').style.display = 'none';
-    updateClockAndExpiry();
+    syncLiveClockAndExpiry();
 }
 
 function resetPan() { panOffset = 0; drawChart(); }
 
-// ক্যানভাস চার্ট ও শতভাগ নিখুঁত বর্তমান সময় টাইমলাইন
+// ক্যানভাস চার্ট ও টাইমলাইন
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
@@ -131,7 +150,7 @@ function drawChart() {
     let range = (maxP - minP) || 0.040;
     let padY = 35;
 
-    // হরিজন্টাল গ্রিড ও প্রাইস
+    // হরিজন্টাল গ্রিড ও প্রাইস স্কেল
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -150,7 +169,7 @@ function drawChart() {
 
     let baseRightX = width - 85 + panOffset;
 
-    // ক্যান্ডেলসমূহ আঁকা
+    // ক্যান্ডেল আঁকা
     allCandles.forEach((c, index) => {
         let x = baseRightX - ((allCandles.length - 1 - index) * totalUnit);
         if (x < -30 || x > width + 30) return;
@@ -178,11 +197,10 @@ function drawChart() {
         ctx.fillRect(Math.floor(x), Math.floor(topY), candleWidth, Math.ceil(h));
     });
 
-    // ডাইনামিক বটম টাইমলাইন (ঘড়ির সাথে ১০০% সামঞ্জস্যপূর্ণ)
     let curTime = new Date();
     let endTradeX = width - 110;
 
-    // এক্সপায়ারেশন লাইন (End of trade)
+    // এক্সপায়ারেশন ড্যাশ লাইন (End of trade)
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.beginPath();
@@ -191,7 +209,7 @@ function drawChart() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // বর্তমান সময়ের মিনিট লেবেলগুলো চার্টের নিচে আঁকা
+    // বর্তমান লাইভ ঘড়ি অনুযায়ী টাইমলাইনের লেবেল (নিচে)
     ctx.fillStyle = '#6e829c';
     ctx.font = '10px sans-serif';
 
@@ -255,7 +273,7 @@ function drawChart() {
     });
 }
 
-// WebSocket কানেকশন
+// WebSocket
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -359,7 +377,6 @@ function updateBalanceUI(val) {
     }
 }
 
-// অ্যাকাউন্ট সুইচ
 function toggleAccountModal() {
     let m = document.getElementById('accountModal');
     m.style.display = m.style.display === 'block' ? 'none' : 'block';
@@ -391,7 +408,6 @@ function switchAccount(type) {
     }
 }
 
-// ড্রয়ার ও পেজ ওপেন ফাংশনসমূহ (ভিডিও অনুযায়ী)
 function openDrawer(pageName) {
     document.getElementById('globalDrawer').style.display = 'flex';
     document.getElementById('drawerPageSelect').value = pageName === 'menu' ? 'profile' : pageName;
