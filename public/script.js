@@ -16,8 +16,8 @@ let candleWidth = 9;
 let candleSpacing = 5;
 let initialPinchDistance = null;
 
-let currentMode = 'timer'; // 'timer' অথবা 'time'
-let selectedTimerSeconds = 60; // ডিফল্ট ১ মিনিট
+let currentMode = 'timer';
+let selectedTimerSeconds = 60;
 let selectedTimerDisplay = '00:01:00';
 let selectedTimeValue = '';
 let targetExpiryEpoch = 0;
@@ -36,7 +36,7 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// ২ আঙুলে পিঞ্চ জুম ও প্যানিং
+// টাচ ও ২ আঙুলে পিঞ্চ জুম
 let startX = 0;
 let isPanning = false;
 
@@ -71,6 +71,9 @@ canvas.addEventListener('touchmove', (e) => {
         drawChart();
     } else if (e.touches.length === 1 && isPanning) {
         panOffset += (e.touches[0].clientX - startX) * 0.9;
+        // প্যান বাউন্ডারি (যাতে ক্যান্ডেল উধাও হয়ে খালি স্ক্রিন না হয়)
+        let maxPan = (candleHistory.length * (candleWidth + candleSpacing)) - 100;
+        panOffset = Math.max(-50, Math.min(maxPan, panOffset));
         startX = e.touches[0].clientX;
         drawChart();
     }
@@ -81,7 +84,6 @@ canvas.addEventListener('touchend', () => {
     initialPinchDistance = null;
 });
 
-// ট্রেড লাইনে টাচ করলে 'Sell the trade' কার্ড আসবে
 function checkTradeClick(touchX, touchY) {
     const rect = canvas.getBoundingClientRect();
     let x = touchX - rect.left;
@@ -113,14 +115,11 @@ function confirmSellTrade() {
         activeTrades = activeTrades.filter(t => t.id !== activeSellTrade.id);
         updateBalanceUI(d.balance);
         document.getElementById('sellTradeCard').style.display = 'none';
-        document.getElementById('openTradesBadge').innerText = activeTrades.length;
-        document.getElementById('drawerCount').innerText = activeTrades.length;
-        updateTradesDrawer();
         drawChart();
     });
 }
 
-// ঘড়ি, কাউন্টডাউন এবং নির্ধারিত সময়ে ট্রেড সমাপ্ত করার মূল লুপ
+// ঘড়ি ও ট্রেড এক্সপায়ারেশন চেক লুপ
 function syncClockAndTrades() {
     let now = new Date();
     let hh = String(now.getHours()).padStart(2, '0');
@@ -129,7 +128,6 @@ function syncClockAndTrades() {
 
     document.getElementById('liveUtcClock').innerText = `🟢 ${hh}:${mm}:${ss} UTC+6`;
 
-    // টাইম মোডের রোলিং
     if (currentMode === 'time') {
         if (!targetExpiryEpoch || targetExpiryEpoch <= now.getTime()) {
             let nextMin = new Date(now.getTime() + 60000);
@@ -139,29 +137,21 @@ function syncClockAndTrades() {
             document.getElementById('dockTimeValue').innerText = selectedTimeValue;
             renderTimeModeGrid();
         }
-
         let diffSec = Math.max(0, Math.floor((targetExpiryEpoch - now.getTime()) / 1000));
         let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
         let remS = String(diffSec % 60).padStart(2, '0');
-        document.getElementById('endTradeSub').innerText = `${remM}:${remS}`;
         document.getElementById('sellTimeRem').innerText = `${remM}:${remS}`;
     } else {
-        // টাইমার মোডের কাউন্টডাউন (যেমন: 00:58, 04:32)
         if (activeTrades.length > 0) {
             let earliestExp = Math.min(...activeTrades.map(t => t.expireAt));
             let diffSec = Math.max(0, Math.floor((earliestExp - now.getTime()) / 1000));
             let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
             let remS = String(diffSec % 60).padStart(2, '0');
-            document.getElementById('endTradeSub').innerText = `${remM}:${remS}`;
             document.getElementById('sellTimeRem').innerText = `${remM}:${remS}`;
-        } else {
-            let remM = String(Math.floor(remainingCountdown / 60)).padStart(2, '0');
-            let remS = String(remainingCountdown % 60).padStart(2, '0');
-            document.getElementById('endTradeSub').innerText = `${remM}:${remS}`;
         }
     }
 
-    // প্রতি ১ সেকেন্ডে সক্রিয় ট্রেডগুলোর মেয়াদ চেক (নির্ধারিত সময়েই শুধু শেষ হবে)
+    // নির্দিষ্ট সময়ের পর ট্রেড সেটেল
     let curTime = now.getTime();
     for (let i = activeTrades.length - 1; i >= 0; i--) {
         let trade = activeTrades[i];
@@ -174,7 +164,6 @@ function syncClockAndTrades() {
 setInterval(syncClockAndTrades, 1000);
 syncClockAndTrades();
 
-// ট্রেড এক্সপায়ার হলে ফলাফল কার্যকর করা
 function settleTradeExpiration(trade) {
     document.getElementById('sellTradeCard').style.display = 'none';
 
@@ -191,11 +180,7 @@ function settleTradeExpiration(trade) {
     .then(r => r.json())
     .then(data => {
         updateBalanceUI(data.balance);
-        document.getElementById('openTradesBadge').innerText = activeTrades.length;
-        document.getElementById('drawerCount').innerText = activeTrades.length;
-        updateTradesDrawer();
 
-        // ফলাফল বাবল দেখানো (উইন হলে সবুজ +$1.84, লস হলে লাল 0.00 $)
         let bubble = document.getElementById('resultBubble');
         if (trade.isWin) {
             bubble.className = "result-popup-bubble";
@@ -207,13 +192,12 @@ function settleTradeExpiration(trade) {
         bubble.style.display = 'block';
         bubble.style.top = '48%';
         bubble.style.left = '35%';
-        setTimeout(() => { bubble.style.display = 'none'; }, 5000);
+        setTimeout(() => { bubble.style.display = 'none'; }, 4000);
 
         drawChart();
     });
 }
 
-// TIME মোডের ১২টি বাটন ডায়নামিক রোলিং
 function renderTimeModeGrid() {
     let container = document.getElementById('gridTimeMode');
     container.innerHTML = '';
@@ -279,7 +263,7 @@ function selectTimer(sec, display) {
 
 function resetPan() { panOffset = 0; drawChart(); }
 
-// চার্ট ও ট্রেড মার্কার রেন্ডারিং (শুরু থেকে শেষ পর্যন্ত স্ক্রিনে অটুট থাকা)
+// ক্যানভাস চার্ট - শুধুমাত্র দৃশ্যমান (Visible) ক্যান্ডেল স্কেলিং
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
@@ -291,8 +275,21 @@ function drawChart() {
     if (allCandles.length === 0) return;
 
     let totalUnit = candleWidth + candleSpacing;
+    let baseRightX = width - 85 + panOffset;
 
-    let prices = allCandles.flatMap(c => [c.high, c.low]);
+    // ১. শুধুমাত্র স্ক্রিনে দৃশ্যমান ক্যান্ডেলগুলো আলাদা করা
+    let visibleCandles = [];
+    allCandles.forEach((c, index) => {
+        let x = baseRightX - ((allCandles.length - 1 - index) * totalUnit);
+        if (x >= -40 && x <= width + 40) {
+            visibleCandles.push({ candle: c, x: x });
+        }
+    });
+
+    if (visibleCandles.length === 0) visibleCandles = allCandles.map((c, i) => ({ candle: c, x: baseRightX - ((allCandles.length - 1 - i) * totalUnit) }));
+
+    // ২. শুধুমাত্র দৃশ্যমান ক্যান্ডেল দিয়ে Min/Max ক্যালকুলেশন (ক্যান্ডেল চ্যাপ্টা হবে না)
+    let prices = visibleCandles.flatMap(v => [v.candle.high, v.candle.low]);
     activeTrades.forEach(t => prices.push(t.price));
 
     let minP = Math.min(...prices);
@@ -300,7 +297,7 @@ function drawChart() {
     let range = (maxP - minP) || 0.040;
     let padY = 35;
 
-    // হরিজন্টাল গ্রিড
+    // অনুভূমিক গ্রিড ও প্রাইস স্কেল
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -317,13 +314,10 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(3), width - 50, y + 4);
     }
 
-    let baseRightX = width - 85 + panOffset;
-
     // ক্যান্ডেল আঁকা
-    allCandles.forEach((c, index) => {
-        let x = baseRightX - ((allCandles.length - 1 - index) * totalUnit);
-        if (x < -30 || x > width + 30) return;
-
+    visibleCandles.forEach(v => {
+        let c = v.candle;
+        let x = v.x;
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
 
@@ -350,7 +344,7 @@ function drawChart() {
     let curTime = new Date();
     let endTradeX = width - 110;
 
-    // এক্সপায়ারেশন ড্যাশ লাইন (End of trade)
+    // এক্সপায়ারেশন ড্যাশ লাইন
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.beginPath();
@@ -371,7 +365,7 @@ function drawChart() {
         }
     }
 
-    // লাইভ প্রাইজ ও কাউন্টডাউন ব্যাজ
+    // লাইভ প্রাইজ ও কাউন্টডাউন ব্যাজ (00:60 বাগ ফিক্স করা হয়েছে)
     if (liveCandle) {
         let liveY = height - padY - ((liveCandle.close - minP) / range) * (height - padY * 2);
 
@@ -392,20 +386,23 @@ function drawChart() {
         ctx.font = 'bold 10px monospace';
         ctx.fillText(liveCandle.close.toFixed(3), width - 51, liveY + 4);
 
-        let secStr = remainingCountdown < 10 ? '0' + remainingCountdown : remainingCountdown;
+        // সঠিক সময় ফরম্যাট (৬০ হলে ০১:০০ দেখাবে, কখনোই ০০:৬০ নয়)
+        let cdM = Math.floor(remainingCountdown / 60);
+        let cdS = remainingCountdown % 60;
+        let countdownStr = `${String(cdM).padStart(2,'0')}:${String(cdS).padStart(2,'0')}`;
+
         ctx.fillStyle = 'rgba(23, 29, 42, 0.85)';
         ctx.fillRect(endTradeX - 25, liveY - 9, 50, 18);
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 10px monospace';
-        ctx.fillText(`- 00:${secStr}`, endTradeX - 23, liveY + 4);
+        ctx.fillText(`- ${countdownStr}`, endTradeX - 23, liveY + 4);
     }
 
-    // সক্রিয় ট্রেড মার্কার (ভিডিওর মতো এন্ট্রি ডট, তীরচিহ্ন এবং এক্সপায়ারেশন ড্যাশ লাইন)
+    // সক্রিয় ট্রেড মার্কার
     activeTrades.forEach(tr => {
         let entryY = height - padY - ((tr.price - minP) / range) * (height - padY * 2);
         let tradeColor = tr.direction === 'UP' ? '#00b074' : '#eb5757';
 
-        // অনুভূমিক ড্যাশ লাইন
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = tradeColor;
         ctx.lineWidth = 1.2;
@@ -415,7 +412,6 @@ function drawChart() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // এন্ট্রি সার্কেল ও তীরচিহ্ন
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(tr.startX || (width - 150), entryY, 7, 0, Math.PI * 2);
@@ -425,7 +421,6 @@ function drawChart() {
         ctx.font = 'bold 9px sans-serif';
         ctx.fillText(tr.direction === 'UP' ? '↑' : '↓', (tr.startX || (width - 150)) - 3, entryY + 3);
 
-        // শেষ প্রান্তে ছোট গোলাকার মার্কার
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(endTradeX, entryY, 4, 0, Math.PI * 2);
@@ -433,7 +428,7 @@ function drawChart() {
     });
 }
 
-// WebSocket কানেকশন
+// WebSocket
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -466,16 +461,15 @@ function stepAmt(v) {
     }
 }
 
-// ট্রেড নেওয়ার মূল ফাংশন (প্রকৃত সময় অনুযায়ী স্থায়িত্ব নির্ধারণ)
+// ট্রেড প্লেস
 function placeOrder(direction) {
     let amount = Number(document.getElementById('invAmt').innerText);
 
-    // মোট ট্রেড সেকেন্ড হিসাব (টাইমার অথবা টাইম মোড)
     let totalSec = 60;
     let expireEpoch = 0;
 
     if (currentMode === 'timer') {
-        totalSec = selectedTimerSeconds; // যেমন ৫ সেকেন্ড, ৬০ সেকেন্ড, ৩০০ সেকেন্ড (৫ মিনিট)
+        totalSec = selectedTimerSeconds;
         expireEpoch = Date.now() + (totalSec * 1000);
     } else {
         if (targetExpiryEpoch && targetExpiryEpoch > Date.now()) {
@@ -505,13 +499,11 @@ function placeOrder(direction) {
             return;
         }
 
-        // ব্যালেন্স সাথে সাথে আপডেট (ট্রেডের টাকা মাইনাস)
         updateBalanceUI(data.balance);
 
         const width = parseFloat(canvas.style.width) || canvas.width;
         let entryX = width - 120 + panOffset;
 
-        // ট্রেড অবজেক্ট (সঠিক expireAt সহ যা সময় পার না হওয়া পর্যন্ত চার্টে থাকবে)
         let tradeObj = {
             id: Date.now(),
             price: parseFloat(data.entryPrice),
@@ -524,34 +516,13 @@ function placeOrder(direction) {
         };
         activeTrades.push(tradeObj);
 
-        document.getElementById('openTradesBadge').innerText = activeTrades.length;
-        document.getElementById('drawerCount').innerText = activeTrades.length;
-
-        // টপ নোটিফিকেশন টোস্ট
         let toast = document.getElementById('tradeOpenToast');
         document.getElementById('toastMsg').innerText = `Trade opened with price: ${data.entryPrice} AUD/JPY (OTC)`;
         toast.style.display = 'flex';
         setTimeout(() => { toast.style.display = 'none'; }, 3000);
 
-        updateTradesDrawer();
         drawChart();
     });
-}
-
-function updateTradesDrawer() {
-    let box = document.getElementById('activeTradesList');
-    if (activeTrades.length === 0) {
-        box.innerHTML = `<p style="padding:15px; color:#6e829c; font-size:12px; text-align:center;">No active trades</p>`;
-        return;
-    }
-    let html = '';
-    activeTrades.forEach(t => {
-        html += `<div style="padding:10px; border-bottom:1px solid #283348; display:flex; justify-content:space-between;">
-            <span>AUD/JPY (OTC) ${t.direction === 'UP' ? '🟢 UP' : '🔴 DOWN'}</span>
-            <b>$${t.amount}</b>
-        </div>`;
-    });
-    box.innerHTML = html;
 }
 
 function updateBalanceUI(val) {
@@ -611,12 +582,7 @@ function switchDrawerPage(page) {
 }
 
 function toggleToolsMenu() {
-    let el = document.getElementById('chartToolsSidebar');
-    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
-}
-function toggleBottomTrades() {
-    let el = document.getElementById('bottomTradesDrawer');
-    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    // টুলস মেনু টগল
 }
 
 function openAssetModal() { document.getElementById('assetModal').style.display = 'flex'; }

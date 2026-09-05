@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="style.css?v=6.0">
 </head>
 <body>
     <div class="app-root">
@@ -30,11 +30,7 @@
 
             <div class="chart-meta-tags">
                 <div class="sub-menu-btn" onclick="toggleToolsMenu()">•••</div>
-                <div class="briefcase-btn" onclick="toggleBottomTrades()">💼<span class="sub-badge" id="openTradesBadge">0</span></div>
                 <div class="utc-clock" id="liveUtcClock">🟢 00:00:00 UTC+6</div>
-                <div class="info-circle" onclick="openDrawer('analytics')">ℹ️</div>
-                <div class="trade-phase-tag">Beginning of trade</div>
-                <div class="trade-end-tag">End of trade<br><span id="endTradeSub" style="color:#2a66e4; font-weight:700;">--:--</span></div>
             </div>
 
             <canvas id="tradeCanvas"></canvas>
@@ -44,7 +40,7 @@
             <div id="sellTradeCard" class="sell-trade-card">
                 <div class="st-head">
                     <span>Sell the trade</span>
-                    <span class="st-timer" id="sellTimeRem">00:37</span>
+                    <span class="st-timer" id="sellTimeRem">00:30</span>
                 </div>
                 <div class="st-val-btn" onclick="confirmSellTrade()">
                     <span id="sellRefundVal">0.25 $</span>
@@ -53,23 +49,13 @@
 
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
-                <span id="toastMsg">Trade opened with price: 111.950 AUD/JPY (OTC)</span>
+                <span id="toastMsg">Trade opened with price: 111.940 AUD/JPY (OTC)</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
             <div id="resultBubble" class="result-popup-bubble">
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
                 <div class="res-val" id="resProfitVal">+1.84 $</div>
-            </div>
-
-            <div id="bottomTradesDrawer" class="trades-drawer">
-                <div class="drawer-head" onclick="toggleBottomTrades()">
-                    <span>Trades: <b id="drawerCount">0</b></span>
-                    <span class="close-drawer">▼</span>
-                </div>
-                <div class="drawer-list" id="activeTradesList">
-                    <p style="padding:15px; color:#6e829c; font-size:12px; text-align:center;">No active trades</p>
-                </div>
             </div>
         </div>
 
@@ -91,8 +77,8 @@
 
             <div class="dock-row-2">
                 <div class="timer-box" onclick="toggleTimePopup()">
-                    <span class="box-lbl" id="dockTimeLabel">Time</span>
-                    <div class="box-val" id="dockTimeValue">00:08</div>
+                    <span class="box-lbl" id="dockTimeLabel">Timer</span>
+                    <div class="box-val" id="dockTimeValue">00:01:00</div>
                 </div>
                 <div class="invest-box">
                     <span class="box-lbl">Investment</span>
@@ -134,13 +120,11 @@
 
     <div id="timeSelectPopup" class="time-popup-dialog">
         <div class="time-tabs">
-            <button id="tabTimerBtn" class="t-tab" onclick="switchPopupTab('timer')">TIMER</button>
-            <button id="tabTimeBtn" class="t-tab active" onclick="switchPopupTab('time')">TIME</button>
+            <button id="tabTimerBtn" class="t-tab active" onclick="switchPopupTab('timer')">TIMER</button>
+            <button id="tabTimeBtn" class="t-tab" onclick="switchPopupTab('time')">TIME</button>
         </div>
 
-        <div class="time-grid" id="gridTimeMode"></div>
-
-        <div class="time-grid" id="gridTimerMode" style="display: none;">
+        <div class="time-grid" id="gridTimerMode">
             <button onclick="selectTimer(5, '00:00:05')">00:05</button>
             <button onclick="selectTimer(10, '00:00:10')">00:10</button>
             <button onclick="selectTimer(15, '00:00:15')">00:15</button>
@@ -154,6 +138,8 @@
             <button onclick="selectTimer(3600, '01:00:00')">01:00:00</button>
             <button onclick="selectTimer(7200, '02:00:00')">02:00:00</button>
         </div>
+
+        <div class="time-grid" id="gridTimeMode" style="display: none;"></div>
 
         <button class="set-manually-btn" onclick="toggleTimePopup()">Set manually</button>
     </div>
@@ -228,9 +214,7 @@
 
     <div id="accountModal" class="acc-modal-overlay" onclick="closeAccountModal(event)">
         <div class="acc-dropdown-card">
-            <div class="acc-head">
-                <div class="std-badge">✈️ STANDARD: <b>+0% profit</b></div>
-            </div>
+            <div class="acc-head"><div class="std-badge">✈️ STANDARD: <b>+0% profit</b></div></div>
             <div class="user-email-id">
                 <div class="u-mail">teachsajib@gmail.com</div>
                 <div class="u-id">ID: 85857047</div>
@@ -246,6 +230,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=5.0"></script>
+    <script src="script.js?v=6.0"></script>
 </body>
 </html>
