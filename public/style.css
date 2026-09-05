@@ -84,7 +84,7 @@ body, html {
     cursor: pointer;
 }
 
-/* চার্ট এলাকা */
+/* চার্ট ভিউপোর্ট */
 .chart-box-container {
     flex: 1;
     position: relative;
@@ -96,6 +96,7 @@ body, html {
     width: 100%;
     height: 100%;
     display: block;
+    touch-action: none;
 }
 
 .watermark-text {
@@ -162,57 +163,50 @@ body, html {
     z-index: 10;
 }
 
-/* টুলস সাইডবার */
-.chart-tools-menu {
+/* 'Sell the trade' কার্ড (ভিডিও ২ অনুযায়ী) */
+.sell-trade-card {
     display: none;
     position: absolute;
-    top: 38px;
-    left: 10px;
     background: #1c2536;
     border: 1px solid #2b374d;
     border-radius: 6px;
-    padding: 10px;
-    z-index: 25;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+    padding: 6px 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    z-index: 30;
+    flex-direction: column;
+    gap: 4px;
 }
-.tf-title { font-size: 10px; color: #6e829c; margin-bottom: 6px; font-weight: 700; }
-.tf-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-.tf-grid button {
-    background: #273246;
-    border: 1px solid #324059;
-    color: #fff;
-    padding: 6px;
+.st-head { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: #8fa0b5; font-weight: 600; }
+.st-timer { color: #fff; font-family: monospace; }
+.st-val-btn {
+    background: #243044;
+    border: 1px solid #33435c;
     border-radius: 4px;
-    font-size: 11px;
-    font-weight: 700;
+    padding: 4px 8px;
+    text-align: center;
     cursor: pointer;
 }
-.tf-grid button.active { background: #0070f3; }
+.st-val-btn span { color: #fff; font-size: 13px; font-weight: 800; }
 
-/* বটম ট্রেড ড্রয়ার */
-.trades-drawer {
+/* রেজাল্ট বাবল (উইন = সবুজ, লস = লাল) */
+.result-popup-bubble {
     display: none;
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: #1b2230;
-    border-top: 1px solid #283348;
-    max-height: 200px;
-    overflow-y: auto;
+    background: #00b074;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
     z-index: 25;
 }
-.drawer-head {
-    background: #222b3d;
-    padding: 8px 12px;
-    font-size: 12px;
-    font-weight: 700;
-    display: flex;
-    justify-content: space-between;
-    cursor: pointer;
+.result-popup-bubble.loss {
+    background: #eb5757;
 }
+.res-head { font-size: 9px; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; opacity: 0.9; }
+.res-val { font-size: 15px; font-weight: 800; margin-top: 2px; }
+.res-x { cursor: pointer; }
 
-/* টোস্ট ও রেজাল্ট বাবল */
+/* টোস্ট */
 .open-trade-toast {
     display: none;
     position: absolute;
@@ -232,18 +226,28 @@ body, html {
 }
 .toast-close { cursor: pointer; font-size: 12px; margin-left: 6px; }
 
-.result-popup-bubble {
+/* বটম ট্রেড ড্রয়ার */
+.trades-drawer {
     display: none;
     position: absolute;
-    background: #00b074;
-    color: #fff;
-    padding: 6px 12px;
-    border-radius: 6px;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1b2230;
+    border-top: 1px solid #283348;
+    max-height: 180px;
+    overflow-y: auto;
     z-index: 25;
 }
-.res-head { font-size: 9px; font-weight: 700; display: flex; justify-content: space-between; gap: 8px; opacity: 0.9; }
-.res-val { font-size: 15px; font-weight: 800; margin-top: 2px; }
-.res-x { cursor: pointer; }
+.drawer-head {
+    background: #222b3d;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+}
 
 /* বটম কন্ট্রোল ডক */
 .dock-panel {
@@ -278,39 +282,14 @@ body, html {
     color: #63758d;
     font-weight: 700;
 }
-.switch {
-    position: relative;
-    display: inline-block;
-    width: 32px;
-    height: 18px;
-}
+.switch { position: relative; display: inline-block; width: 32px; height: 18px; }
 .switch input { opacity: 0; width: 0; height: 0; }
-.slider {
-    position: absolute;
-    cursor: pointer;
-    inset: 0;
-    background-color: #2a3449;
-    transition: .3s;
-    border-radius: 18px;
-}
-.slider:before {
-    position: absolute;
-    content: "";
-    height: 12px;
-    width: 12px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-}
+.slider { position: absolute; cursor: pointer; inset: 0; background-color: #2a3449; transition: .3s; border-radius: 18px; }
+.slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
 input:checked + .slider { background-color: #0070f3; }
 input:checked + .slider:before { transform: translateX(14px); }
 
-.dock-row-2 {
-    display: flex;
-    gap: 10px;
-}
+.dock-row-2 { display: flex; gap: 10px; }
 .timer-box, .invest-box {
     flex: 1;
     background: #222b3d;
@@ -325,20 +304,8 @@ input:checked + .slider:before { transform: translateX(14px); }
 .box-lbl { font-size: 10px; color: #6e829c; }
 .box-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
 
-.stepper-wrap {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 2px;
-}
-.step-btn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-}
+.stepper-wrap { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.step-btn { background: none; border: none; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; }
 .inv-val { font-size: 14px; font-weight: 700; }
 .switch-txt {
     position: absolute;
@@ -364,10 +331,7 @@ input:checked + .slider:before { transform: translateX(14px); }
 .payout-dots { color: #232c3d; letter-spacing: 2px; flex: 1; text-align: center; }
 .payout-amt { color: #fff; font-size: 13px; font-weight: 800; }
 
-.dock-actions {
-    display: flex;
-    gap: 10px;
-}
+.dock-actions { display: flex; gap: 10px; }
 .btn-trade {
     flex: 1;
     border: none;
@@ -400,26 +364,11 @@ input:checked + .slider:before { transform: translateX(14px); }
     padding-top: 6px;
     border-top: 1px solid #232c3d;
 }
-.f-icon {
-    font-size: 17px;
-    color: #6e829c;
-    cursor: pointer;
-    position: relative;
-}
+.f-icon { font-size: 17px; color: #6e829c; cursor: pointer; position: relative; }
 .f-icon.active { color: #fff; }
-.f-badge {
-    position: absolute;
-    top: -4px;
-    right: -6px;
-    background: #0070f3;
-    color: #fff;
-    font-size: 9px;
-    font-weight: 800;
-    padding: 1px 4px;
-    border-radius: 8px;
-}
+.f-badge { position: absolute; top: -4px; right: -6px; background: #0070f3; color: #fff; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 8px; }
 
-/* টাইম/টাইমার পপআপ */
+/* টাইম পপআপ ডায়ালগ */
 .time-popup-dialog {
     display: none;
     position: fixed;
@@ -434,137 +383,25 @@ input:checked + .slider:before { transform: translateX(14px); }
     box-shadow: 0 10px 30px rgba(0,0,0,0.8);
     z-index: 100;
 }
-.time-tabs {
-    display: flex;
-    background: #171d28;
-    border-radius: 6px;
-    padding: 2px;
-    margin-bottom: 10px;
-}
-.t-tab {
-    flex: 1;
-    background: none;
-    border: none;
-    color: #798b9f;
-    font-size: 11px;
-    font-weight: 800;
-    padding: 6px;
-    border-radius: 4px;
-    cursor: pointer;
-}
+.time-tabs { display: flex; background: #171d28; border-radius: 6px; padding: 2px; margin-bottom: 10px; }
+.t-tab { flex: 1; background: none; border: none; color: #798b9f; font-size: 11px; font-weight: 800; padding: 6px; border-radius: 4px; cursor: pointer; }
 .t-tab.active { background: #0070f3; color: #ffffff; }
-.time-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-}
-.time-grid button {
-    background: #273246;
-    border: 1px solid #324059;
-    color: #ffffff;
-    padding: 8px 4px;
-    border-radius: 5px;
-    font-size: 11px;
-    font-weight: 700;
-    cursor: pointer;
-}
+.time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.time-grid button { background: #273246; border: 1px solid #324059; color: #ffffff; padding: 8px 4px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; }
 .time-grid button.selected { background: #0070f3; border-color: #0070f3; }
-.set-manually-btn {
-    width: 100%;
-    background: #0070f3;
-    border: none;
-    color: #ffffff;
-    padding: 8px;
-    border-radius: 5px;
-    font-size: 11px;
-    font-weight: 700;
-    margin-top: 10px;
-    cursor: pointer;
-}
+.set-manually-btn { width: 100%; background: #0070f3; border: none; color: #ffffff; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: 700; margin-top: 10px; cursor: pointer; }
 
-/* কারেন্সি অ্যাসেট সিলেক্টর ও ড্রয়ার পেজসমূহ */
-.full-screen-modal, .global-drawer-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 120;
-    align-items: flex-end;
-}
-.modal-inner, .drawer-content-card {
-    background: #171d28;
-    width: 100%;
-    max-height: 80vh;
-    border-radius: 16px 16px 0 0;
-    padding: 16px;
-    overflow-y: auto;
-}
-.modal-header, .drawer-top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
+/* মোডাল ও ড্রয়ার */
+.full-screen-modal, .global-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 120; align-items: flex-end; }
+.modal-inner, .drawer-content-card { background: #171d28; width: 100%; max-height: 80vh; border-radius: 16px 16px 0 0; padding: 16px; overflow-y: auto; }
+.modal-header, .drawer-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .x-close, .drawer-x { font-size: 20px; cursor: pointer; }
-.search-box-row input {
-    width: 100%;
-    background: #222b3d;
-    border: 1px solid #2d3950;
-    color: #fff;
-    padding: 8px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-    outline: none;
-}
-.asset-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px;
-    border-bottom: 1px solid #202738;
-    cursor: pointer;
-}
+.asset-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #202738; cursor: pointer; }
 .green-pct { color: #00e676; }
 
-/* প্রোফাইল ও ফর্ম উপাদান */
-.user-avatar-badge { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
-.avatar-circle { width: 44px; height: 44px; border-radius: 50%; background: #222b3d; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-.form-group { margin-bottom: 10px; }
-.form-group label { font-size: 11px; color: #6e829c; display: block; margin-bottom: 4px; }
-.form-group input, .form-group select {
-    width: 100%;
-    background: #222b3d;
-    border: 1px solid #2d3950;
-    color: #fff;
-    padding: 8px;
-    border-radius: 4px;
-    outline: none;
-}
-.primary-btn { width: 100%; background: #0070f3; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; margin-top: 8px; }
-.req-item, .market-card, .tour-card, .trade-history-item {
-    background: #202738;
-    padding: 10px;
-    border-radius: 6px;
-    margin-top: 8px;
-    display: flex;
-    justify-content: space-between;
-}
-.trade-history-item.win b { color: #00b074; }
-.trade-history-item.loss b { color: #ff4747; }
-.stat-circle-row { display: flex; gap: 15px; align-items: center; }
-.circle-metric { width: 65px; height: 65px; border-radius: 50%; border: 3px solid #00e676; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; }
-
 .acc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
-.acc-dropdown-card {
-    position: absolute;
-    top: 50px;
-    left: 12px;
-    width: 290px;
-    background: #19202c;
-    border: 1px solid #263245;
-    border-radius: 8px;
-    padding: 14px;
-}
+.acc-dropdown-card { position: absolute; top: 50px; left: 12px; width: 290px; background: #19202c; border: 1px solid #263245; border-radius: 8px; padding: 14px; }
 .acc-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #232c3d; padding-bottom: 8px; }
 .std-badge { font-size: 11px; color: #00b074; }
 .user-email-id { margin-top: 10px; font-size: 12px; }
-.acc-option { display: flex; gap: 10px; padding: 8px; border-radius: 6px; cursor: pointer; background: #20293a; margin-top: 8px; }
+.acc-option { display: flex; justify-content: space-between; padding: 10px; border-radius: 6px; cursor: pointer; background: #20293a; margin-top: 8px; }

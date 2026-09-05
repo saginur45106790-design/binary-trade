@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=3.0">
+    <link rel="stylesheet" href="style.css?v=4.0">
 </head>
 <body>
     <div class="app-root">
@@ -34,41 +34,32 @@
                 <div class="utc-clock" id="liveUtcClock">🟢 00:00:00 UTC+6</div>
                 <div class="info-circle" onclick="openDrawer('analytics')">ℹ️</div>
                 <div class="trade-phase-tag">Beginning of trade</div>
-                <div class="trade-end-tag">End of trade<br><span id="endTradeSub" style="color:#2a66e4; font-weight:700;">--:--:--</span></div>
-            </div>
-
-            <div id="chartToolsSidebar" class="chart-tools-menu">
-                <div class="tools-tab-content">
-                    <div class="tf-title">TIMEFRAMES</div>
-                    <div class="tf-grid">
-                        <button onclick="setTimeframe('5s')">5s</button>
-                        <button onclick="setTimeframe('10s')">10s</button>
-                        <button onclick="setTimeframe('15s')">15s</button>
-                        <button onclick="setTimeframe('30s')">30s</button>
-                        <button onclick="setTimeframe('1m')" class="active">1m</button>
-                        <button onclick="setTimeframe('2m')">2m</button>
-                        <button onclick="setTimeframe('5m')">5m</button>
-                        <button onclick="setTimeframe('15m')">15m</button>
-                        <button onclick="setTimeframe('30m')">30m</button>
-                        <button onclick="setTimeframe('1h')">1h</button>
-                        <button onclick="setTimeframe('1d')">1d</button>
-                    </div>
-                </div>
+                <div class="trade-end-tag">End of trade<br><span id="endTradeSub" style="color:#2a66e4; font-weight:700;">--:--</span></div>
             </div>
 
             <canvas id="tradeCanvas"></canvas>
 
             <div class="center-chart-btn" onclick="resetPan()">➔</div>
 
+            <div id="sellTradeCard" class="sell-trade-card">
+                <div class="st-head">
+                    <span>Sell the trade</span>
+                    <span class="st-timer" id="sellTimeRem">00:37</span>
+                </div>
+                <div class="st-val-btn" onclick="confirmSellTrade()">
+                    <span id="sellRefundVal">0.25 $</span>
+                </div>
+            </div>
+
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
-                <span id="toastMsg">Trade opened with price: 111.609 AUD/JPY (OTC)</span>
+                <span id="toastMsg">Trade opened with price: 111.950 AUD/JPY (OTC)</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
             <div id="resultBubble" class="result-popup-bubble">
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
-                <div class="res-val" id="resProfitVal">+1.88 $</div>
+                <div class="res-val" id="resProfitVal">+1.84 $</div>
             </div>
 
             <div id="bottomTradesDrawer" class="trades-drawer">
@@ -87,7 +78,7 @@
                 <div class="asset-selector" onclick="openAssetModal()">
                     <span class="flag-icon" id="curFlag">🇦🇺🇯🇵</span>
                     <b id="curName">AUD/JPY ...</b>
-                    <span class="payout-pill" id="curPayout">88% ▼</span>
+                    <span class="payout-pill" id="curPayout">84% ▼</span>
                 </div>
                 <div class="pending-toggle">
                     <span>PENDING TRADE</span>
@@ -101,7 +92,7 @@
             <div class="dock-row-2">
                 <div class="timer-box" onclick="toggleTimePopup()">
                     <span class="box-lbl" id="dockTimeLabel">Time</span>
-                    <div class="box-val" id="dockTimeValue">23:53</div>
+                    <div class="box-val" id="dockTimeValue">00:08</div>
                 </div>
                 <div class="invest-box">
                     <span class="box-lbl">Investment</span>
@@ -117,7 +108,7 @@
             <div class="payout-row">
                 <span class="payout-txt">Payout</span>
                 <span class="payout-dots">....................................................................................</span>
-                <b class="payout-amt" id="calcPayout">1.88 $</b>
+                <b class="payout-amt" id="calcPayout">1.84 $</b>
             </div>
 
             <div class="dock-actions">
@@ -164,7 +155,7 @@
             <button onclick="selectTimer(7200, '02:00:00')">02:00:00</button>
         </div>
 
-        <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
+        <button class="set-manually-btn" onclick="toggleTimePopup()">Set manually</button>
     </div>
 
     <div id="assetModal" class="full-screen-modal">
@@ -173,27 +164,18 @@
                 <h3>Select trade pair</h3>
                 <span class="x-close" onclick="closeAssetModal()">✕</span>
             </div>
-            <div class="search-box-row">
-                <input type="text" placeholder="Search pair..." id="assetSearch">
-            </div>
             <div class="asset-list-view">
-                <div class="asset-item" onclick="pickAsset('AUD/JPY (OTC)', '🇦🇺🇯🇵', 88)">
-                    <span>🇦🇺🇯🇵 AUD/JPY (OTC)</span> <b class="green-pct">88%</b>
+                <div class="asset-item" onclick="pickAsset('AUD/JPY (OTC)', '🇦🇺🇯🇵', 84)">
+                    <span>🇦🇺🇯🇵 AUD/JPY (OTC)</span> <b class="green-pct">84%</b>
                 </div>
                 <div class="asset-item" onclick="pickAsset('EUR/USD (OTC)', '🇪🇺🇺🇸', 92)">
                     <span>🇪🇺🇺🇸 EUR/USD (OTC)</span> <b class="green-pct">92%</b>
-                </div>
-                <div class="asset-item" onclick="pickAsset('USD/INR (OTC)', '🇺🇸🇮🇳', 92)">
-                    <span>🇺🇸🇮🇳 USD/INR (OTC)</span> <b class="green-pct">92%</b>
                 </div>
                 <div class="asset-item" onclick="pickAsset('USD/BDT (OTC)', '🇺🇸🇧🇩', 86)">
                     <span>🇺🇸🇧🇩 USD/BDT (OTC)</span> <b class="green-pct">86%</b>
                 </div>
                 <div class="asset-item" onclick="pickAsset('Bitcoin (OTC)', '₿', 85)">
                     <span>₿ Bitcoin (OTC)</span> <b class="green-pct">85%</b>
-                </div>
-                <div class="asset-item" onclick="pickAsset('Binance Coin (OTC)', '🟡', 92)">
-                    <span>🟡 Binance Coin (OTC)</span> <b class="green-pct">92%</b>
                 </div>
             </div>
         </div>
@@ -207,8 +189,6 @@
                     <option value="withdrawal">Withdrawal</option>
                     <option value="payments">Payments</option>
                     <option value="trades">Trades</option>
-                    <option value="market">Market</option>
-                    <option value="tournaments">Tournaments</option>
                     <option value="analytics">Analytics</option>
                 </select>
                 <span class="drawer-x" onclick="closeAllDrawers()">✕</span>
@@ -222,104 +202,26 @@
                         <div style="font-size:11px; color:#6e829c;">ID: 85857047 <span style="color:#00b074;">✔ Verified</span></div>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Nickname</label>
-                    <input type="text" value="SojibTrader" readonly>
-                </div>
-                <div class="form-group">
-                    <label>First Name</label>
-                    <input type="text" value="MD Sajib" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input type="text" value="Hossain" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Country</label>
-                    <input type="text" value="Bangladesh" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Address</label>
-                    <input type="text" value="Akkelpur, Rajshahi, Bangladesh" readonly>
-                </div>
+                <div class="form-group"><label>Nickname</label><input type="text" value="SojibTrader" readonly></div>
+                <div class="form-group"><label>First Name</label><input type="text" value="MD Sajib" readonly></div>
+                <div class="form-group"><label>Last Name</label><input type="text" value="Hossain" readonly></div>
             </div>
 
             <div id="page-withdrawal" class="drawer-page-body" style="display:none;">
-                <div class="bal-card">Available for withdrawal: <b>0.03 $</b></div>
-                <div class="form-group">
-                    <label>Amount (USD)</label>
-                    <input type="number" value="10">
-                </div>
-                <div class="form-group">
-                    <label>Payment Method</label>
-                    <select>
-                        <option>Binance Pay</option>
-                        <option>Bkash</option>
-                        <option>Nagad</option>
-                    </select>
-                </div>
+                <div class="bal-card">Available: <b>0.03 $</b></div>
+                <div class="form-group"><label>Amount ($)</label><input type="number" value="10"></div>
                 <button class="primary-btn">Confirm Withdrawal</button>
-                <h4 style="margin-top:15px; font-size:12px;">Recent requests:</h4>
-                <div class="req-item"><span>126022410 (Binance Pay)</span> <b style="color:#00b074;">+13.00 $ Successed</b></div>
-                <div class="req-item"><span>125912179 (Binance Pay)</span> <b style="color:#00b074;">+13.00 $ Successed</b></div>
-            </div>
-
-            <div id="page-payments" class="drawer-page-body" style="display:none;">
-                <h4 style="font-size:12px; margin-bottom:8px;">Transaction History</h4>
-                <div class="req-item"><span>Deposit (Binance Pay)</span> <b style="color:#00b074;">+$13.00</b></div>
-                <div class="req-item"><span>Deposit (Bkash)</span> <b style="color:#00b074;">+$20.00</b></div>
             </div>
 
             <div id="page-trades" class="drawer-page-body" style="display:none;">
-                <h4 style="font-size:12px; margin-bottom:8px;">Trade History (Live Account)</h4>
-                <div class="trade-history-item win">
-                    <span>AUD/JPY (OTC)</span> <b>+$1.88</b>
-                </div>
-                <div class="trade-history-item loss">
-                    <span>EUR/USD (OTC)</span> <b>-$1.00</b>
-                </div>
-                <div class="trade-history-item win">
-                    <span>USD/BDT (OTC)</span> <b>+$1.86</b>
-                </div>
-            </div>
-
-            <div id="page-market" class="drawer-page-body" style="display:none;">
-                <div class="market-card">
-                    <h4>🛡️ Risk Free</h4>
-                    <p style="font-size:11px; color:#6e829c;">0 promo codes available</p>
-                </div>
-                <div class="market-card">
-                    <h4>🎁 Cashback</h4>
-                    <p style="font-size:11px; color:#6e829c;">AHAubeFy1q (10%)</p>
-                </div>
-                <div class="market-card">
-                    <h4>💰 Deposit Bonus</h4>
-                    <p style="font-size:11px; color:#6e829c;">DEPOSIT50 (50% Bonus)</p>
-                </div>
-            </div>
-
-            <div id="page-tournaments" class="drawer-page-body" style="display:none;">
-                <div class="tour-card">
-                    <b>Crazy Wednesday</b>
-                    <span style="color:#f5a623;">Prize Pool: $7500</span>
-                    <small>Entry: $10 | Duration: 1 day</small>
-                </div>
-                <div class="tour-card">
-                    <b>Weekend Battle</b>
-                    <span style="color:#f5a623;">Prize Pool: $5000</span>
-                    <small>Entry: $1 | Duration: 2 days</small>
-                </div>
+                <h4>Trades History</h4>
+                <div class="trade-history-item win"><span>AUD/JPY (OTC)</span> <b>+$1.84</b></div>
+                <div class="trade-history-item loss"><span>EUR/USD (OTC)</span> <b>-$1.00</b></div>
             </div>
 
             <div id="page-analytics" class="drawer-page-body" style="display:none;">
-                <div class="stat-circle-row">
-                    <div class="circle-metric">129<br><small>Trades</small></div>
-                    <div style="flex:1;">
-                        <div>Profit: <b style="color:#ff4747;">-51.95 $</b></div>
-                        <div>Profitable trades: <b style="color:#00b074;">47%</b></div>
-                        <div>Net turnover: <b>223.65 $</b></div>
-                    </div>
-                </div>
+                <div class="circle-metric">129<br><small>Trades</small></div>
+                <p style="margin-top:10px;">Profitable trades: <b style="color:#00b074;">47%</b></p>
             </div>
         </div>
     </div>
@@ -328,31 +230,22 @@
         <div class="acc-dropdown-card">
             <div class="acc-head">
                 <div class="std-badge">✈️ STANDARD: <b>+0% profit</b></div>
-                <span class="eye-btn">👁️</span>
             </div>
             <div class="user-email-id">
                 <div class="u-mail">teachsajib@gmail.com</div>
                 <div class="u-id">ID: 85857047</div>
             </div>
-
             <div class="acc-option" onclick="switchAccount('live')">
-                <input type="radio" name="accType" id="radioLive">
-                <div class="acc-opt-info">
-                    <div class="opt-title">Live Account</div>
-                    <div class="opt-bal" id="modalLiveBal">$0.03</div>
-                </div>
+                <div class="opt-title">Live Account</div>
+                <div class="opt-bal" id="modalLiveBal">$0.03</div>
             </div>
-
             <div class="acc-option" onclick="switchAccount('demo')">
-                <input type="radio" name="accType" id="radioDemo" checked>
-                <div class="acc-opt-info">
-                    <div class="opt-title">Demo Account</div>
-                    <div class="opt-bal" id="modalDemoBal">$11,061.95 🔄</div>
-                </div>
+                <div class="opt-title">Demo Account</div>
+                <div class="opt-bal" id="modalDemoBal">$11,061.95 🔄</div>
             </div>
         </div>
     </div>
 
-    <script src="script.js?v=3.5"></script>
+    <script src="script.js?v=4.0"></script>
 </body>
 </html>
