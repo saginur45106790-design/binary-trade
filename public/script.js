@@ -1,117 +1,153 @@
-// TradingView লাইটওয়েট ক্যান্ডেলস্টিক চার্ট ইনিশিয়ালাইজেশন
-const chartContainer = document.getElementById('chart-container');
-const chart = LightweightCharts.createChart(chartContainer, {
-    width: chartContainer.clientWidth,
-    height: 420,
-    layout: {
-        background: { color: '#131722' },
-        textColor: '#d1d4dc',
-    },
-    grid: {
-        vertLines: { color: '#1f293d' },
-        horzLines: { color: '#1f293d' },
-    },
-    timeScale: {
-        timeVisible: true,
-        secondsVisible: true,
-    },
-});
+const canvas = document.getElementById('candleCanvas');
+const ctx = canvas.getContext('2d');
+const priceDisplay = document.getElementById('priceDisplay');
+const balanceDisplay = document.getElementById('balance');
+const tradeNotice = document.getElementById('tradeNotice');
 
-const candlestickSeries = chart.addCandlestickSeries({
-    upColor: '#26a69a',
-    downColor: '#ef5350',
-    borderDownColor: '#ef5350',
-    borderUpColor: '#26a69a',
-    wickDownColor: '#ef5350',
-    wickUpColor: '#26a69a',
-});
+let candles = [];
+let currentLiveCandle = null;
 
-// ডেমো ক্যান্ডেল ডাটা জেনারেট করা
-let currentTime = Math.floor(Date.now() / 1000) - 300;
-let basePrice = 1.0800;
-let initialData = [];
-
-for (let i = 0; i < 50; i++) {
-    let open = basePrice;
-    let close = open + (Math.random() - 0.48) * 0.0020;
-    let high = Math.max(open, close) + Math.random() * 0.0010;
-    let low = Math.min(open, close) - Math.random() * 0.0010;
-    initialData.push({ time: currentTime, open, high, low, close });
-    basePrice = close;
-    currentTime += 5;
+function resizeCanvas() {
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = canvas.parentElement.clientHeight;
 }
-candlestickSeries.setData(initialData);
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
 
-// রিয়েল-টাইম WebSocket প্রাইস ফিড ও ক্যান্ডেল আপডেট
-const ws = new WebSocket('ws://' + window.location.host);
-ws.onmessage = function(event) {
-    let data = JSON.parse(event.data);
-    if(data.type === 'PRICE_UPDATE') {
-        document.getElementById('price').innerText = data.price;
-        
-        // সর্বশেষ ক্যান্ডেল লাইভ আপডেট
-        let lastCandle = initialData[initialData.length - 1];
-        let newClose = parseFloat(data.price);
-        lastCandle.close = newClose;
-        if(newClose > lastCandle.high) lastCandle.high = newClose;
-        if(newClose < lastCandle.low) lastCandle.low = newClose;
-        
-        candlestickSeries.update(lastCandle);
+// চার্ট রেন্ডারিং ফাংশন
+function renderChart() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let allData = [...candles];
+    if (currentLiveCandle) allData.push(currentLiveCandle);
+    if (allData.length === 0) return;
+
+    let prices = allData.flatMap(c => [c.high, c.low]);
+    let minPrice = Math.min(...prices);
+    let maxPrice = Math.max(...prices);
+    let priceRange = (maxPrice - minPrice) || 0.00010;
+
+    let candleWidth = canvas.width / (allData.length + 2);
+    let padding = 15;
+
+    // গ্রিড লাইন
+    ctx.strokeStyle = '#1b202e';
+    ctx.lineWidth = 1;
+    for (let i = 1; i <= 4; i++) {
+        let y = (canvas.height / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    // ক্যান্ডেল আঁকা
+    allData.forEach((c, idx) => {
+        let x = idx * candleWidth + 10;
+        let isUp = c.close >= c.open;
+        let color = isUp ? '#00e676' : '#ff1744';
+
+        let highY = canvas.height - padding - ((c.high - minPrice) / priceRange) * (canvas.height - padding * 2);
+        let lowY = canvas.height - padding - ((c.low - minPrice) / priceRange) * (canvas.height - padding * 2);
+        let openY = canvas.height - padding - ((c.open - minPrice) / priceRange) * (canvas.height - padding * 2);
+        let closeY = canvas.height - padding - ((c.close - minPrice) / priceRange) * (canvas.height - padding * 2);
+
+        // উইক (Wick)
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x + candleWidth * 0.4, highY);
+        ctx.lineTo(x + candleWidth * 0.4, lowY);
+        ctx.stroke();
+
+        // বডি (Body)
+        ctx.fillStyle = color;
+        let bodyY = Math.min(openY, closeY);
+        let bodyHeight = Math.abs(closeY - openY) || 2;
+        ctx.fillRect(x, bodyY, candleWidth * 0.8, bodyHeight);
+    });
+
+    // লাইভ ডটেড প্রাইস লাইন
+    if (currentLiveCandle) {
+        let lastY = canvas.height - padding - ((currentLiveCandle.close - minPrice) / priceRange) * (canvas.height - padding * 2);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(0, lastY);
+        ctx.lineTo(canvas.width, lastY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    }
+}
+
+// WebSocket কানেকশন
+const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === 'TICK') {
+        priceDisplay.innerText = data.price;
+        currentLiveCandle = data.candle;
+        candles = data.history;
+        renderChart();
     }
 };
 
-// উইন্ডো রিসাইজ হলে চার্ট ফিট করা
-window.addEventListener('resize', () => {
-    chart.applyOptions({ width: chartContainer.clientWidth });
-});
+// ট্রেড ফাংশন
+function executeTrade(direction) {
+    let amount = Number(document.getElementById('tradeAmount').value);
+    let timeframe = document.getElementById('timeframe').value;
 
-// ট্রেড প্লেস ফাংশন
-function placeTrade(direction) {
-    let amount = document.getElementById('amount').value;
+    tradeNotice.innerText = `Trade Active: ${timeframe}s...`;
+    tradeNotice.style.color = '#ffb300';
+
     fetch('/api/trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'demo_user', amount: Number(amount) })
+        body: JSON.stringify({ username: 'demo_user', amount, timeframe, direction })
     })
-    .then(res => res.json())
+    .then(r => r.json())
     .then(data => {
-        if(data.success) {
-            document.getElementById('balance').innerText = data.balance.toFixed(2);
-            let msg = data.isWin ? `🎉 আপনি উইন করেছেন! প্রফিট পেয়েছেন।` : `❌ লস হয়েছে! আবার চেষ্টা করুন।`;
-            document.getElementById('result-msg').innerText = msg;
-        } else {
-            alert(data.message);
+        if (!data.success) {
+            tradeNotice.innerText = data.message;
+            tradeNotice.style.color = '#ff1744';
+            return;
         }
+        setTimeout(() => {
+            balanceDisplay.innerText = data.balance.toFixed(2);
+            if (data.isWin) {
+                tradeNotice.innerText = `WON: +$${data.profit.toFixed(2)}`;
+                tradeNotice.style.color = '#00e676';
+            } else {
+                tradeNotice.innerText = `LOST: -$${amount.toFixed(2)}`;
+                tradeNotice.style.color = '#ff1744';
+            }
+        }, 1500);
     });
 }
 
-function openModal(id) { document.getElementById(id).style.display = 'block'; }
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function submitDeposit() {
     let method = document.getElementById('depMethod').value;
     let amount = document.getElementById('depAmount').value;
-    let trxId = document.getElementById('trxId').value;
+    let trxId = document.getElementById('depTrx').value;
     fetch('/api/deposit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'demo_user', method, amount, trxId })
-    }).then(res => res.json()).then(data => {
-        alert(data.message);
-        closeModal('depositModal');
-    });
+    }).then(r => r.json()).then(d => { alert(d.message); closeModal('depModal'); });
 }
 
 function submitWithdraw() {
     let method = document.getElementById('wdMethod').value;
     let amount = document.getElementById('wdAmount').value;
-    let accountNo = document.getElementById('wdAccount').value;
+    let accountNo = document.getElementById('wdAcc').value;
     fetch('/api/withdraw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'demo_user', method, amount, accountNo })
-    }).then(res => res.json()).then(data => {
-        alert(data.message);
-        closeModal('withdrawModal');
-    });
+    }).then(r => r.json()).then(d => { alert(d.message); closeModal('wdModal'); location.reload(); });
 }

