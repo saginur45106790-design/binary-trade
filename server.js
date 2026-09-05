@@ -19,7 +19,7 @@ let currentPrice = 111.940;
 let candleHistory = [];
 let currentPayout = 84;
 
-// দীর্ঘ সময়ের হিস্ট্রি (১২০টি ক্যান্ডেল) যাতে জুম বা স্ক্রোল করলেও চার্ট খালি না হয়
+// দীর্ঘ সময়ের হিস্ট্রি যাতে জুম বা স্ক্রোল করলেও চার্ট খালি না হয়
 function initCandles() {
   let nowSec = Math.floor(Date.now() / 1000);
   let nowMinute = Math.floor(nowSec / 60) * 60;
@@ -45,8 +45,9 @@ let currentCandle = {
   close: currentPrice
 };
 
+// লাইভ ক্যান্ডেল ও প্রাইস মুভমেন্ট
 setInterval(() => {
-  let delta = (Math.random() - 0.495) * 0.005;
+  let delta = (Math.random() - 0.495) * 0.006;
   currentPrice = parseFloat((currentPrice + delta).toFixed(3));
 
   let now = Date.now();
@@ -86,7 +87,7 @@ setInterval(() => {
   });
 }, 1000);
 
-// ট্রেড ওপেন
+// ট্রেড নেওয়ার সময় ব্যালেন্স কাটা
 app.post('/api/trade', (req, res) => {
   const { username, amount, direction, accountType, durationSec } = req.body;
   let user = users[username] || users["demo_user"];
@@ -99,19 +100,10 @@ app.post('/api/trade', (req, res) => {
   if (accountType === 'live') user.liveBalance -= amount;
   else user.demoBalance -= amount;
 
-  let isWin = false;
-  if (user.control === 'win') isWin = true;
-  else if (user.control === 'loss') isWin = false;
-  else isWin = (Math.random() * 100) < 40;
-
-  let profitRatio = 1 + (currentPayout / 100);
-  let profit = parseFloat((amount * profitRatio).toFixed(2));
   let currentBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
   res.json({
     success: true,
-    isWin,
-    profit,
     entryPrice: currentPrice.toFixed(3),
     balance: currentBal.toFixed(2),
     direction,
@@ -120,10 +112,27 @@ app.post('/api/trade', (req, res) => {
   });
 });
 
-// ট্রেড সেটেলমেন্ট
+// ট্রেড শেষ হলে বাস্তব প্রফিট/লস গণনা
 app.post('/api/settle-trade', (req, res) => {
-  const { username, isWin, profit, accountType } = req.body;
+  const { username, entryPrice, exitPrice, direction, amount, accountType } = req.body;
   let user = users[username] || users["demo_user"];
+
+  let isWin = false;
+  if (user.control === 'win') {
+    isWin = true;
+  } else if (user.control === 'loss') {
+    isWin = false;
+  } else {
+    // বাস্তব মার্কেট প্রাইস অনুযায়ী গণনা
+    if (direction === 'UP') {
+      isWin = (Number(exitPrice) > Number(entryPrice));
+    } else if (direction === 'DOWN') {
+      isWin = (Number(exitPrice) < Number(entryPrice));
+    }
+  }
+
+  let profitRatio = 1 + (currentPayout / 100);
+  let profit = isWin ? parseFloat((amount * profitRatio).toFixed(2)) : 0;
 
   if (isWin) {
     if (accountType === 'live') user.liveBalance += profit;
@@ -131,20 +140,7 @@ app.post('/api/settle-trade', (req, res) => {
   }
 
   let finalBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
-  res.json({ success: true, balance: finalBal.toFixed(2) });
-});
-
-// সেল ট্রেড (ক্যাশআউট)
-app.post('/api/sell-trade', (req, res) => {
-  const { username, amount, accountType } = req.body;
-  let user = users[username] || users["demo_user"];
-  let refundAmt = parseFloat((amount * 0.25).toFixed(2));
-
-  if (accountType === 'live') user.liveBalance += refundAmt;
-  else user.demoBalance += refundAmt;
-
-  let finalBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
-  res.json({ success: true, refund: refundAmt, balance: finalBal.toFixed(2) });
+  res.json({ success: true, isWin, profit, balance: finalBal.toFixed(2) });
 });
 
 app.post('/api/switch-account', (req, res) => {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=6.0">
+    <link rel="stylesheet" href="style.css?v=7.0">
 </head>
 <body>
     <div class="app-root">
@@ -36,16 +36,6 @@
             <canvas id="tradeCanvas"></canvas>
 
             <div class="center-chart-btn" onclick="resetPan()">➔</div>
-
-            <div id="sellTradeCard" class="sell-trade-card">
-                <div class="st-head">
-                    <span>Sell the trade</span>
-                    <span class="st-timer" id="sellTimeRem">00:30</span>
-                </div>
-                <div class="st-val-btn" onclick="confirmSellTrade()">
-                    <span id="sellRefundVal">0.25 $</span>
-                </div>
-            </div>
 
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
@@ -141,7 +131,7 @@
 
         <div class="time-grid" id="gridTimeMode" style="display: none;"></div>
 
-        <button class="set-manually-btn" onclick="toggleTimePopup()">Set manually</button>
+        <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
     </div>
 
     <div id="assetModal" class="full-screen-modal">
@@ -230,6 +220,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=6.0"></script>
+    <script src="script.js?v=7.0"></script>
 </body>
 </html>
