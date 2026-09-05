@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket Trade</title>
+    <title>Pocket Option Terminal</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-root">
         <header class="top-bar">
             <div class="account-select-pill" onclick="toggleAccountModal()">
-                <span id="accountIcon" class="acc-icon">🎓</span>
-                <span id="accountLabel" class="acc-label">DEMO</span>
-                <span id="accountBal" class="acc-bal">$11,061.07</span>
+                <span id="accountIcon" class="acc-icon">✈️</span>
+                <span id="accountLabel" class="acc-label live">LIVE</span>
+                <span id="accountBal" class="acc-bal">$0.03</span>
                 <span class="chevron">▼</span>
             </div>
 
@@ -26,47 +26,55 @@
         </header>
 
         <div class="chart-box-container" id="chartContainer">
-            <div id="chartWatermark" class="watermark-text">DEMO</div>
+            <div id="chartWatermark" class="watermark-text">LIVE</div>
 
-            <div class="chart-top-actions">
+            <div class="chart-meta-tags">
+                <div class="sub-menu-btn">•••</div>
                 <div class="briefcase-btn">💼<span class="sub-badge">0</span></div>
+                <div class="utc-clock" id="liveUtcClock">🟢 23:24:02 UTC+6</div>
+                <div class="info-circle">ℹ️</div>
+                <div class="trade-phase-tag">Beginning of trade</div>
+                <div class="trade-end-tag">End of trade<br><span id="endTradeSub">04:57</span></div>
             </div>
 
             <canvas id="tradeCanvas"></canvas>
 
-            <div class="center-chart-btn" onclick="resetPan()">➔</div>
-
             <div id="timeSelectPopup" class="time-popup-dialog">
                 <div class="time-tabs">
-                    <button class="t-tab" onclick="switchTimeTab('timer')">TIMER</button>
-                    <button class="t-tab active" onclick="switchTimeTab('time')">TIME</button>
+                    <button id="tabTimerBtn" class="t-tab" onclick="switchPopupTab('timer')">TIMER</button>
+                    <button id="tabTimeBtn" class="t-tab active" onclick="switchPopupTab('time')">TIME</button>
                 </div>
-                <div class="time-grid" id="timeGrid">
-                    <button onclick="selectTime('23:15')">23:15</button>
-                    <button onclick="selectTime('23:16')">23:16</button>
-                    <button onclick="selectTime('23:17')">23:17</button>
-                    <button onclick="selectTime('23:18')">23:18</button>
-                    <button onclick="selectTime('23:19')" class="selected">23:19</button>
-                    <button onclick="selectTime('23:24')">23:24</button>
-                    <button onclick="selectTime('23:29')">23:29</button>
-                    <button onclick="selectTime('23:44')">23:44</button>
-                    <button onclick="selectTime('23:59')">23:59</button>
-                    <button onclick="selectTime('00:14')">00:14</button>
-                    <button onclick="selectTime('01:14')">01:14</button>
-                    <button onclick="selectTime('03:14')">03:14</button>
+
+                <div class="time-grid" id="gridTimeMode">
+                    </div>
+
+                <div class="time-grid" id="gridTimerMode" style="display: none;">
+                    <button onclick="selectTimer(5, '00:00:05')">00:05</button>
+                    <button onclick="selectTimer(10, '00:00:10')">00:10</button>
+                    <button onclick="selectTimer(15, '00:00:15')">00:15</button>
+                    <button onclick="selectTimer(30, '00:00:30')">00:30</button>
+                    <button onclick="selectTimer(60, '00:01:00')" class="selected">01:00</button>
+                    <button onclick="selectTimer(120, '00:02:00')">02:00</button>
+                    <button onclick="selectTimer(300, '00:05:00')">05:00</button>
+                    <button onclick="selectTimer(600, '00:10:00')">10:00</button>
+                    <button onclick="selectTimer(900, '00:15:00')">15:00</button>
+                    <button onclick="selectTimer(1800, '00:30:00')">30:00</button>
+                    <button onclick="selectTimer(3600, '01:00:00')">01:00:00</button>
+                    <button onclick="selectTimer(7200, '02:00:00')">02:00:00</button>
                 </div>
+
                 <button class="set-manually-btn">Set manually</button>
             </div>
 
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
-                <span id="toastMsg">Trade opened with price: 111.465 AUD/JPY (OTC)</span>
+                <span id="toastMsg">Trade opened with price: 111.528 AUD/JPY (OTC)</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
             <div id="resultBubble" class="result-popup-bubble">
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
-                <div class="res-val" id="resProfitVal">+1.92 $</div>
+                <div class="res-val" id="resProfitVal">+1.77 $</div>
             </div>
         </div>
 
@@ -75,7 +83,7 @@
                 <div class="asset-selector">
                     <span class="flag-icon">🇦🇺🇯🇵</span>
                     <b>AUD/JPY ...</b>
-                    <span class="payout-pill">92% ▼</span>
+                    <span class="payout-pill">88% ▼</span>
                 </div>
                 <div class="pending-toggle">
                     <span>PENDING TRADE</span>
@@ -88,8 +96,8 @@
 
             <div class="dock-row-2">
                 <div class="timer-box" onclick="toggleTimePopup()">
-                    <span class="box-lbl">Time</span>
-                    <div class="box-val" id="displayTimeVal">23:19</div>
+                    <span class="box-lbl" id="dockTimeLabel">Time</span>
+                    <div class="box-val" id="dockTimeValue">23:29</div>
                 </div>
                 <div class="invest-box">
                     <span class="box-lbl">Investment</span>
@@ -105,7 +113,7 @@
             <div class="payout-row">
                 <span class="payout-txt">Payout</span>
                 <span class="payout-dots">....................................................................................</span>
-                <b class="payout-amt" id="calcPayout">1.92 $</b>
+                <b class="payout-amt" id="calcPayout">1.77 $</b>
             </div>
 
             <div class="dock-actions">
@@ -145,7 +153,7 @@
             </div>
 
             <div class="acc-option" onclick="switchAccount('live')">
-                <input type="radio" name="accType" id="radioLive">
+                <input type="radio" name="accType" id="radioLive" checked>
                 <div class="acc-opt-info">
                     <div class="opt-title">Live Account</div>
                     <div class="opt-bal" id="modalLiveBal">$0.03</div>
@@ -154,7 +162,7 @@
             </div>
 
             <div class="acc-option" onclick="switchAccount('demo')">
-                <input type="radio" name="accType" id="radioDemo" checked>
+                <input type="radio" name="accType" id="radioDemo">
                 <div class="acc-opt-info">
                     <div class="opt-title">Demo Account</div>
                     <div class="opt-bal" id="modalDemoBal">$11,061.07 🔄</div>

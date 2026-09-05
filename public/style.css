@@ -10,7 +10,7 @@
 body, html {
     width: 100%;
     height: 100%;
-    background-color: #121722;
+    background-color: #171d28;
     color: #fff;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
@@ -26,27 +26,28 @@ body, html {
 /* টপ বার */
 .top-bar {
     height: 48px;
-    background: #171d2a;
+    background: #1b2230;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 12px;
-    border-bottom: 1px solid #202738;
+    border-bottom: 1px solid #232c3d;
 }
 
 .account-select-pill {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #1f2738;
+    background: #222b3d;
     padding: 5px 10px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
     font-weight: 700;
 }
-.acc-icon { font-size: 13px; }
-.acc-label { color: #f5a623; font-size: 11px; }
+.acc-icon { font-size: 12px; }
+.acc-label.live { color: #00b074; font-size: 11px; }
+.acc-label.demo { color: #f5a623; font-size: 11px; }
 .acc-bal { color: #fff; font-size: 13px; font-weight: 700; }
 .chevron { font-size: 9px; color: #8c9ba5; }
 
@@ -87,7 +88,7 @@ body, html {
 .chart-box-container {
     flex: 1;
     position: relative;
-    background: #121722;
+    background: #171d28;
     overflow: hidden;
 }
 
@@ -109,66 +110,55 @@ body, html {
     pointer-events: none;
 }
 
-.chart-top-actions {
+.chart-meta-tags {
     position: absolute;
     top: 8px;
     left: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    font-size: 10px;
+    color: #6a7c94;
     z-index: 5;
 }
-.briefcase-btn {
-    background: #1c2434;
-    padding: 4px 8px;
-    border-radius: 6px;
+.sub-menu-btn, .briefcase-btn, .info-circle {
+    background: #1c2536;
+    padding: 3px 6px;
+    border-radius: 4px;
     color: #8fa0b5;
-    font-size: 12px;
-    display: inline-block;
+    pointer-events: auto;
+    font-size: 11px;
 }
 .sub-badge {
     background: #2a66e4;
     color: #fff;
-    font-size: 9px;
-    padding: 1px 4px;
+    font-size: 8px;
+    padding: 1px 3px;
     border-radius: 4px;
-    margin-left: 3px;
+    margin-left: 2px;
 }
+.trade-phase-tag { margin-left: 4px; }
+.trade-end-tag { margin-left: auto; text-align: right; line-height: 1.2; }
 
-/* সেন্টারিং বাটন (ভিডিও অনুযায়ী সাদা গোল অ্যারো) */
-.center-chart-btn {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    width: 34px;
-    height: 34px;
-    background: #ffffff;
-    color: #121722;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 15px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    z-index: 10;
-}
-
-/* টাইম পপআপ (ভিডিওর মতো হুবহু গ্রিড) */
+/* টাইম ও টাইমার পপআপ ডায়ালগ (স্ক্রিনশট ৭৫৭ ও ৭৫৮ অনুযায়ী) */
 .time-popup-dialog {
     display: none;
     position: absolute;
-    bottom: 10px;
-    left: 14px;
-    width: 250px;
-    background: #1a2232;
-    border: 1px solid #283348;
+    bottom: 8px;
+    left: 12px;
+    width: 240px;
+    background: #1f2737;
+    border: 1px solid #2b374d;
     border-radius: 8px;
     padding: 10px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.7);
-    z-index: 30;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    z-index: 50;
 }
 .time-tabs {
     display: flex;
-    background: #121722;
+    background: #171d28;
     border-radius: 6px;
     padding: 2px;
     margin-bottom: 10px;
@@ -179,14 +169,14 @@ body, html {
     border: none;
     color: #798b9f;
     font-size: 11px;
-    font-weight: 700;
+    font-weight: 800;
     padding: 6px;
     border-radius: 4px;
     cursor: pointer;
 }
 .t-tab.active {
-    background: #2a66e4;
-    color: #fff;
+    background: #0070f3;
+    color: #ffffff;
 }
 .time-grid {
     display: grid;
@@ -194,26 +184,26 @@ body, html {
     gap: 6px;
 }
 .time-grid button {
-    background: #212c3f;
-    border: 1px solid #2d3b52;
-    color: #fff;
-    padding: 6px;
-    border-radius: 4px;
+    background: #273246;
+    border: 1px solid #324059;
+    color: #ffffff;
+    padding: 8px 4px;
+    border-radius: 5px;
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
 }
 .time-grid button.selected {
-    background: #2a66e4;
-    border-color: #2a66e4;
+    background: #0070f3;
+    border-color: #0070f3;
 }
 .set-manually-btn {
     width: 100%;
-    background: #212c3f;
-    border: 1px solid #2d3b52;
-    color: #fff;
+    background: #273246;
+    border: 1px solid #324059;
+    color: #ffffff;
     padding: 8px;
-    border-radius: 4px;
+    border-radius: 5px;
     font-size: 11px;
     font-weight: 700;
     margin-top: 8px;
@@ -257,8 +247,8 @@ body, html {
 
 /* বটম ডক প্যানেল */
 .dock-panel {
-    background: #171d2a;
-    border-top: 1px solid #202738;
+    background: #1b2230;
+    border-top: 1px solid #232c3d;
     padding: 10px 14px 6px;
     display: flex;
     flex-direction: column;
@@ -313,7 +303,7 @@ body, html {
     transition: .3s;
     border-radius: 50%;
 }
-input:checked + .slider { background-color: #2a66e4; }
+input:checked + .slider { background-color: #0070f3; }
 input:checked + .slider:before { transform: translateX(14px); }
 
 .dock-row-2 {
@@ -322,8 +312,8 @@ input:checked + .slider:before { transform: translateX(14px); }
 }
 .timer-box, .invest-box {
     flex: 1;
-    background: #1f2738;
-    border: 1px solid #29344a;
+    background: #222b3d;
+    border: 1px solid #2d3950;
     border-radius: 6px;
     padding: 6px 10px;
     display: flex;
@@ -355,8 +345,8 @@ input:checked + .slider:before { transform: translateX(14px); }
     left: 50%;
     transform: translateX(-50%);
     font-size: 8px;
-    background: #171d2a;
-    color: #2a66e4;
+    background: #1b2230;
+    color: #0070f3;
     padding: 0 4px;
     font-weight: 800;
 }
@@ -402,13 +392,12 @@ input:checked + .slider:before { transform: translateX(14px); }
     font-weight: 900;
 }
 
-/* ফুটার মেনু */
 .footer-icons {
     display: flex;
     justify-content: space-around;
     align-items: center;
     padding-top: 6px;
-    border-top: 1px solid #202738;
+    border-top: 1px solid #232c3d;
 }
 .f-icon {
     font-size: 17px;
@@ -421,7 +410,7 @@ input:checked + .slider:before { transform: translateX(14px); }
     position: absolute;
     top: -4px;
     right: -6px;
-    background: #2a66e4;
+    background: #0070f3;
     color: #fff;
     font-size: 9px;
     font-weight: 800;
@@ -467,7 +456,7 @@ input:checked + .slider:before { transform: translateX(14px); }
     margin: 10px 0;
 }
 .btn-change {
-    background: #2a66e4;
+    background: #0070f3;
     color: #fff;
     border: none;
     font-size: 10px;
@@ -486,7 +475,7 @@ input:checked + .slider:before { transform: translateX(14px); }
 .opt-title { font-size: 12px; color: #a4b3c7; }
 .opt-bal { font-size: 14px; font-weight: 700; margin: 2px 0; }
 .opt-sub { font-size: 9px; color: #6e829c; }
-.blue-link { color: #2a66e4; }
+.blue-link { color: #0070f3; }
 
 .std-modal { align-items: center; justify-content: center; }
 .std-modal-box {

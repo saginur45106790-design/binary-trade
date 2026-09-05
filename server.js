@@ -16,10 +16,9 @@ let users = {
 };
 let transactions = [];
 
-// AUD/JPY লাইফ-টাইম ৬০ সেকেন্ড ক্যান্ডেল হিস্ট্রি
 const DATA_FILE = path.join(__dirname, 'candles_audjpy.json');
 let candleHistory = [];
-let currentPrice = 111.465;
+let currentPrice = 111.528;
 
 if (fs.existsSync(DATA_FILE)) {
   try {
@@ -33,10 +32,10 @@ if (candleHistory.length === 0) {
   for (let i = 40; i > 0; i--) {
     let t = nowMinute - (i * 60);
     let o = currentPrice;
-    let delta = (Math.random() - 0.49) * 0.035;
+    let delta = (Math.random() - 0.49) * 0.030;
     let c = parseFloat((o + delta).toFixed(3));
-    let h = parseFloat((Math.max(o, c) + Math.random() * 0.018).toFixed(3));
-    let l = parseFloat((Math.min(o, c) - Math.random() * 0.018).toFixed(3));
+    let h = parseFloat((Math.max(o, c) + Math.random() * 0.015).toFixed(3));
+    let l = parseFloat((Math.min(o, c) - Math.random() * 0.015).toFixed(3));
     candleHistory.push({ time: t, open: o, high: h, low: l, close: c });
     currentPrice = c;
   }
@@ -51,15 +50,16 @@ let currentCandle = {
   close: currentPrice
 };
 
+// রিয়েল-টাইম প্রাইজ টিক ও লাইভ ব্রডকাস্ট
 setInterval(() => {
-  let delta = (Math.random() - 0.495) * 0.006;
+  let delta = (Math.random() - 0.495) * 0.005;
   currentPrice = parseFloat((currentPrice + delta).toFixed(3));
 
   let nowMinute = Math.floor(Date.now() / 60000) * 60;
 
   if (nowMinute > currentCandle.time) {
     candleHistory.push({ ...currentCandle });
-    if (candleHistory.length > 200) candleHistory.shift();
+    if (candleHistory.length > 250) candleHistory.shift();
     fs.writeFileSync(DATA_FILE, JSON.stringify(candleHistory));
     currentCandle = {
       time: nowMinute,
@@ -74,14 +74,16 @@ setInterval(() => {
     currentCandle.close = currentPrice;
   }
 
-  let remainingSeconds = 60 - Math.floor((Date.now() / 1000) % 60);
+  let now = Date.now();
+  let remainingSec = 60 - Math.floor((now / 1000) % 60);
 
   let payload = JSON.stringify({
     type: 'TICK',
     price: currentPrice.toFixed(3),
     candle: currentCandle,
     history: candleHistory,
-    countdown: remainingSeconds
+    countdown: remainingSec,
+    serverTime: now
   });
 
   wss.clients.forEach(client => {
@@ -89,31 +91,33 @@ setInterval(() => {
   });
 }, 1000);
 
-// ট্রেড এক্সিকিউশন
+// ট্রেড এক্সিকিউশন (TIMER এবং TIME উভয় মোডের সাপোর্ট)
 app.post('/api/trade', (req, res) => {
-  const { username, amount, direction, accountType } = req.body;
+  const { username, amount, direction, accountType, mode, durationSec, targetTimestamp } = req.body;
   let user = users[username] || users["demo_user"];
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
   if (targetBal < amount) {
-    return res.json({ success: false, message: "Insufficient balance!" });
+    return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
   }
 
   if (accountType === 'live') user.liveBalance -= amount;
   else user.demoBalance -= amount;
 
+  // নির্ধারিত উইন/লস কন্ট্রোল
   let isWin = false;
   if (user.control === 'win') isWin = true;
   else if (user.control === 'loss') isWin = false;
-  else isWin = (Math.random() * 100) < 40; // ৪০% উইন লজিক
+  else isWin = (Math.random() * 100) < 40; // ডিফল্ট ৪০% উইন চান্স
 
-  let profit = isWin ? parseFloat((amount * 1.92).toFixed(2)) : 0;
+  let profit = isWin ? parseFloat((amount * 1.77).toFixed(2)) : 0;
   if (isWin) {
     if (accountType === 'live') user.liveBalance += profit;
     else user.demoBalance += profit;
   }
 
   let finalBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
+
   res.json({
     success: true,
     isWin,
@@ -121,7 +125,10 @@ app.post('/api/trade', (req, res) => {
     entryPrice: currentPrice.toFixed(3),
     balance: finalBal.toFixed(2),
     direction,
-    amount
+    amount,
+    mode,
+    durationSec,
+    targetTimestamp
   });
 });
 
