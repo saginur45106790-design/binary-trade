@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=7.0">
+    <link rel="stylesheet" href="style.css?v=8.0">
 </head>
 <body>
     <div class="app-root">
@@ -26,7 +26,7 @@
         </header>
 
         <div class="chart-box-container" id="chartContainer">
-            <div id="chartWatermark" class="watermark-text">DEMO</div>
+            <div id="chartWatermark" class="watermark-text">BTC</div>
 
             <div class="chart-meta-tags">
                 <div class="sub-menu-btn" onclick="toggleToolsMenu()">•••</div>
@@ -39,22 +39,22 @@
 
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
-                <span id="toastMsg">Trade opened with price: 111.940 AUD/JPY (OTC)</span>
+                <span id="toastMsg">Trade opened with price: 68450.00 BTC/USD (OTC)</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
             <div id="resultBubble" class="result-popup-bubble">
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
-                <div class="res-val" id="resProfitVal">+1.84 $</div>
+                <div class="res-val" id="resProfitVal">+1.92 $</div>
             </div>
         </div>
 
         <div class="dock-panel">
             <div class="dock-row-1">
                 <div class="asset-selector" onclick="openAssetModal()">
-                    <span class="flag-icon" id="curFlag">🇦🇺🇯🇵</span>
-                    <b id="curName">AUD/JPY ...</b>
-                    <span class="payout-pill" id="curPayout">84% ▼</span>
+                    <span id="activeCoinIcon" class="coin-icon-badge"></span>
+                    <b id="curName">BTC/USD (OTC)</b>
+                    <span class="payout-pill" id="curPayout">92% ▼</span>
                 </div>
                 <div class="pending-toggle">
                     <span>PENDING TRADE</span>
@@ -84,7 +84,7 @@
             <div class="payout-row">
                 <span class="payout-txt">Payout</span>
                 <span class="payout-dots">....................................................................................</span>
-                <b class="payout-amt" id="calcPayout">1.84 $</b>
+                <b class="payout-amt" id="calcPayout">1.92 $</b>
             </div>
 
             <div class="dock-actions">
@@ -105,6 +105,104 @@
                 <div class="f-icon badge-icon" onclick="openDrawer('tournaments')">🏆<span class="f-badge">4</span></div>
                 <div class="f-icon badge-icon" onclick="openDrawer('menu')">💬<span class="f-badge">4</span></div>
             </nav>
+        </div>
+    </div>
+
+    <div id="assetModal" class="full-screen-modal">
+        <div class="modal-inner">
+            <div class="modal-header">
+                <h3>Select Popular Crypto Pair</h3>
+                <span class="x-close" onclick="closeAssetModal()">✕</span>
+            </div>
+            <div class="asset-list-view">
+                <div class="asset-item" onclick="selectAsset('BTC')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo btc-logo">₿</span>
+                        <div><b>Bitcoin</b> <small>BTC/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">92%</b>
+                        <span id="price-tag-BTC" class="coin-live-p">68,450.00</span>
+                    </div>
+                </div>
+
+                <div class="asset-item" onclick="selectAsset('ETH')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo eth-logo">Ξ</span>
+                        <div><b>Ethereum</b> <small>ETH/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">90%</b>
+                        <span id="price-tag-ETH" class="coin-live-p">3,420.00</span>
+                    </div>
+                </div>
+
+                <div class="asset-item" onclick="selectAsset('SOL')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo sol-logo">◎</span>
+                        <div><b>Solana</b> <small>SOL/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">88%</b>
+                        <span id="price-tag-SOL" class="coin-live-p">175.50</span>
+                    </div>
+                </div>
+
+                <div class="asset-item" onclick="selectAsset('BNB')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo bnb-logo">◆</span>
+                        <div><b>BNB</b> <small>BNB/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">88%</b>
+                        <span id="price-tag-BNB" class="coin-live-p">590.20</span>
+                    </div>
+                </div>
+
+                <div class="asset-item" onclick="selectAsset('XRP')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo xrp-logo">✕</span>
+                        <div><b>XRP</b> <small>XRP/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">85%</b>
+                        <span id="price-tag-XRP" class="coin-live-p">0.6250</span>
+                    </div>
+                </div>
+
+                <div class="asset-item" onclick="selectAsset('DOGE')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo doge-logo">Ð</span>
+                        <div><b>Dogecoin</b> <small>DOGE/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">82%</b>
+                        <span id="price-tag-DOGE" class="coin-live-p">0.1425</span>
+                    </div>
+                </div>
+
+                <div class="asset-item" onclick="selectAsset('TON')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo ton-logo">💎</span>
+                        <div><b>Toncoin</b> <small>TON/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">86%</b>
+                        <span id="price-tag-TON" class="coin-live-p">5.850</span>
+                    </div>
+                </div>
+
+                <div class="asset-item" onclick="selectAsset('ADA')">
+                    <div class="coin-meta-left">
+                        <span class="c-logo ada-logo">₳</span>
+                        <div><b>Cardano</b> <small>ADA/USD (OTC)</small></div>
+                    </div>
+                    <div class="coin-meta-right">
+                        <b class="green-pct">84%</b>
+                        <span id="price-tag-ADA" class="coin-live-p">0.4850</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -130,31 +228,7 @@
         </div>
 
         <div class="time-grid" id="gridTimeMode" style="display: none;"></div>
-
         <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
-    </div>
-
-    <div id="assetModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Select trade pair</h3>
-                <span class="x-close" onclick="closeAssetModal()">✕</span>
-            </div>
-            <div class="asset-list-view">
-                <div class="asset-item" onclick="pickAsset('AUD/JPY (OTC)', '🇦🇺🇯🇵', 84)">
-                    <span>🇦🇺🇯🇵 AUD/JPY (OTC)</span> <b class="green-pct">84%</b>
-                </div>
-                <div class="asset-item" onclick="pickAsset('EUR/USD (OTC)', '🇪🇺🇺🇸', 92)">
-                    <span>🇪🇺🇺🇸 EUR/USD (OTC)</span> <b class="green-pct">92%</b>
-                </div>
-                <div class="asset-item" onclick="pickAsset('USD/BDT (OTC)', '🇺🇸🇧🇩', 86)">
-                    <span>🇺🇸🇧🇩 USD/BDT (OTC)</span> <b class="green-pct">86%</b>
-                </div>
-                <div class="asset-item" onclick="pickAsset('Bitcoin (OTC)', '₿', 85)">
-                    <span>₿ Bitcoin (OTC)</span> <b class="green-pct">85%</b>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div id="globalDrawer" class="global-drawer-overlay">
@@ -191,8 +265,8 @@
 
             <div id="page-trades" class="drawer-page-body" style="display:none;">
                 <h4>Trades History</h4>
-                <div class="trade-history-item win"><span>AUD/JPY (OTC)</span> <b>+$1.84</b></div>
-                <div class="trade-history-item loss"><span>EUR/USD (OTC)</span> <b>-$1.00</b></div>
+                <div class="trade-history-item win"><span>BTC/USD (OTC)</span> <b>+$1.92</b></div>
+                <div class="trade-history-item loss"><span>ETH/USD (OTC)</span> <b>-$1.00</b></div>
             </div>
 
             <div id="page-analytics" class="drawer-page-body" style="display:none;">
@@ -220,6 +294,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=7.0"></script>
+    <script src="script.js?v=8.0"></script>
 </body>
 </html>
