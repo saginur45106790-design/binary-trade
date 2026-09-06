@@ -12,7 +12,7 @@ app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 let users = {
-  "demo_user": { liveBalance: 10.00, demoBalance: 11072.87, activeAccount: "demo", control: "normal" }
+  "demo_user": { liveBalance: 10.00, demoBalance: 11070.12, activeAccount: "demo", control: "normal" }
 };
 
 let ASSETS = {
@@ -29,7 +29,6 @@ let ASSETS = {
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// ২৪ ঘণ্টার ১,৪৪০টি প্রাকৃতিক ক্যান্ডেল তৈরি
 function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
   currentCandleMinute = Math.floor(nowSec / 60) * 60;
@@ -41,12 +40,12 @@ function init24HourMarket() {
 
     for (let i = 1440; i > 0; i--) {
       let t = currentCandleMinute - (i * 60);
-      let drift = -(cur - meta.basePrice) * 0.0015;
-      let delta = (Math.random() - 0.5) * (meta.vol * 0.4) + drift;
+      let drift = -(cur - meta.basePrice) * 0.001;
+      let delta = (Math.random() - 0.5) * (meta.vol * 0.35) + drift;
       let o = cur;
       let c = parseFloat((o + delta).toFixed(meta.decimals));
-      let h = parseFloat((Math.max(o, c) + Math.random() * (meta.vol * 0.2)).toFixed(meta.decimals));
-      let l = parseFloat((Math.min(o, c) - Math.random() * (meta.vol * 0.2)).toFixed(meta.decimals));
+      let h = parseFloat((Math.max(o, c) + Math.random() * (meta.vol * 0.15)).toFixed(meta.decimals));
+      let l = parseFloat((Math.min(o, c) - Math.random() * (meta.vol * 0.15)).toFixed(meta.decimals));
       list.push({ time: t, open: o, high: h, low: l, close: c });
       cur = c;
     }
@@ -64,7 +63,6 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
-// লাইভ স্মুথ মার্কেট টিক
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -75,7 +73,7 @@ setInterval(() => {
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
-    let drift = -(meta.price - meta.basePrice) * 0.001;
+    let drift = -(meta.price - meta.basePrice) * 0.0008;
     let delta = (Math.random() - 0.5) * (meta.vol * 0.25) + drift;
     meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
 
@@ -118,13 +116,14 @@ setInterval(() => {
 
   let broadcastData = JSON.stringify(tickPayload);
   wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) client.send(broadcastData);
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(broadcastData);
+    }
   });
 }, 1000);
 
 let lifetimeTrades = [
-  { id: "TR-90214", asset: "BTC/USD (OTC)", direction: "UP", amount: 1.00, entryPrice: "68520.50", exitPrice: "68524.20", profit: 1.92, isWin: true, time: "24/08/2026, 21:14:02", accountType: "live" },
-  { id: "TR-90213", asset: "ETH/USD (OTC)", direction: "DOWN", amount: 2.00, entryPrice: "3422.00", exitPrice: "3423.10", profit: 0.00, isWin: false, time: "24/08/2026, 20:45:18", accountType: "live" }
+  { id: "TR-90214", asset: "BTC/USD (OTC)", direction: "UP", amount: 1.00, entryPrice: "68520.50", exitPrice: "68524.20", profit: 1.92, isWin: true, time: "24/08/2026, 21:14:02", accountType: "live" }
 ];
 
 let depositHistory = [
@@ -146,16 +145,14 @@ let supportTickets = [
     status: "Answered",
     createdAt: "24/08/2026, 18:22:10",
     replies: [
-      { sender: "Admin Support", message: "Your payment has been successfully approved and added to your balance.", time: "24/08/2026, 18:25:40" }
+      { sender: "Admin Support", message: "Your payment has been approved and added to your balance.", time: "24/08/2026, 18:25:40" }
     ]
   }
 ];
 
 let tournamentsList = [
   { id: "tour_01", title: "Weekend Battle", status: "ACTIVE NOW", prizePool: "5000 $", entryFee: "1 $", duration: "2 days" },
-  { id: "tour_02", title: "Crazy Wednesday", status: "UNTIL START: 2 DAY(S)", prizePool: "7500 $", entryFee: "10 $", duration: "1 day" },
-  { id: "tour_03", title: "Grand Pro League", status: "UNTIL START: 4 DAY(S)", prizePool: "15000 $", entryFee: "15 $", duration: "3 days" },
-  { id: "tour_04", title: "Daily Sprint", status: "UNTIL START: 5 DAY(S)", prizePool: "2500 $", entryFee: "0 $", duration: "1 day" }
+  { id: "tour_02", title: "Crazy Wednesday", status: "UNTIL START: 2 DAY(S)", prizePool: "7500 $", entryFee: "10 $", duration: "1 day" }
 ];
 
 app.get('/api/history/:asset', (req, res) => {
@@ -256,7 +253,7 @@ app.post('/api/switch-account', (req, res) => {
 
 app.post('/api/reset-demo', (req, res) => {
   let user = users["demo_user"];
-  user.demoBalance = 11072.87;
+  user.demoBalance = 11070.12;
   res.json({ success: true, balance: user.demoBalance.toFixed(2) });
 });
 
@@ -267,39 +264,10 @@ app.get('/api/user/info', (req, res) => {
 
 app.get('/api/tournaments', (req, res) => res.json({ success: true, tournaments: tournamentsList }));
 app.get('/api/support/tickets', (req, res) => res.json({ success: true, tickets: supportTickets }));
-
-app.post('/api/support/create-ticket', (req, res) => {
-  const { username, category, message, screenshot } = req.body;
-  let newTicket = {
-    id: "TK-" + Math.floor(100000 + Math.random() * 900000),
-    username: username || "demo_user",
-    category: category || "General Support",
-    message: message || "",
-    screenshot: screenshot || "",
-    status: "Pending",
-    createdAt: new Date().toLocaleString(),
-    replies: []
-  };
-  supportTickets.unshift(newTicket);
-  res.json({ success: true, message: "Ticket submitted successfully!", ticket: newTicket });
-});
-
 app.get('/api/user/trades', (req, res) => res.json({ success: true, trades: lifetimeTrades }));
 app.get('/api/payments', (req, res) => res.json({ success: true, deposits: depositHistory, withdrawals: transactions }));
-
 app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-
-app.get('/api/admin/data', (req, res) => {
-  res.json({ users, assets: ASSETS, tickets: supportTickets });
-});
-
-app.post('/api/admin/action', (req, res) => {
-  const { username, action, value } = req.body;
-  if (users[username]) {
-    if (action === 'control') users[username].control = value;
-    res.json({ success: true });
-  } else res.json({ success: false });
-});
+app.get('/api/admin/data', (req, res) => res.json({ users, assets: ASSETS }));
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Trading Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Stable Server on port ${PORT}`));
