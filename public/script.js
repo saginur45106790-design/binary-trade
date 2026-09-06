@@ -14,6 +14,10 @@ let activeDecimals = 2;
 let currentPayout = 92;
 let isSwitchingAsset = false;
 
+// স্মুথ লার্প (Interpolation) ভেরিয়েবল
+let renderLivePrice = 68520.50;
+let targetLivePrice = 68520.50;
+
 let candleWidth = 9;
 let candleSpacing = 4;
 let initialPinchDistance = null;
@@ -32,7 +36,6 @@ const ASSET_DECIMALS = {
     'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4
 };
 
-// কোনো ইমোজি নয় - ক্রিপ্টো ভেক্টর ও প্রফেশনাল ব্যাজ
 const COIN_ICONS = {
     'BTC': '<span class="c-logo btc-logo" style="width:20px;height:20px;font-size:11px;">B</span>',
     'ETH': '<span class="c-logo eth-logo" style="width:20px;height:20px;font-size:11px;">E</span>',
@@ -53,16 +56,22 @@ function fitCanvas() {
     canvas.style.height = rect.height + 'px';
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.scale(dpr, dpr);
-    drawChart();
 }
 window.addEventListener('resize', fitCanvas);
 
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        selectAsset(activeAssetKey);
+// স্ক্রিনশট ৮৭১ লোডার হ্যান্ডলার
+function showChartLoader() {
+    let el = document.getElementById('chartLoader');
+    if (el) el.classList.add('active');
+}
+function hideChartLoader() {
+    let el = document.getElementById('chartLoader');
+    if (el) {
+        setTimeout(() => { el.classList.remove('active'); }, 400);
     }
-});
+}
 
+// টাচ স্ক্রোল ও জুম
 let startX = 0;
 let isPanning = false;
 
@@ -94,13 +103,11 @@ canvas.addEventListener('touchmove', (e) => {
             candleSpacing = Math.max(2, candleSpacing - 0.15);
         }
         initialPinchDistance = currentDist;
-        drawChart();
     } else if (e.touches.length === 1 && isPanning) {
         panOffset += (e.touches[0].clientX - startX) * 0.95;
         let maxPan = (candles.length * (candleWidth + candleSpacing)) - 80;
         panOffset = Math.max(-60, Math.min(maxPan, panOffset));
         startX = e.touches[0].clientX;
-        drawChart();
     }
 }, { passive: true });
 
@@ -133,11 +140,8 @@ function toggleAccountModal() {
     let m = document.getElementById('accountModal');
     m.style.display = (m.style.display === 'block') ? 'none' : 'block';
 }
-
 function closeAccountModal(e) {
-    if (e.target.id === 'accountModal') {
-        document.getElementById('accountModal').style.display = 'none';
-    }
+    if (e.target.id === 'accountModal') document.getElementById('accountModal').style.display = 'none';
 }
 
 function switchAccount(type) {
@@ -314,13 +318,12 @@ function renderTimeModeGrid() {
     });
 }
 
-// ঘড়ি (কোনো ইমোজি নয় - পিওর ডট)
 function syncClock() {
     let now = new Date();
     let hh = String(now.getHours()).padStart(2, '0');
     let mm = String(now.getMinutes()).padStart(2, '0');
     let ss = String(now.getSeconds()).padStart(2, '0');
-    document.getElementById('liveUtcClock').innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00e676;margin-right:4px;"></span> ${hh}:${mm}:${ss} UTC+6`;
+    document.getElementById('liveUtcClock').innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC+6`;
 
     let curSec = Math.floor(now.getTime() / 1000);
     for (let i = activeTrades.length - 1; i >= 0; i--) {
@@ -330,7 +333,6 @@ function syncClock() {
             activeTrades.splice(i, 1);
         }
     }
-    drawChart();
 }
 setInterval(syncClock, 1000);
 
@@ -359,12 +361,13 @@ function settleTrade(trade) {
         bubble.style.top = '48%';
         bubble.style.left = '35%';
         setTimeout(() => { bubble.style.display = 'none'; }, 4000);
-        drawChart();
     });
 }
 
+// কয়েন পরিবর্তন ও লোডার ট্রিগার
 function selectAsset(key) {
     isSwitchingAsset = true;
+    showChartLoader();
     activeAssetKey = key;
     activeDecimals = ASSET_DECIMALS[key] || 2;
     document.getElementById('activeCoinIcon').innerHTML = COIN_ICONS[key];
@@ -381,17 +384,32 @@ function selectAsset(key) {
             updatePayoutCalc();
             closeAssetModal();
             isSwitchingAsset = false;
-            drawChart();
+            let lastP = candles[candles.length - 1].close;
+            targetLivePrice = lastP;
+            renderLivePrice = lastP;
+            hideChartLoader();
         }
+    }).catch(() => {
+        hideChartLoader();
+        isSwitchingAsset = false;
     });
 }
 
-function drawChart() {
+// -------------------------------------------------------------
+// ক্যানভাস রেন্ডার লুপ (স্মুথ ৬০ এফপিএস ও স্ক্রিনশট ৮৭৩, ৮৭৪ স্টাইল)
+// -------------------------------------------------------------
+function render() {
+    requestAnimationFrame(render);
+
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
     ctx.clearRect(0, 0, width, height);
 
     if (candles.length === 0 || isSwitchingAsset) return;
+
+    // স্মুথ লার্প ইন্টারপোলেশন (মাখনের মতো মসৃণ ক্যান্ডেল মুভমেন্ট)
+    renderLivePrice += (targetLivePrice - renderLivePrice) * 0.15;
+    candles[candles.length - 1].close = parseFloat(renderLivePrice.toFixed(activeDecimals));
 
     let totalUnit = candleWidth + candleSpacing;
     let baseRightX = width - 80 + panOffset;
@@ -425,6 +443,7 @@ function drawChart() {
         return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
+    // অনুভূমিক গ্রিড
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -441,6 +460,7 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
+    // ক্যান্ডেলস্টিক রেন্ডার
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -466,6 +486,7 @@ function drawChart() {
     let last = candles[candles.length - 1];
     let liveY = getY(last.close);
 
+    // লাইভ অনুভূমিক ড্যাশ লাইন
     ctx.setLineDash([3, 3]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.beginPath();
@@ -483,83 +504,108 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
+    // উলম্ব এক্সপায়ারেশন ড্যাশ লাইন
     let expX = baseRightX + (candleWidth + candleSpacing);
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.beginPath();
     ctx.moveTo(expX, 0);
     ctx.lineTo(expX, height - 20);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    let cdM = Math.floor(remainingCountdown / 60);
-    let cdS = remainingCountdown % 60;
-    let cdStr = `${String(cdM).padStart(2,'0')}:${String(cdS).padStart(2,'0')}`;
+    // -------------------------------------------------------------
+    // স্ক্রিনশট ৮৭৩ স্টাইল: সাইড টাইম বক্স (অনুভূমিক লাইনে একটু ডানে)
+    // -------------------------------------------------------------
+    let now = new Date();
+    let expDate = new Date(now.getTime() + remainingCountdown * 1000);
+    let hhStr = String(expDate.getHours()).padStart(2, '0');
+    let mmStr = String(expDate.getMinutes()).padStart(2, '0');
+    let ssStr = String(expDate.getSeconds()).padStart(2, '0');
+    let exactTimeStr = `${hhStr}:${mmStr}:${ssStr}`;
 
-    ctx.fillStyle = 'rgba(23, 29, 42, 0.85)';
-    ctx.fillRect(expX - 25, liveY - 9, 50, 18);
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 10px monospace';
-    ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
+    let activeCoinTrades = activeTrades.filter(t => t.asset === activeAssetKey);
 
-    activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
-        let entryX = getX(tr.startCandleIdx);
-        let entryY = getY(tr.entryPrice);
-        let isUp = (tr.direction === 'UP');
-        let tradeColor = isUp ? '#00e676' : '#ff334b';
+    // যদি কোনো ট্রেড না থাকে: স্ক্রিনশট ৮৭৩ এর হুবহু টাইম বক্স
+    if (activeCoinTrades.length === 0) {
+        let boxW = 68;
+        let boxH = 20;
+        let boxX = expX + 16;
+        let boxY = liveY - (boxH / 2);
 
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = tradeColor;
-        ctx.lineWidth = 1.6;
+        ctx.fillStyle = '#222d3d';
         ctx.beginPath();
-        ctx.moveTo(entryX, entryY);
-        ctx.lineTo(expX, entryY);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        let arrowLen = 18;
-        let targetArrowY = isUp ? (entryY - arrowLen) : (entryY + arrowLen);
-
-        ctx.strokeStyle = tradeColor;
-        ctx.lineWidth = 2.5;
-        ctx.beginPath();
-        ctx.moveTo(entryX, entryY);
-        ctx.lineTo(entryX, targetArrowY);
-        ctx.stroke();
-
-        ctx.fillStyle = tradeColor;
-        ctx.beginPath();
-        if (isUp) {
-            ctx.moveTo(entryX - 5, entryY - arrowLen + 6);
-            ctx.lineTo(entryX, entryY - arrowLen);
-            ctx.lineTo(entryX + 5, entryY - arrowLen + 6);
-        } else {
-            ctx.moveTo(entryX - 5, entryY + arrowLen - 6);
-            ctx.lineTo(entryX, entryY + arrowLen);
-            ctx.lineTo(entryX + 5, entryY + arrowLen - 6);
-        }
-        ctx.fill();
-
-        ctx.fillStyle = tradeColor;
-        ctx.beginPath();
-        ctx.arc(entryX, entryY, 7, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9px sans-serif';
-        ctx.fillText(isUp ? '▲' : '▼', entryX - 3.5, entryY + 3);
-
-        ctx.fillStyle = tradeColor;
-        ctx.beginPath();
-        ctx.roundRect(expX - 2, entryY - 9, 44, 18, 4);
+        ctx.roundRect(boxX, boxY, boxW, boxH, 4);
         ctx.fill();
 
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 10px monospace';
-        ctx.fillText(`$${tr.amount}`, expX + 3, entryY + 4);
+        ctx.fillText(exactTimeStr, boxX + 8, boxY + 14);
+    }
+
+    // -------------------------------------------------------------
+    // স্ক্রিনশট ৮৭৪ স্টাইল: ডাবল সার্কেল + অ্যারো ও সংযুক্ত হোয়াইট ডট
+    // -------------------------------------------------------------
+    activeCoinTrades.forEach(tr => {
+        let entryX = getX(tr.startCandleIdx);
+        let entryY = getY(tr.entryPrice);
+        let isUp = (tr.direction === 'UP');
+        let tradeColor = isUp ? '#00e676' : '#eb5757';
+
+        // অনুভূমিক ড্যাশ লাইন
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = tradeColor;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(entryX, entryY);
+        ctx.lineTo(expX + 70, entryY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ১. অ্যারো সহ প্রথম সার্কেল (রেড/গ্রিন)
+        let r1 = 8;
+        ctx.fillStyle = tradeColor;
+        ctx.beginPath();
+        ctx.arc(entryX, entryY, r1, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText(isUp ? '↑' : '↓', entryX - 2.5, entryY + 3.5);
+
+        // ২. ঠিক সাথে সংযুক্ত ওভারল্যাপিং হোয়াইট সার্কেল ডট
+        let r2 = 6;
+        let c2X = entryX + 11;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(c2X, entryY, r2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = tradeColor;
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // ৩. স্ক্রিনশট ৮৭৪ অনুযায়ী নির্দিষ্ট এক্সপায়ারেশন টাইম বক্স (12:36:25)
+        let trExpDate = new Date(tr.expireTime * 1000);
+        let trTimeStr = `${String(trExpDate.getHours()).padStart(2,'0')}:${String(trExpDate.getMinutes()).padStart(2,'0')}:${String(trExpDate.getSeconds()).padStart(2,'0')}`;
+
+        let pillW = 68;
+        let pillH = 20;
+        let pillX = expX + 16;
+        let pillY = entryY - (pillH / 2);
+
+        ctx.fillStyle = '#222d3d';
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(trTimeStr, pillX + 8, pillY + 14);
     });
 }
 
+// WebSocket
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -575,17 +621,19 @@ ws.onmessage = (event) => {
 
         if (!isSwitchingAsset && msg.assets[activeAssetKey]) {
             let item = msg.assets[activeAssetKey];
+            targetLivePrice = parseFloat(item.price);
+
             if (candles.length > 0) {
                 let last = candles[candles.length - 1];
                 if (last.time === item.candle.time) {
-                    candles[candles.length - 1] = item.candle;
+                    last.high = Math.max(last.high, item.candle.high);
+                    last.low = Math.min(last.low, item.candle.low);
                 } else {
                     candles.push(item.candle);
                     if (candles.length > 1000) candles.shift();
                 }
             }
         }
-        drawChart();
     }
 };
 
@@ -627,20 +675,20 @@ function placeOrder(direction) {
         document.getElementById('toastMsg').innerText = `Trade opened: $${amount} on ${activeAssetKey}`;
         toast.style.display = 'flex';
         setTimeout(() => { toast.style.display = 'none'; }, 3000);
-
-        drawChart();
     });
 }
 
-function resetPan() { panOffset = 0; drawChart(); }
+function resetPan() { panOffset = 0; }
 function openAssetModal() { document.getElementById('assetModal').style.display = 'flex'; }
 function closeAssetModal() { document.getElementById('assetModal').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
 function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
-function openDrawer(page) { document.getElementById('globalDrawer').style.display = 'flex'; }
-function closeAllDrawers() { document.getElementById('globalDrawer').style.display = 'none'; }
+function openDrawer(page) {}
+function closeAllDrawers() {}
 function toggleToolsMenu() {}
 
+// শুরু করা
+fitCanvas();
 selectAsset('BTC');
 switchAccount('demo');
-setTimeout(fitCanvas, 200);
+requestAnimationFrame(render);
