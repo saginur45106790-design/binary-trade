@@ -4,7 +4,7 @@ const ctx = canvas.getContext('2d');
 let candles = [];
 let activeTrades = [];
 let currentAccount = 'demo';
-let demoBalance = 11061.95;
+let demoBalance = 11072.87;
 let liveBalance = 10.00;
 let panOffset = 0;
 let remainingCountdown = 60;
@@ -32,15 +32,16 @@ const ASSET_DECIMALS = {
     'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4
 };
 
+// কোনো ইমোজি নয় - ক্রিপ্টো ভেক্টর ও প্রফেশনাল ব্যাজ
 const COIN_ICONS = {
-    'BTC': '<span class="c-logo btc-logo" style="width:20px;height:20px;font-size:11px;">₿</span>',
-    'ETH': '<span class="c-logo eth-logo" style="width:20px;height:20px;font-size:11px;">Ξ</span>',
-    'SOL': '<span class="c-logo sol-logo" style="width:20px;height:20px;font-size:11px;">◎</span>',
-    'BNB': '<span class="c-logo bnb-logo" style="width:20px;height:20px;font-size:11px;">◆</span>',
-    'XRP': '<span class="c-logo xrp-logo" style="width:20px;height:20px;font-size:11px;">✕</span>',
-    'DOGE': '<span class="c-logo doge-logo" style="width:20px;height:20px;font-size:11px;">Ð</span>',
-    'TON': '<span class="c-logo ton-logo" style="width:20px;height:20px;font-size:10px;">💎</span>',
-    'ADA': '<span class="c-logo ada-logo" style="width:20px;height:20px;font-size:11px;">₳</span>'
+    'BTC': '<span class="c-logo btc-logo" style="width:20px;height:20px;font-size:11px;">B</span>',
+    'ETH': '<span class="c-logo eth-logo" style="width:20px;height:20px;font-size:11px;">E</span>',
+    'SOL': '<span class="c-logo sol-logo" style="width:20px;height:20px;font-size:11px;">S</span>',
+    'BNB': '<span class="c-logo bnb-logo" style="width:20px;height:20px;font-size:11px;">B</span>',
+    'XRP': '<span class="c-logo xrp-logo" style="width:20px;height:20px;font-size:11px;">X</span>',
+    'DOGE': '<span class="c-logo doge-logo" style="width:20px;height:20px;font-size:11px;">D</span>',
+    'TON': '<span class="c-logo ton-logo" style="width:20px;height:20px;font-size:10px;"><svg viewBox="0 0 24 24" width="12" height="12" fill="#fff"><path d="M12 2L3 9l9 13 9-13-9-7z"/></svg></span>',
+    'ADA': '<span class="c-logo ada-logo" style="width:20px;height:20px;font-size:11px;">A</span>'
 };
 
 function fitCanvas() {
@@ -56,7 +57,6 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// ব্যাকগ্রাউন্ড থেকে ফিরলে স্মুথ সিঙ্ক
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         selectAsset(activeAssetKey);
@@ -145,7 +145,7 @@ function switchAccount(type) {
     document.getElementById('accountModal').style.display = 'none';
 
     let lbl = document.getElementById('accountLabel');
-    let icon = document.getElementById('accountIcon');
+    let iconWrap = document.getElementById('accountIcon');
     let watermark = document.getElementById('chartWatermark');
 
     let optLive = document.getElementById('optLiveCard');
@@ -156,7 +156,7 @@ function switchAccount(type) {
     if (type === 'live') {
         lbl.innerText = "LIVE";
         lbl.className = "acc-label live";
-        icon.innerText = "✈️";
+        iconWrap.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#00b074"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>`;
         updateBalanceUI(liveBalance);
 
         optLive.classList.add('active');
@@ -169,7 +169,7 @@ function switchAccount(type) {
     } else {
         lbl.innerText = "DEMO";
         lbl.className = "acc-label demo";
-        icon.innerText = "🎓";
+        iconWrap.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#f5a623"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>`;
         updateBalanceUI(demoBalance);
 
         optDemo.classList.add('active');
@@ -229,10 +229,7 @@ function submitDepositForm() {
     let sender = document.getElementById('depSenderInput').value;
     let trx = document.getElementById('depTrxInput').value;
 
-    if (!amount || !trx) {
-        alert("পরিমাণ এবং Transaction ID লিখুন!");
-        return;
-    }
+    if (!amount || !trx) return alert("Please enter amount and TrxID!");
 
     fetch('/api/deposit', {
         method: 'POST',
@@ -317,12 +314,13 @@ function renderTimeModeGrid() {
     });
 }
 
+// ঘড়ি (কোনো ইমোজি নয় - পিওর ডট)
 function syncClock() {
     let now = new Date();
     let hh = String(now.getHours()).padStart(2, '0');
     let mm = String(now.getMinutes()).padStart(2, '0');
     let ss = String(now.getSeconds()).padStart(2, '0');
-    document.getElementById('liveUtcClock').innerText = `🟢 ${hh}:${mm}:${ss} UTC+6`;
+    document.getElementById('liveUtcClock').innerHTML = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#00e676;margin-right:4px;"></span> ${hh}:${mm}:${ss} UTC+6`;
 
     let curSec = Math.floor(now.getTime() / 1000);
     for (let i = activeTrades.length - 1; i >= 0; i--) {
@@ -365,7 +363,6 @@ function settleTrade(trade) {
     });
 }
 
-// কয়েন সিলেক্ট করার সময় ডেটা রেস-কন্ডিশন ফিক্স
 function selectAsset(key) {
     isSwitchingAsset = true;
     activeAssetKey = key;
@@ -428,7 +425,6 @@ function drawChart() {
         return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
-    // অনুভূমিক গ্রিড
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -445,7 +441,6 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // ক্যান্ডেলস্টিক রেন্ডার (কোনো স্পাইক ছাড়া স্মুথ সংযোগ)
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -471,7 +466,6 @@ function drawChart() {
     let last = candles[candles.length - 1];
     let liveY = getY(last.close);
 
-    // লাইভ ড্যাশ লাইন
     ctx.setLineDash([3, 3]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.beginPath();
@@ -489,7 +483,6 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
-    // এক্সপায়ারেশন ড্যাশ লাইন
     let expX = baseRightX + (candleWidth + candleSpacing);
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
@@ -509,7 +502,6 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
 
-    // Quotex স্টাইল ট্রেড লাইন ও অ্যারো
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let entryX = getX(tr.startCandleIdx);
         let entryY = getY(tr.entryPrice);
@@ -568,7 +560,6 @@ function drawChart() {
     });
 }
 
-// WebSocket কানেকশন (কয়েন মিসম্যাচ গার্ড সহ)
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -646,7 +637,6 @@ function openAssetModal() { document.getElementById('assetModal').style.display 
 function closeAssetModal() { document.getElementById('assetModal').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
 function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
-
 function openDrawer(page) { document.getElementById('globalDrawer').style.display = 'flex'; }
 function closeAllDrawers() { document.getElementById('globalDrawer').style.display = 'none'; }
 function toggleToolsMenu() {}

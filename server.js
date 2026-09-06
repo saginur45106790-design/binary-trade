@@ -12,10 +12,18 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 let users = {
-  "demo_user": { liveBalance: 10.00, demoBalance: 11061.95, activeAccount: "demo", control: "normal" }
+  "demo_user": { liveBalance: 10.00, demoBalance: 11072.87, activeAccount: "demo", control: "normal" }
 };
 
-// ডিফল্ট হিস্ট্রি (স্ক্রিনশট ৮৩৮ অনুযায়ী)
+// স্ক্রিনশট ৮৬৫ অনুযায়ী লাইফটাইম ডিপোজিট রেকর্ড
+let depositHistory = [
+  { id: "128385243", date: "24/08/2026, 20:39:08", status: "Failed", amount: 10.00, method: "Bkash (P2C)", type: "Deposit" },
+  { id: "126022410", date: "31/07/2026, 14:34:41", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" },
+  { id: "125912179", date: "30/07/2026, 10:34:34", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" },
+  { id: "125784776", date: "28/07/2026, 22:55:44", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" },
+  { id: "125665239", date: "27/07/2026, 18:57:28", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" }
+];
+
 let transactions = [
   { id: "128385243", username: "demo_user", type: "Withdraw", method: "Bkash (P2C)", amount: 10.00, status: "Failed", date: "24.08.2026", details: "017XXXXXXXX" },
   { id: "126022410", username: "demo_user", type: "Withdraw", method: "Binance Pay", amount: 13.00, status: "Successed", date: "31.07.2026", details: "85857047" },
@@ -140,7 +148,7 @@ app.post('/api/trade', (req, res) => {
   let tradeAmount = Number(amount) || 1;
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
-  if (targetBal < tradeAmount) return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
+  if (targetBal < tradeAmount) return res.json({ success: false, message: "Insufficient balance!" });
 
   if (accountType === 'live') user.liveBalance -= tradeAmount;
   else user.demoBalance -= tradeAmount;
@@ -194,13 +202,18 @@ app.post('/api/switch-account', (req, res) => {
 
 app.post('/api/reset-demo', (req, res) => {
   let user = users["demo_user"];
-  user.demoBalance = 11061.95;
+  user.demoBalance = 11072.87;
   res.json({ success: true, balance: user.demoBalance.toFixed(2) });
 });
 
 app.get('/api/user/info', (req, res) => {
   let user = users["demo_user"];
-  res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
+  res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance, activeAccount: user.activeAccount });
+});
+
+// লাইফটাইম পেমেন্টস (ডিপোজিট হিস্ট্রি) API
+app.get('/api/payments', (req, res) => {
+  res.json({ success: true, deposits: depositHistory });
 });
 
 app.get('/api/withdrawals', (req, res) => {
@@ -208,27 +221,18 @@ app.get('/api/withdrawals', (req, res) => {
   res.json({ success: true, withdrawals: list, liveBalance: users["demo_user"].liveBalance });
 });
 
-// উইথড্রয়াল সাবমিট API
 app.post('/api/withdraw', (req, res) => {
   const { username, amount, method, receiveType, accountId, firstName, lastName } = req.body;
   let user = users[username] || users["demo_user"];
   let numAmt = parseFloat(amount);
 
-  if (!numAmt || numAmt < 10) {
-    return res.json({ success: false, message: "Minimum withdrawal amount is $10" });
-  }
-
-  if (user.liveBalance < numAmt) {
-    return res.json({ success: false, message: "Insufficient balance for withdrawal!" });
-  }
+  if (!numAmt || numAmt < 10) return res.json({ success: false, message: "Minimum withdrawal amount is $10" });
+  if (user.liveBalance < numAmt) return res.json({ success: false, message: "Insufficient balance for withdrawal!" });
 
   user.liveBalance = parseFloat((user.liveBalance - numAmt).toFixed(2));
 
   let now = new Date();
-  let day = String(now.getDate()).padStart(2, '0');
-  let month = String(now.getMonth() + 1).padStart(2, '0');
-  let year = now.getFullYear();
-  let dateStr = `${day}.${month}.${year}`;
+  let dateStr = `${String(now.getDate()).padStart(2,'0')}.${String(now.getMonth()+1).padStart(2,'0')}.${now.getFullYear()}`;
 
   let newTx = {
     id: String(Math.floor(100000000 + Math.random() * 900000000)),
@@ -242,30 +246,29 @@ app.post('/api/withdraw', (req, res) => {
   };
 
   transactions.unshift(newTx);
-
-  res.json({
-    success: true,
-    message: "Withdrawal request submitted successfully!",
-    newBalance: user.liveBalance,
-    tx: newTx
-  });
+  res.json({ success: true, message: "Withdrawal request submitted successfully!", newBalance: user.liveBalance });
 });
 
 app.post('/api/deposit', (req, res) => {
   const { username, method, amount, trxId, senderNumber } = req.body;
-  let tx = {
-    id: String(Date.now()),
-    username: username || "demo_user",
-    type: "Deposit",
-    method,
-    amount: Number(amount),
-    senderNumber: senderNumber || "N/A",
-    trxId,
+  let now = new Date();
+  let day = String(now.getDate()).padStart(2, '0');
+  let month = String(now.getMonth() + 1).padStart(2, '0');
+  let year = now.getFullYear();
+  let timeStr = now.toTimeString().split(' ')[0];
+  let formattedDate = `${day}/${month}/${year}, ${timeStr}`;
+
+  let newDep = {
+    id: String(Math.floor(100000000 + Math.random() * 900000000)),
+    date: formattedDate,
     status: "Pending",
-    date: new Date().toLocaleDateString()
+    amount: parseFloat(amount) || 10.00,
+    method: method || "Binance Pay",
+    type: "Deposit"
   };
-  transactions.unshift(tx);
-  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
+
+  depositHistory.unshift(newDep);
+  res.json({ success: true, message: "Deposit request submitted successfully!" });
 });
 
 app.get(['/admin', '/admin-secret-panel'], (req, res) => {
@@ -273,19 +276,23 @@ app.get(['/admin', '/admin-secret-panel'], (req, res) => {
 });
 
 app.get('/api/admin/data', (req, res) => {
-  let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
-  res.json({ users, transactions, assets: ASSETS, totalDeposit });
+  let totalDeposit = depositHistory.filter(t => t.status === 'Successed').reduce((s, t) => s + Number(t.amount), 0);
+  res.json({ users, transactions, depositHistory, assets: ASSETS, totalDeposit });
 });
 
 app.post('/api/admin/tx-action', (req, res) => {
   const { txId, status } = req.body;
+  let d = depositHistory.find(t => t.id == txId);
+  if (d) {
+    d.status = status;
+    if (status === 'Successed') users["demo_user"].liveBalance += Number(d.amount);
+    return res.json({ success: true });
+  }
   let tx = transactions.find(t => t.id == txId);
   if (tx) {
     tx.status = status;
-    if (status === 'Approved' && tx.type === 'Deposit') {
+    if (status === 'Rejected' && tx.type === 'Withdraw') {
       users[tx.username].liveBalance += Number(tx.amount);
-    } else if (status === 'Rejected' && tx.type === 'Withdraw') {
-      users[tx.username].liveBalance += Number(tx.amount); // টাকা ফেরত দেওয়া
     }
     res.json({ success: true });
   } else res.json({ success: false });
@@ -308,4 +315,4 @@ app.post('/api/admin/action', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Master Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Engine running on port ${PORT}`));

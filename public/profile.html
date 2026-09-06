@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Profile & Withdrawal | Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=13.0">
+    <title>Profile & Payments | Pocket Option</title>
+    <link rel="stylesheet" href="style.css?v=14.0">
     <style>
-        body { padding-bottom: 75px; }
+        body { padding-bottom: 75px; background: #121824; }
 
         .bonus-banner {
             background: linear-gradient(90deg, #00b074, #00c853);
@@ -58,39 +58,67 @@
         .section-box { padding: 0 14px; }
         .sec-title { font-size: 15px; font-weight: 800; margin: 12px 0 10px; color: #fff; }
 
-        .avatar-card { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-        .avatar-circle {
-            width: 58px; height: 58px; border-radius: 50%; background: #0070f3;
-            display: flex; align-items: center; justify-content: center; font-size: 26px; position: relative;
+        /* -------------------------------------------------------------
+           PAYMENTS / DEPOSIT HISTORY (EXACT SCREENSHOT 865)
+        ------------------------------------------------------------- */
+        .payments-table-head {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #6e829c;
+            font-weight: 700;
+            padding: 8px 4px;
+            border-bottom: 1px solid #1c2638;
+            margin-bottom: 4px;
         }
-        .camera-badge {
-            position: absolute; top: -2px; right: -2px; background: #253347;
-            width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px;
+        .payment-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 14px 4px;
+            border-bottom: 1px solid #1a2332;
         }
-        .user-id-text { font-size: 12px; color: #6e829c; margin-top: 2px; }
-        .verified-tag { color: #00e676; font-size: 12px; font-weight: 700; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; }
+        .pay-left-col { display: flex; flex-direction: column; gap: 4px; }
+        .pay-tx-id { font-size: 14px; font-weight: 700; color: #fff; }
+        .pay-date-time { font-size: 11px; color: #6e829c; }
+        .pay-status-txt { font-size: 11px; font-weight: 700; }
+        .pay-status-txt.failed { color: #eb5757; }
+        .pay-status-txt.successed { color: #00e676; }
+        .pay-status-txt.pending { color: #f5a623; }
 
-        .form-field { margin-bottom: 14px; position: relative; }
-        .field-label {
-            position: absolute; top: -7px; left: 12px; background: #121824;
-            padding: 0 5px; font-size: 11px; color: #6e829c; font-weight: 600; z-index: 2;
-        }
-        .field-input, .field-select {
-            width: 100%; background: #161f2d; border: 1px solid #26354b;
-            color: #fff; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-weight: 600;
-        }
-        .field-input:focus, .field-select:focus { border-color: #0070f3; }
-        .verified-input-badge { position: absolute; right: 12px; top: 12px; color: #00e676; font-size: 11px; font-weight: 700; }
+        .pay-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
+        .pay-amount-val { font-size: 14px; font-weight: 800; color: #00e676; }
+        .pay-method-name { font-size: 12px; color: #d1dbe8; }
+        .pay-type-label { font-size: 11px; color: #6e829c; }
 
-        .btn-save {
-            width: 100%; background: #0070f3; color: #fff; border: none; padding: 14px;
-            border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 10px 0 20px;
+        /* পেজিনেশন কন্ট্রোল (Screenshot 865) */
+        .pagination-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+            padding: 10px 0;
         }
+        .pg-btn {
+            background: #1c2638;
+            border: 1px solid #28374d;
+            color: #8fa0b5;
+            width: 140px;
+            height: 42px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .pg-btn svg { width: 16px; height: 16px; fill: currentColor; }
+        .pg-counter { font-size: 14px; font-weight: 800; color: #fff; }
 
+        /* উইথড্রয়াল পেজ স্টাইল */
         .account-summary-block { margin-bottom: 18px; }
         .acc-info-lbl { font-size: 12px; color: #8fa0b5; margin-bottom: 2px; }
         .acc-info-val { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 14px; }
-
         .currency-suffix { position: absolute; right: 14px; top: 12px; color: #6e829c; font-weight: 700; font-size: 13px; }
         .error-hint-text { color: #eb5757; font-size: 11px; margin-top: 4px; display: none; line-height: 1.4; }
 
@@ -99,7 +127,6 @@
             border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 16px 0 20px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .btn-confirm-withdrawal:active { background: #005ecb; }
         .arrow-circle-icon {
             background: rgba(255,255,255,0.25); width: 22px; height: 22px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900;
@@ -121,35 +148,35 @@
         .req-status-tag.successed { color: #00e676; }
         .req-status-tag.pending { color: #f5a623; }
 
-        .faq-box { margin-top: 24px; }
-        .faq-head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .faq-head-row b { font-size: 15px; }
-        .faq-item { border-bottom: 1px solid #1c2637; padding: 12px 0; cursor: pointer; }
-        .faq-question { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #d5e0ee; }
-        .faq-answer { display: none; font-size: 12px; color: #8fa0b5; margin-top: 8px; line-height: 1.5; }
-
-        .trust-info-card {
-            background: #141d2a; border: 1px solid #1d2a3d; border-radius: 8px;
-            padding: 16px; margin-top: 20px; font-size: 12px; line-height: 1.8;
+        /* পার্সোনাল ফর্ম */
+        .avatar-card { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+        .avatar-circle {
+            width: 58px; height: 58px; border-radius: 50%; background: #0070f3;
+            display: flex; align-items: center; justify-content: center; position: relative;
         }
-        .trust-row { display: flex; align-items: center; gap: 8px; }
-        .trust-green-val { color: #00e676; font-weight: 700; }
-
-        .trust-badges-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
-            margin-top: 20px; text-align: center;
+        .avatar-circle svg { width: 30px; height: 30px; fill: #fff; }
+        .camera-badge {
+            position: absolute; top: -2px; right: -2px; background: #253347;
+            width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
-        .badge-item {
-            background: #16202f; border: 1px solid #223147; border-radius: 6px;
-            padding: 10px; font-size: 11px; font-weight: 800; color: #c9d8ea;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .badge-full { grid-column: span 2; }
+        .camera-badge svg { width: 11px; height: 11px; fill: #8fa0b5; }
+        .user-id-text { font-size: 12px; color: #6e829c; margin-top: 2px; }
+        .verified-tag { color: #00e676; font-size: 12px; font-weight: 700; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; }
 
-        .footer-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 52px;
-            background: #171f2c; border-top: 1px solid #202b3d; display: flex;
-            justify-content: space-around; align-items: center; z-index: 100;
+        .form-field { margin-bottom: 14px; position: relative; }
+        .field-label {
+            position: absolute; top: -7px; left: 12px; background: #121824;
+            padding: 0 5px; font-size: 11px; color: #6e829c; font-weight: 600; z-index: 2;
+        }
+        .field-input, .field-select {
+            width: 100%; background: #161f2d; border: 1px solid #26354b;
+            color: #fff; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-weight: 600;
+        }
+        .verified-input-badge { position: absolute; right: 12px; top: 12px; color: #00e676; font-size: 11px; font-weight: 700; }
+
+        .btn-save {
+            width: 100%; background: #0070f3; color: #fff; border: none; padding: 14px;
+            border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 10px 0 20px;
         }
 
         .toast {
@@ -160,15 +187,18 @@
 </head>
 <body>
     <header class="top-bar">
-        <div class="account-pill">
-            <span style="color:#00b074;">✈️</span>
-            <span class="acc-label-live">LIVE</span>
-            <span id="headerLiveBal" style="color:#fff;">$10.00</span>
-            <span style="font-size:10px; color:#6e829c;">▼</span>
+        <div class="account-select-pill">
+            <span id="accIconWrap">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="#00b074"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </span>
+            <span id="headerAccLabel" class="acc-label live">LIVE</span>
+            <span id="headerLiveBal" class="acc-bal">$10.00</span>
+            <span class="chevron">▼</span>
         </div>
-        <div class="top-right">
-            <div class="bell-badge">
-                🔔<span class="badge-count">13</span>
+        <div class="top-bar-right">
+            <div class="notification-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="#f5a623"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <span class="badge-num">13</span>
             </div>
             <button class="deposit-btn" onclick="window.location.href='/deposit.html'">Deposit</button>
         </div>
@@ -176,7 +206,8 @@
 
     <div class="bonus-banner" id="bonusBanner">
         <div class="banner-left">
-            <span>🚀 Get a <b>50% bonus</b> on your deposit!</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M13.13 2.18c-.37-.36-.92-.47-1.39-.27L2.46 5.86c-.53.22-.84.77-.73 1.34.11.56.57.98 1.14.98h3.38l1.32 8.3c.09.58.55 1.02 1.14 1.08l6.39.64c.59.06 1.13-.3 1.32-.86l2.1-6.19 3.01-1.25c.53-.22.84-.77.73-1.34s-.57-.98-1.14-.98h-3.38l-4.59-5.4z"/></svg>
+            <span>Get a <b>50% bonus</b> on your deposit!</span>
             <span class="bonus-tag">50%</span>
         </div>
         <span class="banner-close" onclick="document.getElementById('bonusBanner').style.display='none'">✕</span>
@@ -184,7 +215,7 @@
 
     <div class="accordion-wrapper">
         <div class="accordion-header" onclick="toggleDropdownMenu()">
-            <span id="activeMenuTitle">My account</span>
+            <span id="activeMenuTitle">Payments</span>
             <span id="accordionChevron">▼</span>
         </div>
         <div class="accordion-menu" id="accordionMenu">
@@ -195,6 +226,26 @@
             <div class="menu-item" onclick="switchSection('Market')">Market</div>
             <div class="menu-item" onclick="switchSection('Tournaments')">Tournaments</div>
             <div class="menu-item" onclick="switchSection('Analytics')">Analytics</div>
+        </div>
+    </div>
+
+    <div id="view-payments" class="section-box">
+        <div class="payments-table-head">
+            <span>Transaction ID</span>
+            <span>Amount</span>
+        </div>
+
+        <div id="paymentsListContainer">
+            </div>
+
+        <div class="pagination-container">
+            <div class="pg-btn">
+                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+            </div>
+            <span class="pg-counter">1/1</span>
+            <div class="pg-btn">
+                <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            </div>
         </div>
     </div>
 
@@ -219,9 +270,9 @@
         <div class="form-field">
             <span class="field-label">Payment method</span>
             <select id="withdrawMethod" class="field-select" onchange="onPaymentMethodChange(this.value)">
-                <option value="Binance Pay" selected>🟡 Binance Pay</option>
-                <option value="Bkash (P2C)">📱 Bkash (P2C)</option>
-                <option value="Nagad">📱 Nagad</option>
+                <option value="Binance Pay" selected>Binance Pay</option>
+                <option value="Bkash (P2C)">Bkash (P2C)</option>
+                <option value="Nagad">Nagad</option>
             </select>
         </div>
 
@@ -245,7 +296,7 @@
 
         <div class="form-field">
             <span class="field-label" id="receiveInputLabel">Binance account ID</span>
-            <input type="text" id="withdrawAccountInput" class="field-input" placeholder="" oninput="validateAccountInput()">
+            <input type="text" id="withdrawAccountInput" class="field-input" oninput="validateAccountInput()">
             <div class="error-hint-text" id="errorHintMsg">
                 Enter a Binance account number consisting of 8 to 10 digits.
             </div>
@@ -262,52 +313,24 @@
         </div>
 
         <div id="latestRequestsList"></div>
-
-        <div class="faq-box">
-            <div class="faq-head-row">
-                <b>FAQ:</b>
-                <span style="color:#0070f3; font-size:12px; font-weight:700; cursor:pointer;">Check out full FAQ ➔</span>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>How to withdraw money from the account?</span><span>▼</span></div>
-                <div class="faq-answer">Select your payment method, specify the desired amount and wallet details, then click "Confirm".</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>How long does it take to withdraw funds?</span><span>▼</span></div>
-                <div class="faq-answer">Withdrawal requests are processed within 24 to 48 hours depending on the chosen payment method.</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>What is the minimum withdrawal amount?</span><span>▼</span></div>
-                <div class="faq-answer">The minimum withdrawal amount is $10 USD for most payment methods.</div>
-            </div>
-        </div>
-
-        <div class="trust-info-card">
-            <div class="trust-row"><span>🏦</span> <span>Minimum deposit amount: <b class="trust-green-val">$10</b></span></div>
-            <div class="trust-row"><span>💳</span> <span>Minimum withdrawal amount: <b class="trust-green-val">$10</b></span></div>
-            <div class="trust-row"><span>⏩</span> <span>Quick withdrawal from your account</span></div>
-            <div class="trust-row"><span>%</span> <span>First 2 withdrawals in 24 hours are commission-free; then a 3% fee applies</span></div>
-        </div>
-
-        <div class="trust-badges-grid">
-            <div class="badge-item"><b style="font-size:14px;">VISA</b><small>Verified by VISA</small></div>
-            <div class="badge-item"><b>🔒 SECURE</b><small>PAYMENT</small></div>
-            <div class="badge-item"><b style="font-size:13px;">Mastercard</b><small>SecureCode</small></div>
-            <div class="badge-item"><b>3D Secure</b><small>Safer online payments</small></div>
-            <div class="badge-item badge-full"><b>✔ SECURE SSL ENCRYPTION</b></div>
-        </div>
     </div>
 
-    <div id="view-my-account" class="section-box">
+    <div id="view-my-account" class="section-box" style="display: none;">
         <div class="sec-title">Personal data:</div>
         <div class="avatar-card">
-            <div class="avatar-circle">👤<span class="camera-badge">📷</span></div>
+            <div class="avatar-circle">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                <span class="camera-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm8-9h-3.17l-1.24-1.35c-.37-.41-.91-.65-1.47-.65H9.88c-.56 0-1.1.24-1.48.65L7.17 6H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+                </span>
+            </div>
             <div>
                 <b style="font-size: 14px;">teachsajib@gmail.com</b>
                 <div class="user-id-text">ID: 85857047</div>
                 <div class="verified-tag">✔ Verified</div>
             </div>
         </div>
+
         <div class="form-field"><span class="field-label">Nickname</span><input type="text" id="inpNickname" class="field-input" value="SojibTrader"></div>
         <div class="form-field"><span class="field-label">First Name</span><input type="text" id="inpFirstName" class="field-input" value="MD Sajib"></div>
         <div class="form-field"><span class="field-label">Last Name</span><input type="text" id="inpLastName" class="field-input" value="Hossain"></div>
@@ -325,42 +348,27 @@
         <button class="btn-save" onclick="savePersonalData()">Save</button>
     </div>
 
-    <div id="view-payments" class="section-box" style="display: none;"><div class="sec-title">Payment History:</div><p style="color:#6e829c;">No payments recorded.</p></div>
     <div id="view-trades" class="section-box" style="display: none;"><div class="sec-title">Trade History:</div><p style="color:#6e829c;">No trades recorded.</p></div>
     <div id="view-market" class="section-box" style="display: none;"><div class="sec-title">Market:</div><p style="color:#6e829c;">0 active coupons.</p></div>
     <div id="view-tournaments" class="section-box" style="display: none;"><div class="sec-title">Tournaments:</div><p style="color:#6e829c;">Daily battles live.</p></div>
     <div id="view-analytics" class="section-box" style="display: none;"><div class="sec-title">Analytics:</div><p style="color:#6e829c;">Analytics based on live trades.</p></div>
 
-    <nav class="footer-nav">
-        <div class="f-btn" onclick="window.location.href='/'">
-            <svg viewBox="0 0 24 24">
-                <path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/>
-            </svg>
+    <nav class="footer-icons">
+        <div class="f-icon" onclick="window.location.href='/'">
+            <svg viewBox="0 0 24 24"><path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/></svg>
         </div>
-
-        <div class="f-btn" onclick="alert('Support: support@pocketoption.com')">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/>
-            </svg>
+        <div class="f-icon" onclick="alert('Support: support@pocketoption.com')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/></svg>
         </div>
-
-        <div class="f-btn active">
-            <svg viewBox="0 0 24 24">
-                <path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/>
-            </svg>
+        <div class="f-icon active" onclick="switchSection('Payments')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/></svg>
         </div>
-
-        <div class="f-btn" onclick="switchSection('Tournaments')">
-            <svg viewBox="0 0 24 24">
-                <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.3A6 6 0 0 0 11 14.9V18H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2v-3.1A6 6 0 0 0 18.7 12H19a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3zM4 8V7a1 1 0 0 1 1-1h2v4.2A2 2 0 0 1 4 8zm16 0a2 2 0 0 1-3 2V6h2a1 1 0 0 1 1 1v1z"/>
-            </svg>
+        <div class="f-icon" onclick="switchSection('Tournaments')">
+            <svg viewBox="0 0 24 24"><path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.3A6 6 0 0 0 11 14.9V18H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2v-3.1A6 6 0 0 0 18.7 12H19a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3zM4 8V7a1 1 0 0 1 1-1h2v4.2A2 2 0 0 1 4 8zm16 0a2 2 0 0 1-3 2V6h2a1 1 0 0 1 1 1v1z"/></svg>
             <span class="f-badge">4</span>
         </div>
-
-        <div class="f-btn" onclick="switchSection('Market')">
-            <svg viewBox="0 0 24 24">
-                <path d="M19 3H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h11l4.2 3.2c.5.4 1.3 0 1.3-.7V6a3 3 0 0 0-2.5-3zM7.5 13a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
-            </svg>
+        <div class="f-icon" onclick="switchSection('Market')">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h11l4.2 3.2c.5.4 1.3 0 1.3-.7V6a3 3 0 0 0-2.5-3zM7.5 13a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
             <span class="f-badge">4</span>
         </div>
     </nav>
@@ -391,10 +399,74 @@
             let target = document.getElementById('view-' + targetKey);
             if (target) target.style.display = 'block';
 
-            if (targetKey === 'withdrawal') {
-                loadWithdrawals();
-            }
+            if (targetKey === 'payments') loadPayments();
+            if (targetKey === 'withdrawal') loadWithdrawals();
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // স্ক্রিনশট ৮৬৫ অনুযায়ী Payments লোড
+        function loadPayments() {
+            fetch('/api/payments')
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    let html = '';
+                    d.deposits.forEach(item => {
+                        let statusClass = item.status.toLowerCase();
+                        html += `
+                            <div class="payment-card-row">
+                                <div class="pay-left-col">
+                                    <div class="pay-tx-id">${item.id}</div>
+                                    <div class="pay-date-time">${item.date}</div>
+                                    <div class="pay-status-txt ${statusClass}">${item.status}</div>
+                                </div>
+                                <div class="pay-right-col">
+                                    <div class="pay-amount-val">+$${parseFloat(item.amount).toFixed(2)}</div>
+                                    <div class="pay-method-name">${item.method}</div>
+                                    <div class="pay-type-label">${item.type}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('paymentsListContainer').innerHTML = html;
+                }
+            });
+        }
+
+        function loadWithdrawals() {
+            fetch('/api/withdrawals')
+            .then(r => r.json())
+            .then(d => {
+                if (d.success) {
+                    updateBalDisplay(d.liveBalance);
+                    let listHtml = '';
+                    d.withdrawals.forEach(item => {
+                        let statusClass = item.status.toLowerCase();
+                        listHtml += `
+                            <div class="req-card-item">
+                                <div class="req-row-top">
+                                    <span>${item.id}</span>
+                                    <span style="color:#00e676;">+${parseFloat(item.amount).toFixed(2)} $</span>
+                                </div>
+                                <div class="req-row-mid">
+                                    <span>${item.date}</span>
+                                    <span>${item.method}</span>
+                                </div>
+                                <div class="req-status-tag ${statusClass}">${item.status}</div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('latestRequestsList').innerHTML = listHtml;
+                }
+            });
+        }
+
+        function updateBalDisplay(bal) {
+            let str = parseFloat(bal).toFixed(2) + " $";
+            document.getElementById('headerLiveBal').innerText = "$" + parseFloat(bal).toFixed(2);
+            document.getElementById('withdrawInAccount').innerText = str;
+            document.getElementById('withdrawAvailable').innerText = str;
         }
 
         function onPaymentMethodChange(val) {
@@ -403,10 +475,7 @@
             rSelect.innerHTML = '';
 
             if (val === 'Binance Pay') {
-                rSelect.innerHTML = `
-                    <option value="Binance account ID" selected>Binance account ID</option>
-                    <option value="Binance account email">Binance account email</option>
-                `;
+                rSelect.innerHTML = `<option value="Binance account ID" selected>Binance account ID</option><option value="Binance account email">Binance account email</option>`;
                 rLabel.innerText = "Binance account ID";
             } else {
                 rSelect.innerHTML = `<option value="Personal account" selected>Personal account</option>`;
@@ -481,49 +550,6 @@
             });
         }
 
-        function loadWithdrawals() {
-            fetch('/api/withdrawals')
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    updateBalDisplay(d.liveBalance);
-                    let listHtml = '';
-                    d.withdrawals.forEach(item => {
-                        let statusClass = item.status.toLowerCase();
-                        listHtml += `
-                            <div class="req-card-item">
-                                <div class="req-row-top">
-                                    <span>${item.id}</span>
-                                    <span style="color:#00e676;">+${parseFloat(item.amount).toFixed(2)} $</span>
-                                </div>
-                                <div class="req-row-mid">
-                                    <span>${item.date}</span>
-                                    <span>${item.method}</span>
-                                </div>
-                                <div class="req-status-tag ${statusClass}">${item.status}</div>
-                            </div>
-                        `;
-                    });
-                    document.getElementById('latestRequestsList').innerHTML = listHtml;
-                }
-            });
-        }
-
-        function updateBalDisplay(bal) {
-            let str = parseFloat(bal).toFixed(2) + " $";
-            document.getElementById('headerLiveBal').innerText = "$" + parseFloat(bal).toFixed(2);
-            document.getElementById('withdrawInAccount').innerText = str;
-            document.getElementById('withdrawAvailable').innerText = str;
-        }
-
-        function toggleFaq(el) {
-            let ans = el.querySelector('.faq-answer');
-            let chevron = el.querySelector('.faq-question span:last-child');
-            let isOpen = (ans.style.display === 'block');
-            ans.style.display = isOpen ? 'none' : 'block';
-            chevron.innerText = isOpen ? '▼' : '▲';
-        }
-
         function showToast(msg) {
             let t = document.getElementById('toastBox');
             t.innerText = msg;
@@ -532,15 +558,23 @@
         }
 
         function savePersonalData() {
-            showToast("Profile data saved successfully!");
+            showToast("Profile data saved!");
         }
 
         window.addEventListener('load', () => {
             fetch('/api/user/info').then(r => r.json()).then(d => {
-                if (d && d.liveBalance !== undefined) {
-                    updateBalDisplay(d.liveBalance);
+                if (d) {
+                    if (d.activeAccount === 'demo') {
+                        document.getElementById('headerAccLabel').innerText = 'DEMO';
+                        document.getElementById('headerAccLabel').className = 'acc-label demo';
+                        document.getElementById('headerLiveBal').innerText = '$' + parseFloat(d.demoBalance).toFixed(2);
+                        document.getElementById('accIconWrap').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#f5a623"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>`;
+                    } else {
+                        updateBalDisplay(d.liveBalance);
+                    }
                 }
             });
+            loadPayments();
         });
     </script>
 </body>
