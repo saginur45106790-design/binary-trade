@@ -670,3 +670,220 @@ input:checked + .slider:before { transform: translateX(14px); }
 .time-grid button { background: var(--bg-card); border: 1px solid var(--bg-card-border); color: var(--text-main); padding: 8px 4px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; }
 .time-grid button.selected { background: #0070f3; border-color: #0070f3; color: #fff; }
 .set-manually-btn { width: 100%; background: #0070f3; border: none; color: #ffffff; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: 700; margin-top: 10px; cursor: pointer; }
+
+/* -------------------------------------------------------------
+   স্ক্রিনশট ৮৮৩: HELP & SUPPORT PAGE STYLES
+------------------------------------------------------------- */
+.help-modal-sheet {
+    max-height: 90vh !important;
+    padding: 20px 18px !important;
+}
+
+.help-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+.help-title-bar h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.help-center-items {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+}
+
+.help-menu-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.help-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.help-icon-box svg {
+    width: 38px;
+    height: 38px;
+    fill: #258aff;
+}
+
+.help-item-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #ffffff;
+}
+.help-item-sub {
+    font-size: 12px;
+    color: #7e92aa;
+    margin-top: 2px;
+}
+
+.help-divider-line {
+    width: 70%;
+    height: 1px;
+    background: #1f2b3e;
+    margin: 4px 0;
+}
+
+.help-contact-box {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    cursor: pointer;
+}
+.red-q-bubble {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #eb5757;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+.help-contact-text {
+    font-size: 13px;
+    color: #cbd5e1;
+    line-height: 1.4;
+}
+.help-contact-link {
+    color: #258aff;
+    font-size: 14px;
+    font-weight: 800;
+    margin-top: 4px;
+    cursor: pointer;
+}
+
+/* -------------------------------------------------------------
+   স্ক্রিনশট ৮৮২: TOURNAMENTS (AVAILABLE FOR PARTICIPATION)
+------------------------------------------------------------- */
+.tournaments-head-title {
+    text-align: center;
+    font-size: 13px;
+    color: #cbd5e1;
+    font-weight: 700;
+    margin-bottom: 16px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+.tournaments-head-title::before, .tournaments-head-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #253347;
+}
+
+.tournament-card-item {
+    background: #182333;
+    border: 1px solid #24344c;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 14px;
+    position: relative;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.tour-pill-badge {
+    display: inline-block;
+    background: #258aff;
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.tour-content-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+}
+.tour-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: #ffffff;
+}
+.tour-prize-block {
+    text-align: right;
+}
+.tour-prize-lbl {
+    font-size: 10px;
+    color: #7e92aa;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.tour-prize-val {
+    font-size: 17px;
+    font-weight: 900;
+    color: #00e676;
+}
+
+.tour-specs-row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    border-top: 1px solid #1f2b3e;
+    margin-bottom: 12px;
+    text-align: center;
+}
+.tour-spec-item b {
+    display: block;
+    font-size: 15px;
+    color: #ffffff;
+    font-weight: 800;
+}
+.tour-spec-item span {
+    font-size: 11px;
+    color: #7e92aa;
+}
+
+.btn-tour-details {
+    width: 100%;
+    background: #233145;
+    color: #cbd5e1;
+    border: 1px solid #33445d;
+    padding: 11px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: 0.2s;
+}
+.btn-tour-details:hover {
+    background: #2a3c54;
+    color: #ffffff;
+}

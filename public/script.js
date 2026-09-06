@@ -959,3 +959,76 @@ setAppTheme(currentTheme);
 selectAsset('BTC');
 switchAccount('demo');
 requestAnimationFrame(render);
+
+// -------------------------------------------------------------
+// 🎧 স্ক্রিনশট ৮৮৩: HELP & SUPPORT HANDLERS
+// -------------------------------------------------------------
+function openHelpModal() {
+    document.getElementById('helpModal').style.display = 'flex';
+}
+function closeHelpModal() {
+    document.getElementById('helpModal').style.display = 'none';
+}
+
+function openSupportTicketForm() {
+    closeHelpModal();
+    openSupportModal();
+    switchSupportTab('new');
+}
+
+// -------------------------------------------------------------
+// 🏆 স্ক্রিনশট ৮৮২: TOURNAMENTS HANDLERS
+// -------------------------------------------------------------
+function openTournamentsModal() {
+    document.getElementById('tournamentsModal').style.display = 'flex';
+    loadTournamentsData();
+}
+function closeTournamentsModal() {
+    document.getElementById('tournamentsModal').style.display = 'none';
+}
+
+function loadTournamentsData() {
+    fetch('/api/tournaments')
+    .then(r => r.json())
+    .then(d => {
+        let box = document.getElementById('tournamentsListContainer');
+        if (!box) return;
+
+        let html = '';
+        d.tournaments.forEach(t => {
+            html += `
+                <div class="tournament-card-item">
+                    <span class="tour-pill-badge">${t.status}</span>
+                    <div class="tour-content-row">
+                        <span class="tour-name">${t.title}</span>
+                        <div class="tour-prize-block">
+                            <div class="tour-prize-lbl">PRIZE POOL</div>
+                            <div class="tour-prize-val">${t.prizePool}</div>
+                        </div>
+                    </div>
+                    <div class="tour-specs-row">
+                        <div class="tour-spec-item">
+                            <b>${t.entryFee}</b>
+                            <span>Entry fee</span>
+                        </div>
+                        <div class="tour-spec-item">
+                            <b>${t.duration}</b>
+                            <span>Duration</span>
+                        </div>
+                    </div>
+                    <button class="btn-tour-details" onclick="alert('Joining ${t.title}...')">
+                        Details ℹ️
+                    </button>
+                </div>
+            `;
+        });
+        box.innerHTML = html;
+    });
+}
+
+// ইউআরএল প্যারামিটার থেকে অটো ওপেন হ্যান্ডলার
+window.addEventListener('load', () => {
+    let params = new URLSearchParams(window.location.search);
+    if (params.get('open') === 'help') openHelpModal();
+    if (params.get('open') === 'menu') openMainMenuModal();
+});

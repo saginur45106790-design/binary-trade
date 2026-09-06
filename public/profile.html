@@ -3,219 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Profile & Payments | Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=14.0">
+    <title>Profile & Settings | Pocket Option</title>
+    <link rel="stylesheet" href="style.css?v=21.0">
     <style>
-        body { padding-bottom: 75px; background: #121824; }
-
+        body { padding-bottom: 75px; }
         .bonus-banner {
             background: linear-gradient(90deg, #00b074, #00c853);
-            color: #fff;
-            margin: 12px 14px;
-            padding: 10px 14px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 12px;
-            font-weight: 700;
+            color: #fff; margin: 12px 14px; padding: 10px 14px; border-radius: 20px;
+            display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 700;
         }
-        .banner-left { display: flex; align-items: center; gap: 8px; }
-        .bonus-tag { background: #1c2637; color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 11px; }
-        .banner-close { cursor: pointer; font-size: 14px; opacity: 0.8; }
-
         .accordion-wrapper { margin: 0 14px 14px; position: relative; }
         .accordion-header {
-            background: #1c2638;
-            border: 1px solid #26354b;
-            padding: 14px;
-            border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
+            background: var(--bg-card); border: 1px solid var(--bg-card-border);
+            padding: 14px; border-radius: 8px; display: flex; justify-content: space-between;
+            align-items: center; font-size: 15px; font-weight: 700; cursor: pointer;
         }
         .accordion-menu {
-            display: none;
-            background: #182130;
-            border: 1px solid #26354b;
-            border-top: none;
-            border-radius: 0 0 8px 8px;
-            overflow: hidden;
+            display: none; background: var(--bg-dock); border: 1px solid var(--bg-card-border);
+            border-top: none; border-radius: 0 0 8px 8px; overflow: hidden;
         }
         .menu-item {
-            padding: 13px 16px;
-            border-bottom: 1px solid #1f2b3d;
-            font-size: 14px;
-            color: #d1dbe8;
-            font-weight: 600;
-            cursor: pointer;
+            padding: 13px 16px; border-bottom: 1px solid var(--bg-card-border);
+            font-size: 14px; color: var(--text-muted); font-weight: 600; cursor: pointer;
         }
-        .menu-item:hover { background: #1f2a3c; }
-
+        .menu-item:hover { background: var(--bg-card); }
         .section-box { padding: 0 14px; }
-        .sec-title { font-size: 15px; font-weight: 800; margin: 12px 0 10px; color: #fff; }
-
-        /* -------------------------------------------------------------
-           PAYMENTS / DEPOSIT HISTORY (EXACT SCREENSHOT 865)
-        ------------------------------------------------------------- */
-        .payments-table-head {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #6e829c;
-            font-weight: 700;
-            padding: 8px 4px;
-            border-bottom: 1px solid #1c2638;
-            margin-bottom: 4px;
-        }
-        .payment-card-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            padding: 14px 4px;
-            border-bottom: 1px solid #1a2332;
-        }
-        .pay-left-col { display: flex; flex-direction: column; gap: 4px; }
-        .pay-tx-id { font-size: 14px; font-weight: 700; color: #fff; }
-        .pay-date-time { font-size: 11px; color: #6e829c; }
-        .pay-status-txt { font-size: 11px; font-weight: 700; }
-        .pay-status-txt.failed { color: #eb5757; }
-        .pay-status-txt.successed { color: #00e676; }
-        .pay-status-txt.pending { color: #f5a623; }
-
-        .pay-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; text-align: right; }
-        .pay-amount-val { font-size: 14px; font-weight: 800; color: #00e676; }
-        .pay-method-name { font-size: 12px; color: #d1dbe8; }
-        .pay-type-label { font-size: 11px; color: #6e829c; }
-
-        /* পেজিনেশন কন্ট্রোল (Screenshot 865) */
-        .pagination-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 24px;
-            padding: 10px 0;
-        }
-        .pg-btn {
-            background: #1c2638;
-            border: 1px solid #28374d;
-            color: #8fa0b5;
-            width: 140px;
-            height: 42px;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        .pg-btn svg { width: 16px; height: 16px; fill: currentColor; }
-        .pg-counter { font-size: 14px; font-weight: 800; color: #fff; }
-
-        /* উইথড্রয়াল পেজ স্টাইল */
-        .account-summary-block { margin-bottom: 18px; }
-        .acc-info-lbl { font-size: 12px; color: #8fa0b5; margin-bottom: 2px; }
-        .acc-info-val { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 14px; }
-        .currency-suffix { position: absolute; right: 14px; top: 12px; color: #6e829c; font-weight: 700; font-size: 13px; }
-        .error-hint-text { color: #eb5757; font-size: 11px; margin-top: 4px; display: none; line-height: 1.4; }
-
-        .btn-confirm-withdrawal {
-            width: 100%; background: #0070f3; color: #fff; border: none; padding: 13px 18px;
-            border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 16px 0 20px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .arrow-circle-icon {
-            background: rgba(255,255,255,0.25); width: 22px; height: 22px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900;
-        }
-
-        .requests-header {
-            display: flex; justify-content: space-between; align-items: center;
-            font-size: 15px; font-weight: 800; margin: 20px 0 12px; color: #fff;
-        }
-        .blue-circle-link {
-            background: #0070f3; width: 20px; height: 20px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff;
-        }
-        .req-card-item { padding: 10px 0; border-bottom: 1px solid #1c2637; }
-        .req-row-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; }
-        .req-row-mid { display: flex; justify-content: space-between; font-size: 11px; color: #6e829c; margin-top: 3px; }
-        .req-status-tag { font-size: 11px; font-weight: 700; margin-top: 3px; }
-        .req-status-tag.failed { color: #eb5757; }
-        .req-status-tag.successed { color: #00e676; }
-        .req-status-tag.pending { color: #f5a623; }
-
-        /* পার্সোনাল ফর্ম */
         .avatar-card { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
         .avatar-circle {
             width: 58px; height: 58px; border-radius: 50%; background: #0070f3;
             display: flex; align-items: center; justify-content: center; position: relative;
         }
         .avatar-circle svg { width: 30px; height: 30px; fill: #fff; }
-        .camera-badge {
-            position: absolute; top: -2px; right: -2px; background: #253347;
-            width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        }
-        .camera-badge svg { width: 11px; height: 11px; fill: #8fa0b5; }
-        .user-id-text { font-size: 12px; color: #6e829c; margin-top: 2px; }
-        .verified-tag { color: #00e676; font-size: 12px; font-weight: 700; margin-top: 3px; display: inline-flex; align-items: center; gap: 4px; }
-
         .form-field { margin-bottom: 14px; position: relative; }
         .field-label {
-            position: absolute; top: -7px; left: 12px; background: #121824;
-            padding: 0 5px; font-size: 11px; color: #6e829c; font-weight: 600; z-index: 2;
+            position: absolute; top: -7px; left: 12px; background: var(--bg-main);
+            padding: 0 5px; font-size: 11px; color: var(--text-sub); font-weight: 600; z-index: 2;
         }
         .field-input, .field-select {
-            width: 100%; background: #161f2d; border: 1px solid #26354b;
-            color: #fff; padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-weight: 600;
+            width: 100%; background: var(--bg-card); border: 1px solid var(--bg-card-border);
+            color: var(--text-main); padding: 12px 14px; border-radius: 6px; font-size: 14px; outline: none; font-weight: 600;
         }
-        .verified-input-badge { position: absolute; right: 12px; top: 12px; color: #00e676; font-size: 11px; font-weight: 700; }
-
         .btn-save {
             width: 100%; background: #0070f3; color: #fff; border: none; padding: 14px;
             border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 10px 0 20px;
         }
-
-        .toast {
-            display: none; position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
-            background: #00b074; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 700; z-index: 200;
+        .btn-confirm-withdrawal {
+            width: 100%; background: #0070f3; color: #fff; border: none; padding: 13px 18px;
+            border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 16px 0 20px;
+            display: flex; justify-content: space-between; align-items: center;
         }
+        .currency-suffix { position: absolute; right: 14px; top: 12px; color: #6e829c; font-weight: 700; font-size: 13px; }
+        .error-hint-text { color: #eb5757; font-size: 11px; margin-top: 4px; display: none; line-height: 1.4; }
     </style>
 </head>
 <body>
     <header class="top-bar">
         <div class="account-select-pill">
-            <span id="accIconWrap">
-                <svg viewBox="0 0 24 24" width="14" height="14" fill="#00b074"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-            </span>
-            <span id="headerAccLabel" class="acc-label live">LIVE</span>
-            <span id="headerLiveBal" class="acc-bal">$10.00</span>
-            <span class="chevron">▼</span>
+            <span style="color:#00b074;">✈️</span>
+            <span class="acc-label live" id="profileAccLabel">LIVE</span>
+            <span id="headerLiveBal" style="color:var(--text-main);">$10.00</span>
+            <span style="font-size:10px; color:#6e829c;">▼</span>
         </div>
         <div class="top-bar-right">
-            <div class="notification-btn">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="#f5a623"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-                <span class="badge-num">13</span>
-            </div>
             <button class="deposit-btn" onclick="window.location.href='/deposit.html'">Deposit</button>
         </div>
     </header>
 
-    <div class="bonus-banner" id="bonusBanner">
-        <div class="banner-left">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M13.13 2.18c-.37-.36-.92-.47-1.39-.27L2.46 5.86c-.53.22-.84.77-.73 1.34.11.56.57.98 1.14.98h3.38l1.32 8.3c.09.58.55 1.02 1.14 1.08l6.39.64c.59.06 1.13-.3 1.32-.86l2.1-6.19 3.01-1.25c.53-.22.84-.77.73-1.34s-.57-.98-1.14-.98h-3.38l-4.59-5.4z"/></svg>
-            <span>Get a <b>50% bonus</b> on your deposit!</span>
-            <span class="bonus-tag">50%</span>
-        </div>
-        <span class="banner-close" onclick="document.getElementById('bonusBanner').style.display='none'">✕</span>
+    <div class="bonus-banner">
+        <div>🚀 Get a <b>50% bonus</b> on your deposit!</div>
+        <span style="cursor:pointer;" onclick="this.parentElement.style.display='none'">✕</span>
     </div>
 
     <div class="accordion-wrapper">
         <div class="accordion-header" onclick="toggleDropdownMenu()">
-            <span id="activeMenuTitle">Payments</span>
+            <span id="activeMenuTitle">My account</span>
             <span id="accordionChevron">▼</span>
         </div>
         <div class="accordion-menu" id="accordionMenu">
@@ -223,173 +84,105 @@
             <div class="menu-item" onclick="switchSection('Withdrawal')">Withdrawal</div>
             <div class="menu-item" onclick="switchSection('Payments')">Payments</div>
             <div class="menu-item" onclick="switchSection('Trades')">Trades</div>
-            <div class="menu-item" onclick="switchSection('Market')">Market</div>
             <div class="menu-item" onclick="switchSection('Tournaments')">Tournaments</div>
-            <div class="menu-item" onclick="switchSection('Analytics')">Analytics</div>
         </div>
     </div>
 
-    <div id="view-payments" class="section-box">
-        <div class="payments-table-head">
-            <span>Transaction ID</span>
-            <span>Amount</span>
-        </div>
-
-        <div id="paymentsListContainer">
+    <div id="view-my-account" class="section-box">
+        <div class="sec-title">Personal data:</div>
+        <div class="avatar-card">
+            <div class="avatar-circle">
+                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             </div>
-
-        <div class="pagination-container">
-            <div class="pg-btn">
-                <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-            </div>
-            <span class="pg-counter">1/1</span>
-            <div class="pg-btn">
-                <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+            <div>
+                <b style="font-size: 14px;">teachsajib@gmail.com</b>
+                <div style="font-size: 11px; color:#6e829c;">ID: 85857047</div>
+                <div style="color: #00e676; font-size: 12px; font-weight: 700;">✔ Verified</div>
             </div>
         </div>
+        <div class="form-field"><span class="field-label">Nickname</span><input type="text" id="inpNickname" class="field-input" value="SojibTrader"></div>
+        <div class="form-field"><span class="field-label">First Name</span><input type="text" id="inpFirstName" class="field-input" value="MD Sajib"></div>
+        <div class="form-field"><span class="field-label">Last Name</span><input type="text" id="inpLastName" class="field-input" value="Hossain"></div>
+        <div class="form-field"><span class="field-label">Date of birth</span><input type="text" id="inpDob" class="field-input" value="01/01/2005"></div>
+        <div class="form-field"><span class="field-label">Address</span><input type="text" id="inpAddress" class="field-input" value="Akkelpur, Rajshahi, Bangladesh"></div>
+        <button class="btn-save" onclick="alert('Profile saved!')">Save</button>
     </div>
 
-    <div id="view-withdrawal" class="section-box" style="display: none;">
+    <div id="view-withdrawal" class="section-box" style="display:none;">
         <div class="sec-title">Account:</div>
-        <div class="account-summary-block">
-            <div class="acc-info-lbl">In the account:</div>
-            <div class="acc-info-val" id="withdrawInAccount">10.00 $</div>
-
-            <div class="acc-info-lbl">Available for withdrawal:</div>
-            <div class="acc-info-val" id="withdrawAvailable">10.00 $</div>
+        <div style="margin-bottom:14px;">
+            <div style="font-size:12px; color:#8fa0b5;">In the account:</div>
+            <div style="font-size:20px; font-weight:800;" id="withdrawInAccount">10.00 $</div>
         </div>
-
-        <div class="sec-title">Withdrawal:</div>
-
         <div class="form-field">
             <span class="field-label">Amount</span>
             <input type="number" id="withdrawAmt" class="field-input" value="10" min="10">
             <span class="currency-suffix">USD</span>
         </div>
-
         <div class="form-field">
             <span class="field-label">Payment method</span>
-            <select id="withdrawMethod" class="field-select" onchange="onPaymentMethodChange(this.value)">
-                <option value="Binance Pay" selected>Binance Pay</option>
+            <select id="withdrawMethod" class="field-select">
+                <option value="Binance Pay">Binance Pay</option>
                 <option value="Bkash (P2C)">Bkash (P2C)</option>
                 <option value="Nagad">Nagad</option>
             </select>
         </div>
-
         <div class="form-field">
-            <span class="field-label">First name</span>
-            <input type="text" id="withdrawFirstName" class="field-input" value="MD Sajib">
+            <span class="field-label">Binance account ID</span>
+            <input type="text" id="withdrawAccountInput" class="field-input" placeholder="8 to 10 digits">
         </div>
-
-        <div class="form-field">
-            <span class="field-label">Last name</span>
-            <input type="text" id="withdrawLastName" class="field-input" value="Hossain">
-        </div>
-
-        <div class="form-field">
-            <span class="field-label">Receive type</span>
-            <select id="withdrawReceiveType" class="field-select" onchange="onReceiveTypeChange(this.value)">
-                <option value="Binance account ID" selected>Binance account ID</option>
-                <option value="Binance account email">Binance account email</option>
-            </select>
-        </div>
-
-        <div class="form-field">
-            <span class="field-label" id="receiveInputLabel">Binance account ID</span>
-            <input type="text" id="withdrawAccountInput" class="field-input" oninput="validateAccountInput()">
-            <div class="error-hint-text" id="errorHintMsg">
-                Enter a Binance account number consisting of 8 to 10 digits.
-            </div>
-        </div>
-
-        <button class="btn-confirm-withdrawal" onclick="submitWithdrawal()">
+        <button class="btn-confirm-withdrawal" onclick="submitProfileWithdrawal()">
             <span>Confirm</span>
-            <span class="arrow-circle-icon">➔</span>
+            <span>➔</span>
         </button>
-
-        <div class="requests-header">
-            <span>Some of your latest requests:</span>
-            <span class="blue-circle-link">➔</span>
-        </div>
-
-        <div id="latestRequestsList"></div>
     </div>
 
-    <div id="view-my-account" class="section-box" style="display: none;">
-        <div class="sec-title">Personal data:</div>
-        <div class="avatar-card">
-            <div class="avatar-circle">
-                <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                <span class="camera-badge">
-                    <svg viewBox="0 0 24 24"><path d="M12 15c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm8-9h-3.17l-1.24-1.35c-.37-.41-.91-.65-1.47-.65H9.88c-.56 0-1.1.24-1.48.65L7.17 6H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-                </span>
-            </div>
-            <div>
-                <b style="font-size: 14px;">teachsajib@gmail.com</b>
-                <div class="user-id-text">ID: 85857047</div>
-                <div class="verified-tag">✔ Verified</div>
-            </div>
-        </div>
-
-        <div class="form-field"><span class="field-label">Nickname</span><input type="text" id="inpNickname" class="field-input" value="SojibTrader"></div>
-        <div class="form-field"><span class="field-label">First Name</span><input type="text" id="inpFirstName" class="field-input" value="MD Sajib"></div>
-        <div class="form-field"><span class="field-label">Last Name</span><input type="text" id="inpLastName" class="field-input" value="Hossain"></div>
-        <div class="form-field"><span class="field-label">Date of birth</span><input type="text" id="inpDob" class="field-input" value="01/01/2005"></div>
-        <div class="form-field"><span class="field-label">Email</span><input type="email" id="inpEmail" class="field-input" value="teachsajib@gmail.com" readonly><span class="verified-input-badge">Verified</span></div>
-        <div class="form-field">
-            <span class="field-label">Country</span>
-            <select id="inpCountry" class="field-select">
-                <option value="Bangladesh" selected>Bangladesh</option>
-                <option value="India">India</option>
-                <option value="Pakistan">Pakistan</option>
-            </select>
-        </div>
-        <div class="form-field"><span class="field-label">Address</span><input type="text" id="inpAddress" class="field-input" value="Akkelpur, Rajshahi, Bangladesh"></div>
-        <button class="btn-save" onclick="savePersonalData()">Save</button>
+    <div id="view-payments" class="section-box" style="display:none;">
+        <div class="sec-title">Payments & Withdrawals:</div>
+        <div id="profilePaymentsContainer"></div>
     </div>
 
-    <div id="view-trades" class="section-box" style="display: none;"><div class="sec-title">Trade History:</div><p style="color:#6e829c;">No trades recorded.</p></div>
-    <div id="view-market" class="section-box" style="display: none;"><div class="sec-title">Market:</div><p style="color:#6e829c;">0 active coupons.</p></div>
-    <div id="view-tournaments" class="section-box" style="display: none;"><div class="sec-title">Tournaments:</div><p style="color:#6e829c;">Daily battles live.</p></div>
-    <div id="view-analytics" class="section-box" style="display: none;"><div class="sec-title">Analytics:</div><p style="color:#6e829c;">Analytics based on live trades.</p></div>
+    <div id="view-trades" class="section-box" style="display:none;">
+        <div class="sec-title">Lifetime Trades:</div>
+        <div id="profileTradesContainer"></div>
+    </div>
+
+    <div id="view-tournaments" class="section-box" style="display:none;">
+        <div class="tournaments-head-title"><span>Available for participation (4)</span></div>
+        <div id="profileTournamentsContainer"></div>
+    </div>
 
     <nav class="footer-icons">
         <div class="f-icon" onclick="window.location.href='/'">
             <svg viewBox="0 0 24 24"><path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/></svg>
         </div>
-        <div class="f-icon" onclick="alert('Support: support@pocketoption.com')">
+        <div class="f-icon" onclick="window.location.href='/?open=help'">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/></svg>
         </div>
-        <div class="f-icon active" onclick="switchSection('Payments')">
+        <div class="f-icon active" onclick="switchSection('My account')">
             <svg viewBox="0 0 24 24"><path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/></svg>
         </div>
         <div class="f-icon" onclick="switchSection('Tournaments')">
             <svg viewBox="0 0 24 24"><path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.3A6 6 0 0 0 11 14.9V18H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2v-3.1A6 6 0 0 0 18.7 12H19a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3zM4 8V7a1 1 0 0 1 1-1h2v4.2A2 2 0 0 1 4 8zm16 0a2 2 0 0 1-3 2V6h2a1 1 0 0 1 1 1v1z"/></svg>
             <span class="f-badge">4</span>
         </div>
-        <div class="f-icon" onclick="switchSection('Market')">
+        <div class="f-icon" onclick="window.location.href='/?open=menu'">
             <svg viewBox="0 0 24 24"><path d="M19 3H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h11l4.2 3.2c.5.4 1.3 0 1.3-.7V6a3 3 0 0 0-2.5-3zM7.5 13a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
             <span class="f-badge">4</span>
         </div>
     </nav>
 
-    <div id="toastBox" class="toast">Changes saved!</div>
-
     <script>
         function toggleDropdownMenu() {
             let menu = document.getElementById('accordionMenu');
-            let chevron = document.getElementById('accordionChevron');
-            let isOpen = (menu.style.display === 'block');
-            menu.style.display = isOpen ? 'none' : 'block';
-            chevron.innerText = isOpen ? '▼' : '▲';
+            menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
         }
 
         function switchSection(name) {
             document.getElementById('activeMenuTitle').innerText = name;
             document.getElementById('accordionMenu').style.display = 'none';
-            document.getElementById('accordionChevron').innerText = '▼';
 
-            let views = ['my-account', 'withdrawal', 'payments', 'trades', 'market', 'tournaments', 'analytics'];
+            let views = ['my-account', 'withdrawal', 'payments', 'trades', 'tournaments'];
             views.forEach(v => {
                 let el = document.getElementById('view-' + v);
                 if (el) el.style.display = 'none';
@@ -399,182 +192,77 @@
             let target = document.getElementById('view-' + targetKey);
             if (target) target.style.display = 'block';
 
-            if (targetKey === 'payments') loadPayments();
-            if (targetKey === 'withdrawal') loadWithdrawals();
-
+            if (targetKey === 'payments') loadProfilePayments();
+            if (targetKey === 'trades') loadProfileTrades();
+            if (targetKey === 'tournaments') loadProfileTournaments();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // স্ক্রিনশট ৮৬৫ অনুযায়ী Payments লোড
-        function loadPayments() {
-            fetch('/api/payments')
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    let html = '';
-                    d.deposits.forEach(item => {
-                        let statusClass = item.status.toLowerCase();
-                        html += `
-                            <div class="payment-card-row">
-                                <div class="pay-left-col">
-                                    <div class="pay-tx-id">${item.id}</div>
-                                    <div class="pay-date-time">${item.date}</div>
-                                    <div class="pay-status-txt ${statusClass}">${item.status}</div>
-                                </div>
-                                <div class="pay-right-col">
-                                    <div class="pay-amount-val">+$${parseFloat(item.amount).toFixed(2)}</div>
-                                    <div class="pay-method-name">${item.method}</div>
-                                    <div class="pay-type-label">${item.type}</div>
+        function loadProfileTournaments() {
+            fetch('/api/tournaments').then(r => r.json()).then(d => {
+                let box = document.getElementById('profileTournamentsContainer');
+                let html = '';
+                d.tournaments.forEach(t => {
+                    html += `
+                        <div class="tournament-card-item">
+                            <span class="tour-pill-badge">${t.status}</span>
+                            <div class="tour-content-row">
+                                <span class="tour-name">${t.title}</span>
+                                <div class="tour-prize-block">
+                                    <div class="tour-prize-lbl">PRIZE POOL</div>
+                                    <div class="tour-prize-val">${t.prizePool}</div>
                                 </div>
                             </div>
-                        `;
-                    });
-                    document.getElementById('paymentsListContainer').innerHTML = html;
-                }
+                            <div class="tour-specs-row">
+                                <div class="tour-spec-item"><b>${t.entryFee}</b><span>Entry fee</span></div>
+                                <div class="tour-spec-item"><b>${t.duration}</b><span>Duration</span></div>
+                            </div>
+                            <button class="btn-tour-details" onclick="alert('Joining ${t.title}...')">Details ℹ️</button>
+                        </div>
+                    `;
+                });
+                box.innerHTML = html;
             });
         }
 
-        function loadWithdrawals() {
-            fetch('/api/withdrawals')
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    updateBalDisplay(d.liveBalance);
-                    let listHtml = '';
-                    d.withdrawals.forEach(item => {
-                        let statusClass = item.status.toLowerCase();
-                        listHtml += `
-                            <div class="req-card-item">
-                                <div class="req-row-top">
-                                    <span>${item.id}</span>
-                                    <span style="color:#00e676;">+${parseFloat(item.amount).toFixed(2)} $</span>
-                                </div>
-                                <div class="req-row-mid">
-                                    <span>${item.date}</span>
-                                    <span>${item.method}</span>
-                                </div>
-                                <div class="req-status-tag ${statusClass}">${item.status}</div>
-                            </div>
-                        `;
-                    });
-                    document.getElementById('latestRequestsList').innerHTML = listHtml;
-                }
+        function loadProfilePayments() {
+            fetch('/api/payments').then(r => r.json()).then(d => {
+                let box = document.getElementById('profilePaymentsContainer');
+                let html = '';
+                d.deposits.forEach(p => {
+                    html += `<div class="hist-card"><div class="hist-row-top"><span>#${p.id} (${p.method})</span><span class="hist-badge-win">+$${p.amount.toFixed(2)}</span></div><div class="hist-row-sub"><span>${p.status}</span><span>${p.date}</span></div></div>`;
+                });
+                box.innerHTML = html;
             });
         }
 
-        function updateBalDisplay(bal) {
-            let str = parseFloat(bal).toFixed(2) + " $";
-            document.getElementById('headerLiveBal').innerText = "$" + parseFloat(bal).toFixed(2);
-            document.getElementById('withdrawInAccount').innerText = str;
-            document.getElementById('withdrawAvailable').innerText = str;
+        function loadProfileTrades() {
+            fetch('/api/user/trades').then(r => r.json()).then(d => {
+                let box = document.getElementById('profileTradesContainer');
+                let html = '';
+                d.trades.forEach(t => {
+                    html += `<div class="hist-card"><div class="hist-row-top"><span>${t.asset} ${t.direction}</span><span class="${t.isWin ? 'hist-badge-win' : 'hist-badge-loss'}">${t.isWin ? `+$${t.profit.toFixed(2)}` : `-$${t.amount.toFixed(2)}`}</span></div><div class="hist-row-sub"><span>Invest: $${t.amount}</span><span>${t.time}</span></div></div>`;
+                });
+                box.innerHTML = html;
+            });
         }
 
-        function onPaymentMethodChange(val) {
-            let rSelect = document.getElementById('withdrawReceiveType');
-            let rLabel = document.getElementById('receiveInputLabel');
-            rSelect.innerHTML = '';
-
-            if (val === 'Binance Pay') {
-                rSelect.innerHTML = `<option value="Binance account ID" selected>Binance account ID</option><option value="Binance account email">Binance account email</option>`;
-                rLabel.innerText = "Binance account ID";
-            } else {
-                rSelect.innerHTML = `<option value="Personal account" selected>Personal account</option>`;
-                rLabel.innerText = val + " Number";
-            }
-            validateAccountInput();
-        }
-
-        function onReceiveTypeChange(val) {
-            document.getElementById('receiveInputLabel').innerText = val;
-            validateAccountInput();
-        }
-
-        function validateAccountInput() {
-            let method = document.getElementById('withdrawMethod').value;
-            let rType = document.getElementById('withdrawReceiveType').value;
-            let val = document.getElementById('withdrawAccountInput').value.trim();
-            let hint = document.getElementById('errorHintMsg');
-
-            if (method === 'Binance Pay' && rType === 'Binance account ID') {
-                if (val.length < 8 || val.length > 10 || isNaN(val)) {
-                    hint.style.display = 'block';
-                    hint.innerText = "Enter a Binance account number consisting of 8 to 10 digits.";
-                    return false;
-                } else {
-                    hint.style.display = 'none';
-                    return true;
-                }
-            } else if (val.length === 0) {
-                hint.style.display = 'block';
-                hint.innerText = "This field is required.";
-                return false;
-            } else {
-                hint.style.display = 'none';
-                return true;
-            }
-        }
-
-        function submitWithdrawal() {
-            if (!validateAccountInput()) return;
-
+        function submitProfileWithdrawal() {
             let amt = document.getElementById('withdrawAmt').value;
             let method = document.getElementById('withdrawMethod').value;
-            let rType = document.getElementById('withdrawReceiveType').value;
-            let accId = document.getElementById('withdrawAccountInput').value.trim();
-            let fName = document.getElementById('withdrawFirstName').value;
-            let lName = document.getElementById('withdrawLastName').value;
-
-            fetch('/api/withdraw', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    username: 'demo_user',
-                    amount: amt,
-                    method,
-                    receiveType: rType,
-                    accountId: accId,
-                    firstName: fName,
-                    lastName: lName
-                })
-            })
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    showToast(d.message);
-                    updateBalDisplay(d.newBalance);
-                    document.getElementById('withdrawAccountInput').value = '';
-                    loadWithdrawals();
-                } else {
-                    alert(d.message);
-                }
-            });
-        }
-
-        function showToast(msg) {
-            let t = document.getElementById('toastBox');
-            t.innerText = msg;
-            t.style.display = 'block';
-            setTimeout(() => { t.style.display = 'none'; }, 3000);
-        }
-
-        function savePersonalData() {
-            showToast("Profile data saved!");
+            let acc = document.getElementById('withdrawAccountInput').value;
+            if (!acc) return alert("Enter account number / Binance ID!");
+            alert(`Withdrawal request of $${amt} submitted successfully!`);
         }
 
         window.addEventListener('load', () => {
             fetch('/api/user/info').then(r => r.json()).then(d => {
                 if (d) {
-                    if (d.activeAccount === 'demo') {
-                        document.getElementById('headerAccLabel').innerText = 'DEMO';
-                        document.getElementById('headerAccLabel').className = 'acc-label demo';
-                        document.getElementById('headerLiveBal').innerText = '$' + parseFloat(d.demoBalance).toFixed(2);
-                        document.getElementById('accIconWrap').innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#f5a623"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>`;
-                    } else {
-                        updateBalDisplay(d.liveBalance);
-                    }
+                    let b = d.activeAccount === 'live' ? d.liveBalance : d.demoBalance;
+                    document.getElementById('headerLiveBal').innerText = '$' + b.toFixed(2);
+                    document.getElementById('withdrawInAccount').innerText = b.toFixed(2) + ' $';
                 }
             });
-            loadPayments();
         });
     </script>
 </body>
