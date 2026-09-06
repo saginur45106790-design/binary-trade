@@ -10,12 +10,10 @@ let liveBalance = 0.03;
 let panOffset = 0;
 let remainingCountdown = 60;
 
-// বর্তমান সিলেক্টেড কয়েন (ডিফল্ট BTC)
 let activeAssetKey = 'BTC';
 let activeDecimals = 2;
 let currentPayout = 92;
 
-// কয়েন আইকন ম্যাপিং
 const COIN_ICONS = {
     'BTC': '<span class="c-logo btc-logo" style="width:20px;height:20px;font-size:11px;">₿</span>',
     'ETH': '<span class="c-logo eth-logo" style="width:20px;height:20px;font-size:11px;">Ξ</span>',
@@ -27,7 +25,6 @@ const COIN_ICONS = {
     'ADA': '<span class="c-logo ada-logo" style="width:20px;height:20px;font-size:11px;">₳</span>'
 };
 
-// পিঞ্চ জুম
 let candleWidth = 9;
 let candleSpacing = 5;
 let initialPinchDistance = null;
@@ -51,7 +48,6 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// নিরাপদে টাচ ড্র্যাগ ও জুম
 let startX = 0;
 let isPanning = false;
 
@@ -98,7 +94,6 @@ canvas.addEventListener('touchend', () => {
     initialPinchDistance = null;
 });
 
-// লাইভ ক্লক ও ট্রেড এক্সপায়ারেশন চেক
 function syncClockAndTrades() {
     let now = new Date();
     let hh = String(now.getHours()).padStart(2, '0');
@@ -235,7 +230,6 @@ function selectTimer(sec, display) {
 
 function resetPan() { panOffset = 0; drawChart(); }
 
-// ৮টি কয়েনের যেকোনো একটি বেছে নেওয়া
 function selectAsset(key) {
     activeAssetKey = key;
     document.getElementById('chartWatermark').innerText = key;
@@ -258,7 +252,7 @@ function selectAsset(key) {
     });
 }
 
-// চার্ট ড্রয়িং ইঞ্জিন
+// চার্ট ড্রয়িং ইঞ্জিন (গ্যাপ মুক্ত পারফেক্ট কনসেকিউটিভ আর্কিটেকচার)
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
@@ -271,22 +265,25 @@ function drawChart() {
 
     let totalUnit = candleWidth + candleSpacing;
     let baseRightX = width - 95 + panOffset;
-    let latestCandleTime = allCandles[allCandles.length - 1].time;
+    let N = allCandles.length;
 
-    function getXForTime(sec) {
-        let offsetCandles = (sec - latestCandleTime) / 60;
-        return baseRightX + (offsetCandles * totalUnit);
+    // প্রতিটি ক্যান্ডেল ইনডেক্স অনুযায়ী নির্ভুল X পজিশন নির্ণয় (কখনোই গ্যাপ হবে না)
+    function getXByIndex(i) {
+        return baseRightX - ((N - 1 - i) * totalUnit);
     }
 
+    // দৃশ্যমান ক্যান্ডেল ফিল্টার
     let visibleCandles = [];
-    allCandles.forEach((c) => {
-        let x = getXForTime(c.time);
+    for (let i = 0; i < N; i++) {
+        let x = getXByIndex(i);
         if (x >= -40 && x <= width + 40) {
-            visibleCandles.push({ candle: c, x: x });
+            visibleCandles.push({ candle: allCandles[i], x: x, index: i });
         }
-    });
+    }
 
-    if (visibleCandles.length === 0) visibleCandles = allCandles.map(c => ({ candle: c, x: getXForTime(c.time) }));
+    if (visibleCandles.length === 0) {
+        visibleCandles = allCandles.map((c, i) => ({ candle: c, x: getXByIndex(i), index: i }));
+    }
 
     let prices = visibleCandles.flatMap(v => [v.candle.high, v.candle.low]);
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(t => prices.push(t.entryPrice));
@@ -300,7 +297,7 @@ function drawChart() {
         return height - padY - ((price - minP) / range) * (height - padY * 2);
     }
 
-    // অনুভূমিক গ্রিড
+    // হরিজন্টাল গ্রিড লাইন
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -317,7 +314,7 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // ক্যান্ডেল আঁকা
+    // নিখুঁত ক্যান্ডেলস্টিক আঁকা (ধারাবাহিকভাবে একটার পর একটা)
     visibleCandles.forEach(v => {
         let c = v.candle;
         let x = v.x;
@@ -329,6 +326,7 @@ function drawChart() {
         let openY = getY(c.open);
         let closeY = getY(c.close);
 
+        // উইক
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.2;
         ctx.beginPath();
@@ -336,6 +334,7 @@ function drawChart() {
         ctx.lineTo(Math.floor(x + candleWidth / 2) + 0.5, Math.floor(lowY));
         ctx.stroke();
 
+        // বডি
         ctx.fillStyle = color;
         let topY = Math.min(openY, closeY);
         let h = Math.abs(closeY - openY) || 1.5;
@@ -345,18 +344,15 @@ function drawChart() {
     // বটম টাইমলাইন
     ctx.fillStyle = '#6e829c';
     ctx.font = '10px sans-serif';
-    allCandles.forEach((c, idx) => {
-        if (idx % 8 === 0) {
-            let x = getXForTime(c.time);
-            if (x > 10 && x < width - 60) {
-                let d = new Date(c.time * 1000);
-                let lbl = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-                ctx.fillText(lbl, Math.floor(x - 12), height - 6);
-            }
+    visibleCandles.forEach(v => {
+        if (v.index % 8 === 0) {
+            let d = new Date(v.candle.time * 1000);
+            let lbl = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            ctx.fillText(lbl, Math.floor(v.x - 12), height - 6);
         }
     });
 
-    // লাইভ প্রাইজ লাইন
+    // লাইভ প্রাইজ অনুভূমিক ডটেড লাইন ও নীল পিল
     if (liveCandle) {
         let liveY = getY(liveCandle.close);
 
@@ -380,13 +376,11 @@ function drawChart() {
 
     let nowSec = Math.floor(Date.now() / 1000);
 
-    // সক্রিয় ট্রেড না থাকলে ডিফল্ট এক্সপায়ারেশন উল্লম্ব লাইন
+    // ট্রেড না থাকলে এক্সপায়ারেশন উল্লম্ব লাইন
     let thisAssetTrades = activeTrades.filter(t => t.asset === activeAssetKey);
     if (thisAssetTrades.length === 0) {
-        let nextExpirySec = (currentMode === 'time' && targetExpiryEpoch) 
-            ? Math.floor(targetExpiryEpoch / 1000) 
-            : (latestCandleTime + selectedTimerSeconds);
-        let expX = getXForTime(nextExpirySec);
+        let expCandleOffset = Math.max(1, Math.ceil(selectedTimerSeconds / 60));
+        let expX = baseRightX + (expCandleOffset * totalUnit);
 
         ctx.setLineDash([4, 4]);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
@@ -410,13 +404,15 @@ function drawChart() {
         }
     }
 
-    // কয়েন স্পেসিফিক সক্রিয় ট্রেড মার্কার
+    // সক্রিয় ট্রেডের জন্য ড্যাশ লাইন ও এক্সপায়ারেশন উল্লম্ব লাইন (ক্যান্ডেলের সাথে লক)
     thisAssetTrades.forEach(tr => {
-        let entryX = getXForTime(tr.entryTime);
-        let expiryX = getXForTime(tr.expireTime);
+        let entryX = baseRightX - ((N - 1 - tr.startCandleIdx) * totalUnit);
+        let durationCandles = Math.max(1, Math.ceil(tr.durationSec / 60));
+        let expiryX = entryX + (durationCandles * totalUnit);
         let entryY = getY(tr.entryPrice);
         let tradeColor = tr.direction === 'UP' ? '#00b074' : '#eb5757';
 
+        // ১. অনুভূমিক লাইন
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = tradeColor;
         ctx.lineWidth = 1.4;
@@ -426,6 +422,7 @@ function drawChart() {
         ctx.stroke();
         ctx.setLineDash([]);
 
+        // ২. উলম্ব এক্সপায়ারেশন লাইন
         ctx.setLineDash([4, 4]);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
         ctx.lineWidth = 1;
@@ -435,6 +432,7 @@ function drawChart() {
         ctx.stroke();
         ctx.setLineDash([]);
 
+        // ৩. ডট ও তীর
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(entryX, entryY, 7, 0, Math.PI * 2);
@@ -444,6 +442,7 @@ function drawChart() {
         ctx.font = 'bold 9px sans-serif';
         ctx.fillText(tr.direction === 'UP' ? '↑' : '↓', entryX - 3, entryY + 3);
 
+        // ৪. রিমেইনিং টাইম ব্যাজ
         let diffSec = Math.max(0, tr.expireTime - nowSec);
         let remM = Math.floor(diffSec / 60);
         let remS = diffSec % 60;
@@ -457,7 +456,7 @@ function drawChart() {
     });
 }
 
-// WebSocket কানেকশন
+// WebSocket
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -466,13 +465,11 @@ ws.onmessage = (event) => {
     if (msg.type === 'TICK') {
         remainingCountdown = msg.countdown;
 
-        // মডালের কয়েনগুলোর লাইভ প্রাইজ আপডেট
         for (let k in msg.assets) {
             let el = document.getElementById(`price-tag-${k}`);
             if (el) el.innerText = msg.assets[k].price;
         }
 
-        // বর্তমান ওপেন থাকা চার্টের কয়েন আপডেট
         if (msg.assets[activeAssetKey]) {
             let cur = msg.assets[activeAssetKey];
             liveCandle = cur.candle;
@@ -499,7 +496,6 @@ function stepAmt(v) {
     }
 }
 
-// ট্রেড নেওয়ার ফাংশন
 function placeOrder(direction) {
     let amount = Number(document.getElementById('invAmt').innerText);
     let nowSec = Math.floor(Date.now() / 1000);
@@ -541,9 +537,11 @@ function placeOrder(direction) {
             entryPrice: parseFloat(data.entryPrice),
             entryTime: nowSec,
             expireTime: nowSec + totalSec,
+            durationSec: totalSec,
             direction: data.direction,
             amount: amount,
-            asset: activeAssetKey
+            asset: activeAssetKey,
+            startCandleIdx: candleHistory.length
         };
         activeTrades.push(tradeObj);
 
@@ -614,6 +612,5 @@ function closeAssetModal() { document.getElementById('assetModal').style.display
 function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
 
-// ইনিশিয়াল লোড
 selectAsset('BTC');
 setTimeout(fitCanvas, 200);
