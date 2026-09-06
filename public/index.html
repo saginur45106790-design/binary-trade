@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option Terminal</title>
-    <link rel="stylesheet" href="style.css?v=21.0">
+    <link rel="stylesheet" href="style.css?v=23.0">
 </head>
 <body>
     <div class="app-root">
@@ -144,132 +144,22 @@
 
             <nav class="footer-icons">
                 <div class="f-icon active" onclick="closeAllDrawers()">
-                    <svg viewBox="0 0 24 24"><path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/></svg>
+                    <svg viewBox="0 0 24 24" class="f-svg-icon"><path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/></svg>
                 </div>
-
                 <div class="f-icon" onclick="openHelpModal()">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/></svg>
+                    <svg viewBox="0 0 24 24" class="f-svg-icon"><path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/></svg>
                 </div>
-
                 <div class="f-icon" onclick="window.location.href='/profile.html'">
-                    <svg viewBox="0 0 24 24"><path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/></svg>
+                    <svg viewBox="0 0 24 24" class="f-svg-icon"><path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/></svg>
                 </div>
-
                 <div class="f-icon" onclick="openTournamentsModal()">
-                    <svg viewBox="0 0 24 24"><path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.3A6 6 0 0 0 11 14.9V18H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2v-3.1A6 6 0 0 0 18.7 12H19a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3zM4 8V7a1 1 0 0 1 1-1h2v4.2A2 2 0 0 1 4 8zm16 0a2 2 0 0 1-3 2V6h2a1 1 0 0 1 1 1v1z"/></svg>
-                    <span class="f-badge" id="trophyBadge">4</span>
-                </div>
-
-                <div class="f-icon" onclick="openMainMenuModal()">
-                    <svg viewBox="0 0 24 24"><path d="M19 3H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h11l4.2 3.2c.5.4 1.3 0 1.3-.7V6a3 3 0 0 0-2.5-3zM7.5 13a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
+                    <svg viewBox="0 0 24 24" class="f-svg-icon"><path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.3A6 6 0 0 0 11 14.9V18H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2v-3.1A6 6 0 0 0 18.7 12H19a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3zM4 8V7a1 1 0 0 1 1-1h2v4.2A2 2 0 0 1 4 8zm16 0a2 2 0 0 1-3 2V6h2a1 1 0 0 1 1 1v1z"/></svg>
                     <span class="f-badge">4</span>
                 </div>
+                <div class="f-icon" onclick="openMainMenuModal()">
+                    <svg viewBox="0 0 24 24" class="f-svg-icon"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+                </div>
             </nav>
-        </div>
-    </div>
-
-    <div id="helpModal" class="full-screen-modal">
-        <div class="modal-inner help-modal-sheet">
-            <div class="help-title-bar">
-                <h2>Help</h2>
-                <span class="x-close" onclick="closeHelpModal()">✕</span>
-            </div>
-
-            <div class="help-center-items">
-                <div class="help-menu-block" onclick="alert('Opening knowledge base...')">
-                    <div class="help-icon-box">
-                        <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
-                    </div>
-                    <div class="help-item-name">FAQ</div>
-                    <div class="help-item-sub">Open the database</div>
-                </div>
-
-                <div class="help-divider-line"></div>
-
-                <div class="help-menu-block" onclick="alert('Tutorials portal loading...')">
-                    <div class="help-icon-box">
-                        <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
-                    </div>
-                    <div class="help-item-name">Tutorials</div>
-                    <div class="help-item-sub">Use the hints</div>
-                </div>
-
-                <div class="help-divider-line"></div>
-
-                <div class="help-menu-block" onclick="openSupportTicketForm()">
-                    <div class="help-icon-box">
-                        <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
-                    </div>
-                    <div class="help-item-name">Support</div>
-                    <div class="help-item-sub">Submit a ticket</div>
-                </div>
-            </div>
-
-            <div class="help-contact-box" onclick="openSupportTicketForm()">
-                <div class="red-q-bubble">?</div>
-                <div class="help-contact-text">Didn't find an answer to your question?</div>
-                <div class="help-contact-link">Contact support</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="supportModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Customer Support Desk</h3>
-                <span class="x-close" onclick="closeSupportModal()">✕</span>
-            </div>
-            <div class="support-tabs-bar">
-                <button class="sp-tab-btn active" id="tabMyTicketsBtn" onclick="switchSupportTab('tickets')">My Tickets</button>
-                <button class="sp-tab-btn" id="tabNewTicketBtn" onclick="switchSupportTab('new')">Create Ticket</button>
-            </div>
-            <div id="viewUserTickets">
-                <div id="userTicketListContainer"></div>
-            </div>
-            <div id="viewNewTicketForm" style="display:none;">
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label style="font-size:12px; color:#8fa0b5; display:block; margin-bottom:4px;">Category</label>
-                    <select id="ticketCategory" class="field-select">
-                        <option value="Deposit / Payment">Deposit / Payment</option>
-                        <option value="Withdrawal Inquiry">Withdrawal Inquiry</option>
-                        <option value="Trade Execution">Trade Execution</option>
-                        <option value="Account Verification">Account Verification</option>
-                        <option value="Other Problem">Other Problem</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom:12px;">
-                    <label style="font-size:12px; color:#8fa0b5; display:block; margin-bottom:4px;">Explain Problem</label>
-                    <textarea id="ticketMessage" rows="4" class="field-input" placeholder="Explain your issue in detail..."></textarea>
-                </div>
-                <div class="form-group" style="margin-bottom:14px;">
-                    <label style="font-size:12px; color:#8fa0b5; display:block; margin-bottom:4px;">Attach Screenshot (Optional)</label>
-                    <input type="file" id="ticketScreenshot" accept="image/*" onchange="previewUserScreenshot(event)" style="display:none;">
-                    <button type="button" class="btn-attach-img" onclick="document.getElementById('ticketScreenshot').click()">
-                        📁 Choose Screenshot Image
-                    </button>
-                    <div id="screenshotPreviewBox" class="preview-box-img">
-                        <img id="previewImgElem" src="" alt="Screenshot">
-                        <span class="remove-img-btn" onclick="removeAttachedImage()">✕ Remove</span>
-                    </div>
-                </div>
-                <button class="btn-submit-ticket" onclick="submitSupportTicket()">Submit Ticket</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="tournamentsModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Tournaments</h3>
-                <span class="x-close" onclick="closeTournamentsModal()">✕</span>
-            </div>
-
-            <div class="tournaments-head-title">
-                <span>Available for participation (4)</span>
-            </div>
-
-            <div id="tournamentsListContainer">
-                </div>
         </div>
     </div>
 
@@ -279,106 +169,83 @@
                 <span style="font-weight:800; font-size:16px;">Menu</span>
                 <span class="x-close" onclick="closeMainMenuModal()">✕</span>
             </div>
+
             <div class="menu-user-header-card">
-                <div class="u-mail">teachsajib@gmail.com</div>
-                <div class="u-id">ID: 85857047</div>
-                <div class="u-standard">✈️ STANDARD: +0% profit</div>
+                <div class="u-info-row">
+                    <div>
+                        <div class="u-mail">teachsajib@gmail.com</div>
+                        <div class="u-id">ID: 85857047</div>
+                        <div class="u-standard">
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor" style="vertical-align:middle; margin-right:3px;"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            STANDARD: +0% profit
+                        </div>
+                    </div>
+                </div>
                 <button class="btn-quick-trading" onclick="closeMainMenuModal()">
-                    <span data-i18n="quickTrading">Quick trading</span> ➔
+                    <span data-i18n="quickTrading">Quick trading</span>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M13.025 1l-2.847 2.828 6.176 6.176h-16.354v4h16.353l-6.175 6.175 2.847 2.828 10.975-11z"/></svg>
                 </button>
             </div>
+
             <div class="menu-action-list">
                 <div class="menu-row-item" onclick="openDepositModal(); closeMainMenuModal();">
-                    <div class="item-left"><span class="m-icon">💳</span> <span data-i18n="deposit">Deposit</span></div>
+                    <div class="item-left">
+                        <span class="m-svg-icon-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                        </span>
+                        <span data-i18n="deposit">Deposit</span>
+                    </div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item" onclick="window.location.href='/profile.html';">
-                    <div class="item-left"><span class="m-icon">🏦</span> <span data-i18n="withdrawal">Withdrawal</span></div>
+                    <div class="item-left">
+                        <span class="m-svg-icon-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6L12 1z"/></svg>
+                        </span>
+                        <span data-i18n="withdrawal">Withdrawal</span>
+                    </div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item" onclick="openPaymentsModal();">
-                    <div class="item-left"><span class="m-icon">🧾</span> <span data-i18n="payments">Payments</span></div>
+                    <div class="item-left">
+                        <span class="m-svg-icon-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 22l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2l-1.5 1.5L6 2l-1.5 1.5L3 2v20z"/></svg>
+                        </span>
+                        <span data-i18n="payments">Payments</span>
+                    </div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item" onclick="openTradesHistoryModal();">
-                    <div class="item-left"><span class="m-icon">📊</span> <span data-i18n="trades">Trades</span></div>
+                    <div class="item-left">
+                        <span class="m-svg-icon-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
+                        </span>
+                        <span data-i18n="trades">Trades</span>
+                    </div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item" onclick="openSettingsModal();">
-                    <div class="item-left"><span class="m-icon">⚙️</span> <span data-i18n="settings">Settings</span></div>
+                    <div class="item-left">
+                        <span class="m-svg-icon-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                        </span>
+                        <span data-i18n="settings">Settings</span>
+                    </div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item logout-row" onclick="handleLogout()">
-                    <div class="item-left"><span class="m-icon">🚪</span> <span data-i18n="logout">Logout</span></div>
+                    <div class="item-left">
+                        <span class="m-svg-icon-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                        </span>
+                        <span data-i18n="logout">Logout</span>
+                    </div>
                     <span class="m-arr">➔</span>
                 </div>
             </div>
         </div>
     </div>
-
-    <div id="settingsModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3 data-i18n="settings">Settings</h3>
-                <span class="x-close" onclick="closeSettingsModal()">✕</span>
-            </div>
-            <div class="sec-title" data-i18n="interface">Interface:</div>
-            <div class="form-field-box">
-                <label data-i18n="language">Language</label>
-                <select id="langSelect" class="settings-select" onchange="changeLanguage(this.value)">
-                    <option value="en">🌐 English (US)</option>
-                    <option value="bn">🇧🇩 বাংলা (Bengali)</option>
-                    <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
-                    <option value="ar">🇸🇦 العربية (Arabic)</option>
-                    <option value="es">🇪🇸 Español (Spanish)</option>
-                </select>
-            </div>
-            <div class="form-field-box">
-                <label data-i18n="timezone">Timezone</label>
-                <select id="tzSelect" class="settings-select" onchange="changeTimezone(this.value)">
-                    <option value="6" selected>(UTC+06:00) Dhaka, Almaty</option>
-                    <option value="5.5">(UTC+05:30) New Delhi, Mumbai</option>
-                    <option value="0">(UTC+00:00) London, Dublin (UTC)</option>
-                    <option value="-5">(UTC-05:00) New York, Toronto</option>
-                    <option value="4">(UTC+04:00) Dubai, Abu Dhabi</option>
-                </select>
-            </div>
-            <div class="form-field-box">
-                <label data-i18n="theme">Theme</label>
-                <div class="theme-choice-row">
-                    <div class="theme-card-btn active" id="btnThemeDark" onclick="setAppTheme('dark')">
-                        <div class="theme-preview dark-p"></div>
-                        <span data-i18n="darkTheme">Dark Theme</span>
-                    </div>
-                    <div class="theme-card-btn" id="btnThemeLight" onclick="setAppTheme('light')">
-                        <div class="theme-preview light-p"></div>
-                        <span data-i18n="lightTheme">White Theme</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="tradesModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3><span data-i18n="trades">Trades</span> (Lifetime History)</h3>
-                <span class="x-close" onclick="closeTradesHistoryModal()">✕</span>
-            </div>
-            <div id="lifetimeTradesContainer"></div>
-        </div>
-    </div>
-
-    <div id="paymentsModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3><span data-i18n="payments">Payments</span> & Withdrawals</h3>
-                <span class="x-close" onclick="closePaymentsModal()">✕</span>
-            </div>
-            <div id="lifetimePaymentsContainer"></div>
-        </div>
-    </div>
-
+    
     <div id="accountModal" class="acc-modal-overlay" onclick="closeAccountModal(event)">
         <div class="acc-dropdown-card">
             <div class="acc-head">
@@ -414,96 +281,7 @@
             </div>
         </div>
     </div>
-
-    <div id="depositModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3 data-i18n="deposit">Deposit Funds</h3>
-                <span class="x-close" onclick="closeDepositModal()">✕</span>
-            </div>
-            <div class="dep-methods">
-                <div class="dep-pill active" onclick="setDepMethod('Bkash', '01700000000', 'Personal (Send Money)')">bKash</div>
-                <div class="dep-pill" onclick="setDepMethod('Nagad', '01800000000', 'Personal (Send Money)')">Nagad</div>
-                <div class="dep-pill" onclick="setDepMethod('Rocket', '01900000000', 'Personal (Send Money)')">Rocket</div>
-                <div class="dep-pill" onclick="setDepMethod('Binance', '85857047', 'Pay ID (USDT)')">Binance</div>
-            </div>
-            <div class="dep-info-box">
-                <span id="depMethodLabel">bKash Personal (Send Money):</span>
-                <b id="depTargetNumber">01700000000</b>
-            </div>
-            <div class="form-row"><input type="number" id="depAmountInput" placeholder="Amount ($)" min="1"></div>
-            <div class="form-row"><input type="text" id="depSenderInput" placeholder="Phone Number / Pay ID"></div>
-            <div class="form-row"><input type="text" id="depTrxInput" placeholder="Transaction ID (TrxID)"></div>
-            <button class="btn-confirm-dep" onclick="submitDepositForm()">Confirm Deposit</button>
-        </div>
-    </div>
-
-    <div id="assetModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Select Crypto Pair</h3>
-                <span class="x-close" onclick="closeAssetModal()">✕</span>
-            </div>
-            <div class="asset-list-view">
-                <div class="asset-item" onclick="selectAsset('BTC')">
-                    <div class="coin-meta-left"><span class="c-logo btc-logo">₿</span><div><b>Bitcoin</b> <small>BTC/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">92%</b><span id="price-tag-BTC" class="coin-live-p">68,520.50</span></div>
-                </div>
-                <div class="asset-item" onclick="selectAsset('ETH')">
-                    <div class="coin-meta-left"><span class="c-logo eth-logo">Ξ</span><div><b>Ethereum</b> <small>ETH/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">90%</b><span id="price-tag-ETH" class="coin-live-p">3,422.00</span></div>
-                </div>
-                <div class="asset-item" onclick="selectAsset('SOL')">
-                    <div class="coin-meta-left"><span class="c-logo sol-logo">◎</span><div><b>Solana</b> <small>SOL/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">88%</b><span id="price-tag-SOL" class="coin-live-p">177.50</span></div>
-                </div>
-                <div class="asset-item" onclick="selectAsset('BNB')">
-                    <div class="coin-meta-left"><span class="c-logo bnb-logo">◆</span><div><b>BNB</b> <small>BNB/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">88%</b><span id="price-tag-BNB" class="coin-live-p">591.20</span></div>
-                </div>
-                <div class="asset-item" onclick="selectAsset('XRP')">
-                    <div class="coin-meta-left"><span class="c-logo xrp-logo">✕</span><div><b>XRP</b> <small>XRP/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">85%</b><span id="price-tag-XRP" class="coin-live-p">0.6250</span></div>
-                </div>
-                <div class="asset-item" onclick="selectAsset('DOGE')">
-                    <div class="coin-meta-left"><span class="c-logo doge-logo">Ð</span><div><b>Dogecoin</b> <small>DOGE/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">82%</b><span id="price-tag-DOGE" class="coin-live-p">0.1425</span></div>
-                </div>
-                <div class="asset-item" onclick="selectAsset('TON')">
-                    <div class="coin-meta-left"><span class="c-logo ton-logo">💎</span><div><b>Toncoin</b> <small>TON/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">86%</b><span id="price-tag-TON" class="coin-live-p">5.850</span></div>
-                </div>
-                <div class="asset-item" onclick="selectAsset('ADA')">
-                    <div class="coin-meta-left"><span class="c-logo ada-logo">₳</span><div><b>Cardano</b> <small>ADA/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">84%</b><span id="price-tag-ADA" class="coin-live-p">0.4850</span></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="timeSelectPopup" class="time-popup-dialog">
-        <div class="time-tabs">
-            <button id="tabTimerBtn" class="t-tab active" onclick="switchPopupTab('timer')">TIMER</button>
-            <button id="tabTimeBtn" class="t-tab" onclick="switchPopupTab('time')">TIME</button>
-        </div>
-        <div class="time-grid" id="gridTimerMode">
-            <button onclick="selectTimer(5, '00:00:05')">00:05</button>
-            <button onclick="selectTimer(10, '00:00:10')">00:10</button>
-            <button onclick="selectTimer(15, '00:00:15')">00:15</button>
-            <button onclick="selectTimer(30, '00:00:30')">00:30</button>
-            <button onclick="selectTimer(60, '00:01:00')" class="selected">01:00</button>
-            <button onclick="selectTimer(120, '00:02:00')">02:00</button>
-            <button onclick="selectTimer(300, '00:05:00')">05:00</button>
-            <button onclick="selectTimer(600, '00:10:00')">10:00</button>
-            <button onclick="selectTimer(900, '00:15:00')">15:00</button>
-            <button onclick="selectTimer(1800, '00:30:00')">30:00</button>
-            <button onclick="selectTimer(3600, '01:00:00')">01:00:00</button>
-            <button onclick="selectTimer(7200, '02:00:00')">02:00:00</button>
-        </div>
-        <div class="time-grid" id="gridTimeMode" style="display: none;"></div>
-        <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
-    </div>
-
-    <script src="script.js?v=21.0"></script>
+    
+    <script src="script.js?v=23.0"></script>
 </body>
 </html>

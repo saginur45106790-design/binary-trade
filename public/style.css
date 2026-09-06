@@ -887,3 +887,42 @@ input:checked + .slider:before { transform: translateX(14px); }
     background: #2a3c54;
     color: #ffffff;
 }
+
+/* -------------------------------------------------------------
+   SVG আইকন স্টাইলিং (ইমোজি পরিবর্তে)
+------------------------------------------------------------- */
+
+/* ১. ফুটার ন্যাভিগেশন SVG আইকন */
+.f-svg-icon {
+    display: block;
+    width: 22px;   /* ইমোজি আকারের কাছাকাছি */
+    height: 22px;
+    fill: currentColor; /* লেখার রঙের সাথে মিলবে (সক্রিয়/নিষ্ক্রিয়) */
+    transition: fill 0.2s ease;
+}
+
+/* ২. প্রধান মেনু ড্রয়ার SVG আইকন */
+.m-svg-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted); /* ডিফল্ট রঙ */
+}
+
+.m-svg-icon-wrap svg {
+    width: 100%;
+    height: 100%;
+    fill: currentColor;
+}
+
+/* হোভার করলে আইকনের রঙ পরিবর্তন */
+.menu-row-item:hover .m-svg-icon-wrap {
+    color: #0070f3;
+}
+
+/* লগআউট আইকনের রঙ লাল */
+.logout-row .m-svg-icon-wrap {
+    color: #eb5757;
+}
