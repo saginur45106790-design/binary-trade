@@ -50,6 +50,16 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
+// অটো-রিফ্রেশ ও ব্যাকগ্রাউন্ড ট্যাব থেকে ফিরলে স্বয়ংক্রিয় সিঙ্ক
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        selectAsset(activeAssetKey);
+    }
+});
+window.addEventListener('focus', () => {
+    selectAsset(activeAssetKey);
+});
+
 let startX = 0;
 let isPanning = false;
 
@@ -84,7 +94,8 @@ canvas.addEventListener('touchmove', (e) => {
         drawChart();
     } else if (e.touches.length === 1 && isPanning) {
         panOffset += (e.touches[0].clientX - startX) * 0.95;
-        let maxPan = (candles.length * (candleWidth + candleSpacing)) - 80;
+        // ৮০০+ ক্যান্ডেলের বিশাল স্ক্রোল রেঞ্জ
+        let maxPan = (candles.length * (candleWidth + candleSpacing)) - 100;
         panOffset = Math.max(-60, Math.min(maxPan, panOffset));
         startX = e.touches[0].clientX;
         drawChart();
@@ -96,7 +107,7 @@ canvas.addEventListener('touchend', () => {
     initialPinchDistance = null;
 });
 
-// ইনভেস্টমেন্ট কন্ট্রোল (১ থেকে ১০০+)
+// ইনভেস্টমেন্ট কন্ট্রোল
 function stepAmt(delta) {
     currentInvestAmount = Math.max(1, currentInvestAmount + delta);
     document.getElementById('invAmtInput').value = currentInvestAmount;
@@ -117,10 +128,10 @@ function updatePayoutCalc() {
     document.getElementById('calcPayout').innerText = `${total} $`;
 }
 
-// অ্যাকাউন্ট সুইচিং (লাইভ <-> ডেমো)
+// অ্যাকাউন্ট সুইচিং ও ওয়াটারমার্ক রুলস
 function toggleAccountModal() {
     let m = document.getElementById('accountModal');
-    m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    m.style.display = (m.style.display === 'block') ? 'none' : 'block';
 }
 
 function closeAccountModal(e) {
@@ -135,23 +146,59 @@ function switchAccount(type) {
 
     let lbl = document.getElementById('accountLabel');
     let icon = document.getElementById('accountIcon');
+    let watermark = document.getElementById('chartWatermark');
+
+    let optLive = document.getElementById('optLiveCard');
+    let optDemo = document.getElementById('optDemoCard');
+    let radioLive = document.getElementById('radioLiveCircle');
+    let radioDemo = document.getElementById('radioDemoCircle');
 
     if (type === 'live') {
         lbl.innerText = "LIVE";
         lbl.className = "acc-label live";
         icon.innerText = "✈️";
         updateBalanceUI(liveBalance);
+
+        optLive.classList.add('active');
+        optDemo.classList.remove('active');
+        radioLive.classList.add('active');
+        radioDemo.classList.remove('active');
+
+        // লাইভ অ্যাকাউন্টে ওয়াটারমার্ক সম্পূর্ণ লুকানো থাকবে
+        watermark.style.display = 'none';
+        watermark.innerText = '';
     } else {
         lbl.innerText = "DEMO";
         lbl.className = "acc-label demo";
         icon.innerText = "🎓";
         updateBalanceUI(demoBalance);
+
+        optDemo.classList.add('active');
+        optLive.classList.remove('active');
+        radioDemo.classList.add('active');
+        radioLive.classList.remove('active');
+
+        // ডেমো অ্যাকাউন্টে সব কয়েনের ব্যাকগ্রাউন্ডে DEMO লেখা থাকবে
+        watermark.style.display = 'block';
+        watermark.innerText = 'DEMO';
     }
 
     fetch('/api/switch-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: 'demo_user', type })
+    });
+}
+
+function resetDemoBalance(event) {
+    event.stopPropagation();
+    fetch('/api/reset-demo', { method: 'POST' })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            demoBalance = Number(d.balance);
+            updateBalanceUI(demoBalance);
+        }
     });
 }
 
@@ -164,7 +211,7 @@ function updateBalanceUI(val) {
         document.getElementById('modalLiveBal').innerText = str;
     } else {
         demoBalance = num;
-        document.getElementById('modalDemoBal').innerText = str + " 🔄";
+        document.getElementById('modalDemoBal').innerText = str;
     }
 }
 
@@ -217,7 +264,7 @@ function submitDepositForm() {
     });
 }
 
-// টাইমার পপআপ ও টাইম মোড
+// টাইমার পপআপ
 function toggleTimePopup() {
     let p = document.getElementById('timeSelectPopup');
     let willOpen = (p.style.display !== 'block');
@@ -328,7 +375,6 @@ function settleTrade(trade) {
 
 function selectAsset(key) {
     activeAssetKey = key;
-    document.getElementById('chartWatermark').innerText = key;
     document.getElementById('activeCoinIcon').innerHTML = COIN_ICONS[key];
     document.getElementById('curName').innerText = `${key}/USD (OTC)`;
     fetch(`/api/history/${key}`)
@@ -346,7 +392,7 @@ function selectAsset(key) {
     });
 }
 
-// চার্ট ও Quotex স্টাইল লম্বা অ্যারো লাইন রেন্ডার
+// চার্ট ও কোটেক্স মার্কার রেন্ডার
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
@@ -386,7 +432,7 @@ function drawChart() {
         return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
-    // অনুভূমিক গ্রিড
+    // গ্রিড
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -403,7 +449,7 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // ক্যান্ডেলস্টিক রেন্ডার
+    // ক্যান্ডেলস্টিক
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -426,7 +472,7 @@ function drawChart() {
         ctx.fillRect(Math.floor(c.x), Math.floor(topY), Math.ceil(candleWidth), Math.ceil(h));
     });
 
-    // সর্বশেষ লাইভ ক্যান্ডেল প্রাইস লাইন
+    // লাইভ প্রাইস লাইন
     let last = candles[candles.length - 1];
     let liveY = getY(last.close);
 
@@ -447,7 +493,7 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
-    // উলম্ব এক্সপায়ারেশন ড্যাশ লাইন
+    // এক্সপায়ারেশন ড্যাশ লাইন
     let expX = baseRightX + (candleWidth + candleSpacing);
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
@@ -467,15 +513,13 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
 
-    // QUOTEX স্টাইল ট্রেড লাইন ও অ্যারো মার্কার
-    let nowSec = Math.floor(Date.now() / 1000);
+    // QUOTEX স্টাইল ট্রেড লাইন ও অ্যারো
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let entryX = getX(tr.startCandleIdx);
         let entryY = getY(tr.entryPrice);
         let isUp = (tr.direction === 'UP');
         let tradeColor = isUp ? '#00e676' : '#ff334b';
 
-        // ১. কোটেক্স স্টাইল অনুভূমিক ড্যাশ লাইন (এন্ট্রি পয়েন্ট থেকে বর্তমান এক্সপায়ারেশন পর্যন্ত)
         ctx.setLineDash([4, 4]);
         ctx.strokeStyle = tradeColor;
         ctx.lineWidth = 1.6;
@@ -485,7 +529,6 @@ function drawChart() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // ২. লম্বা উলম্ব এরোরো নির্দেশক (কোটেক্স মার্কার)
         let arrowLen = 18;
         let targetArrowY = isUp ? (entryY - arrowLen) : (entryY + arrowLen);
 
@@ -496,7 +539,6 @@ function drawChart() {
         ctx.lineTo(entryX, targetArrowY);
         ctx.stroke();
 
-        // অ্যারো হেড (তীরমুখ)
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         if (isUp) {
@@ -510,7 +552,6 @@ function drawChart() {
         }
         ctx.fill();
 
-        // ৩. এন্ট্রি সার্কেল ও অ্যামাউন্ট ব্যাজ
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(entryX, entryY, 7, 0, Math.PI * 2);
@@ -520,7 +561,6 @@ function drawChart() {
         ctx.font = 'bold 9px sans-serif';
         ctx.fillText(isUp ? '▲' : '▼', entryX - 3.5, entryY + 3);
 
-        // ৪. শেষ প্রান্তে কোটেক্স স্টাইল অ্যামাউন্ট পিল ($1.00)
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.roundRect(expX - 2, entryY - 9, 44, 18, 4);
@@ -532,7 +572,7 @@ function drawChart() {
     });
 }
 
-// WebSocket
+// WebSocket কানেকশন
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -554,7 +594,7 @@ ws.onmessage = (event) => {
                     candles[candles.length - 1] = item.candle;
                 } else {
                     candles.push(item.candle);
-                    if (candles.length > 200) candles.shift();
+                    if (candles.length > 1200) candles.shift();
                 }
             }
         }
@@ -610,14 +650,11 @@ function openAssetModal() { document.getElementById('assetModal').style.display 
 function closeAssetModal() { document.getElementById('assetModal').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
 function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
-
-function openDrawer(page) {
-    document.getElementById('globalDrawer').style.display = 'flex';
-}
-function closeAllDrawers() {
-    document.getElementById('globalDrawer').style.display = 'none';
-}
+function openDrawer(page) { document.getElementById('globalDrawer').style.display = 'flex'; }
+function closeAllDrawers() { document.getElementById('globalDrawer').style.display = 'none'; }
 function toggleToolsMenu() {}
 
+// প্রাথমিক ইনিশিয়ালাইজেশন (ডেমোতে DEMO ওয়াটারমার্ক সক্রিয় থাকবে)
 selectAsset('BTC');
+switchAccount('demo');
 setTimeout(fitCanvas, 200);

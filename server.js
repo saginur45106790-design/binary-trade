@@ -17,8 +17,8 @@ let users = {
 let transactions = [];
 
 let ASSETS = {
-  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68481.50, decimals: 2, payout: 92, vol: 3.5 },
-  'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3420.00, decimals: 2, payout: 90, vol: 0.8 },
+  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68520.50, decimals: 2, payout: 92, vol: 3.5 },
+  'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3423.70, decimals: 2, payout: 90, vol: 0.8 },
   'SOL':  { name: 'Solana', ticker: 'SOL', price: 177.25, decimals: 2, payout: 88, vol: 0.15 },
   'BNB':  { name: 'BNB', ticker: 'BNB', price: 590.20, decimals: 2, payout: 88, vol: 0.25 },
   'XRP':  { name: 'XRP', ticker: 'XRP', price: 0.6250, decimals: 4, payout: 85, vol: 0.0006 },
@@ -30,11 +30,12 @@ let ASSETS = {
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
+// প্রতিটি কয়েনের জন্য ৮০০টি অতীতের ক্যান্ডেল তৈরি (প্রায় ১৩-১৪ ঘণ্টার দীর্ঘ হিস্ট্রি)
 for (let key in ASSETS) {
   let meta = ASSETS[key];
   candleHistories[key] = [];
   let p = meta.price;
-  for (let i = 80; i > 0; i--) {
+  for (let i = 800; i > 0; i--) {
     let t = currentCandleMinute - (i * 60);
     let o = p;
     let delta = (Math.random() - 0.49) * meta.vol * 2.2;
@@ -71,7 +72,7 @@ setInterval(() => {
         low: meta.price,
         close: meta.price
       });
-      if (list.length > 200) list.shift();
+      if (list.length > 1200) list.shift();
     } else {
       if (meta.price > lastCandle.high) lastCandle.high = meta.price;
       if (meta.price < lastCandle.low) lastCandle.low = meta.price;
@@ -176,6 +177,12 @@ app.post('/api/switch-account', (req, res) => {
   res.json({ success: true, activeAccount: type, balance: type === 'live' ? user.liveBalance : user.demoBalance });
 });
 
+app.post('/api/reset-demo', (req, res) => {
+  let user = users["demo_user"];
+  user.demoBalance = 11061.95;
+  res.json({ success: true, balance: user.demoBalance.toFixed(2) });
+});
+
 app.post('/api/deposit', (req, res) => {
   const { username, method, amount, trxId, senderNumber } = req.body;
   if (!amount || Number(amount) <= 0 || !trxId) {
@@ -194,7 +201,7 @@ app.post('/api/deposit', (req, res) => {
     time: new Date().toLocaleTimeString()
   };
   transactions.unshift(tx);
-  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
+  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন রিভিউ করবেন।" });
 });
 
 app.get(['/admin', '/admin-secret-panel'], (req, res) => {
@@ -211,10 +218,7 @@ app.post('/api/admin/tx-action', (req, res) => {
   let tx = transactions.find(t => t.id == txId);
   if (tx) {
     tx.status = status;
-    if (status === 'Approved') {
-      let u = users[tx.username] || users["demo_user"];
-      u.liveBalance += Number(tx.amount);
-    }
+    if (status === 'Approved') users[tx.username].liveBalance += Number(tx.amount);
     res.json({ success: true });
   } else res.json({ success: false });
 });
@@ -236,4 +240,4 @@ app.post('/api/admin/action', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Master server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Trading Engine running on port ${PORT}`));

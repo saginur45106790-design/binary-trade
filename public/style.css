@@ -12,7 +12,9 @@ body, html {
     height: 100%;
     background-color: #171d28;
     color: #fff;
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
     -webkit-font-smoothing: antialiased;
 }
 
@@ -89,16 +91,18 @@ body, html {
     touch-action: none;
 }
 
+/* চার্ট ব্যাকগ্রাউন্ড ওয়াটারমার্ক */
 .watermark-text {
     position: absolute;
     top: 50%;
     left: 45%;
     transform: translate(-50%, -50%);
-    font-size: 90px;
+    font-size: 85px;
     font-weight: 900;
     color: rgba(255, 255, 255, 0.025);
     letter-spacing: 12px;
     pointer-events: none;
+    display: block;
 }
 
 .chart-meta-tags {
@@ -307,6 +311,86 @@ input:checked + .slider:before { transform: translateX(14px); }
 .f-icon.active { color: #fff; }
 .f-badge { position: absolute; top: -4px; right: -6px; background: #0070f3; color: #fff; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 8px; }
 
+/* রিয়েলিস্টিক অ্যাকাউন্ট সুইচ ড্রপডাউন (স্ক্রিনশট ৭৪৬ ও ৮২৭) */
+.acc-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+}
+.acc-dropdown-card {
+    position: absolute;
+    top: 52px;
+    left: 12px;
+    width: 300px;
+    background: #171f2c;
+    border: 1px solid #28374d;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+.acc-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #222e40; }
+.std-badge { font-size: 11px; color: #00b074; }
+.user-email-id { margin-top: 10px; }
+.u-mail { font-size: 13px; font-weight: 700; color: #fff; }
+.u-id { font-size: 11px; color: #6e829c; margin-top: 2px; }
+
+.currency-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    margin: 12px 0 10px;
+    color: #8fa0b5;
+}
+.currency-row b { color: #fff; }
+.btn-change { background: #0070f3; color: #fff; border: none; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+
+.acc-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #1c2738;
+    border: 1px solid #253347;
+    margin-top: 10px;
+    transition: 0.2s;
+}
+.acc-option.active { border-color: #0070f3; background: #1e2c42; }
+
+.acc-radio-circle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #5a6e87;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.acc-radio-circle.active {
+    border-color: #0070f3;
+}
+.acc-radio-circle.active:after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: #0070f3;
+    border-radius: 50%;
+}
+
+.acc-opt-info { flex: 1; }
+.opt-title { font-size: 12px; color: #8fa0b5; font-weight: 600; }
+.opt-bal-row { display: flex; align-items: center; justify-content: space-between; margin: 2px 0; }
+.opt-bal { font-size: 15px; font-weight: 800; color: #fff; }
+.reset-demo-btn { font-size: 14px; cursor: pointer; opacity: 0.75; }
+.reset-demo-btn:hover { opacity: 1; transform: rotate(45deg); }
+.opt-sub { font-size: 10px; color: #5a6e87; }
+.blue-link { color: #0070f3; font-weight: 700; margin-left: 4px; }
+
 /* ডিপোজিট ও অন্যান্য মডাল */
 .full-screen-modal {
     display: none;
@@ -374,7 +458,7 @@ input:checked + .slider:before { transform: translateX(14px); }
     margin-top: 4px;
 }
 
-/* অ্যাসেট তালিকা ও ক্রিপ্টো লোগো */
+/* কয়েন আইকন ও ক্রিপ্টো তালিকা */
 .asset-item {
     display: flex;
     justify-content: space-between;
@@ -408,39 +492,6 @@ input:checked + .slider:before { transform: translateX(14px); }
 .doge-logo { background: #c2a633; }
 .ton-logo { background: #0088cc; font-size: 14px; }
 .ada-logo { background: #0033ad; }
-
-/* অ্যাকাউন্ট স্যুইচ মডাল */
-.acc-modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-}
-.acc-dropdown-card {
-    position: absolute;
-    top: 50px;
-    left: 12px;
-    width: 290px;
-    background: #19202c;
-    border: 1px solid #263245;
-    border-radius: 8px;
-    padding: 14px;
-}
-.acc-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #232c3d; padding-bottom: 8px; }
-.std-badge { font-size: 11px; color: #00b074; }
-.user-email-id { margin-top: 10px; font-size: 12px; }
-.acc-option {
-    padding: 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    background: #20293a;
-    margin-top: 8px;
-}
-.acc-option:hover { background: #253347; }
-.opt-title { font-size: 12px; color: #8fa0b5; }
-.opt-bal { font-size: 14px; font-weight: 700; color: #fff; margin: 2px 0; }
-.opt-sub { font-size: 10px; color: #5a6e87; }
 
 /* টাইম ডায়ালগ */
 .time-popup-dialog {

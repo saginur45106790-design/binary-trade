@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=10.0">
+    <title>Pocket Option Terminal</title>
+    <link rel="stylesheet" href="style.css?v=11.0">
 </head>
 <body>
     <div class="app-root">
@@ -26,7 +26,7 @@
         </header>
 
         <div class="chart-box-container" id="chartContainer">
-            <div id="chartWatermark" class="watermark-text">BTC</div>
+            <div id="chartWatermark" class="watermark-text">DEMO</div>
 
             <div class="chart-meta-tags">
                 <div class="sub-menu-btn" onclick="toggleToolsMenu()">•••</div>
@@ -121,17 +121,30 @@
                 <div class="u-mail">teachsajib@gmail.com</div>
                 <div class="u-id">ID: 85857047</div>
             </div>
-
-            <div class="acc-option" onclick="switchAccount('live')">
-                <div class="opt-title">Live Account</div>
-                <div class="opt-bal" id="modalLiveBal">$10.00</div>
-                <div class="opt-sub">Real funds</div>
+            <div class="currency-row">
+                <span>Currency: <b>USD</b></span>
+                <button class="btn-change">CHANGE</button>
             </div>
 
-            <div class="acc-option" onclick="switchAccount('demo')">
-                <div class="opt-title">Demo Account</div>
-                <div class="opt-bal" id="modalDemoBal">$11,061.95 🔄</div>
-                <div class="opt-sub">Practice balance</div>
+            <div class="acc-option" id="optLiveCard" onclick="switchAccount('live')">
+                <div class="acc-radio-circle" id="radioLiveCircle"></div>
+                <div class="acc-opt-info">
+                    <div class="opt-title">Live Account</div>
+                    <div class="opt-bal" id="modalLiveBal">$10.00</div>
+                    <div class="opt-sub">The daily limit is not set <span class="blue-link">SET LIMIT</span></div>
+                </div>
+            </div>
+
+            <div class="acc-option active" id="optDemoCard" onclick="switchAccount('demo')">
+                <div class="acc-radio-circle active" id="radioDemoCircle"></div>
+                <div class="acc-opt-info">
+                    <div class="opt-title">Demo Account</div>
+                    <div class="opt-bal-row">
+                        <span class="opt-bal" id="modalDemoBal">$11,061.95</span>
+                        <span class="reset-demo-btn" onclick="resetDemoBalance(event)" title="ব্যালেন্স রিসেট করুন">🔄</span>
+                    </div>
+                    <div class="opt-sub">Practice balance</div>
+                </div>
             </div>
         </div>
     </div>
@@ -174,11 +187,11 @@
             <div class="asset-list-view">
                 <div class="asset-item" onclick="selectAsset('BTC')">
                     <div class="coin-meta-left"><span class="c-logo btc-logo">₿</span><div><b>Bitcoin</b> <small>BTC/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">92%</b><span id="price-tag-BTC" class="coin-live-p">68,481.50</span></div>
+                    <div class="coin-meta-right"><b class="green-pct">92%</b><span id="price-tag-BTC" class="coin-live-p">68,520.50</span></div>
                 </div>
                 <div class="asset-item" onclick="selectAsset('ETH')">
                     <div class="coin-meta-left"><span class="c-logo eth-logo">Ξ</span><div><b>Ethereum</b> <small>ETH/USD (OTC)</small></div></div>
-                    <div class="coin-meta-right"><b class="green-pct">90%</b><span id="price-tag-ETH" class="coin-live-p">3,420.00</span></div>
+                    <div class="coin-meta-right"><b class="green-pct">90%</b><span id="price-tag-ETH" class="coin-live-p">3,423.70</span></div>
                 </div>
                 <div class="asset-item" onclick="selectAsset('SOL')">
                     <div class="coin-meta-left"><span class="c-logo sol-logo">◎</span><div><b>Solana</b> <small>SOL/USD (OTC)</small></div></div>
@@ -253,6 +266,6 @@
         </div>
     </div>
 
-    <script src="script.js?v=10.0"></script>
+    <script src="script.js?v=11.0"></script>
 </body>
 </html>
