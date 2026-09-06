@@ -12,6 +12,7 @@ let remainingCountdown = 60;
 let activeAssetKey = 'BTC';
 let activeDecimals = 2;
 let currentPayout = 92;
+let isSwitchingAsset = false;
 
 let candleWidth = 9;
 let candleSpacing = 4;
@@ -25,6 +26,11 @@ let targetExpiryEpoch = 0;
 
 let currentInvestAmount = 1;
 let selectedDepMethod = 'Bkash';
+
+const ASSET_DECIMALS = {
+    'BTC': 2, 'ETH': 2, 'SOL': 2, 'BNB': 2,
+    'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4
+};
 
 const COIN_ICONS = {
     'BTC': '<span class="c-logo btc-logo" style="width:20px;height:20px;font-size:11px;">₿</span>',
@@ -50,14 +56,11 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// অটো-রিফ্রেশ ও ব্যাকগ্রাউন্ড ট্যাব থেকে ফিরলে স্বয়ংক্রিয় সিঙ্ক
+// ব্যাকগ্রাউন্ড থেকে ফিরলে স্মুথ সিঙ্ক
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
         selectAsset(activeAssetKey);
     }
-});
-window.addEventListener('focus', () => {
-    selectAsset(activeAssetKey);
 });
 
 let startX = 0;
@@ -94,8 +97,7 @@ canvas.addEventListener('touchmove', (e) => {
         drawChart();
     } else if (e.touches.length === 1 && isPanning) {
         panOffset += (e.touches[0].clientX - startX) * 0.95;
-        // ৮০০+ ক্যান্ডেলের বিশাল স্ক্রোল রেঞ্জ
-        let maxPan = (candles.length * (candleWidth + candleSpacing)) - 100;
+        let maxPan = (candles.length * (candleWidth + candleSpacing)) - 80;
         panOffset = Math.max(-60, Math.min(maxPan, panOffset));
         startX = e.touches[0].clientX;
         drawChart();
@@ -107,7 +109,6 @@ canvas.addEventListener('touchend', () => {
     initialPinchDistance = null;
 });
 
-// ইনভেস্টমেন্ট কন্ট্রোল
 function stepAmt(delta) {
     currentInvestAmount = Math.max(1, currentInvestAmount + delta);
     document.getElementById('invAmtInput').value = currentInvestAmount;
@@ -128,7 +129,6 @@ function updatePayoutCalc() {
     document.getElementById('calcPayout').innerText = `${total} $`;
 }
 
-// অ্যাকাউন্ট সুইচিং ও ওয়াটারমার্ক রুলস
 function toggleAccountModal() {
     let m = document.getElementById('accountModal');
     m.style.display = (m.style.display === 'block') ? 'none' : 'block';
@@ -164,7 +164,6 @@ function switchAccount(type) {
         radioLive.classList.add('active');
         radioDemo.classList.remove('active');
 
-        // লাইভ অ্যাকাউন্টে ওয়াটারমার্ক সম্পূর্ণ লুকানো থাকবে
         watermark.style.display = 'none';
         watermark.innerText = '';
     } else {
@@ -178,7 +177,6 @@ function switchAccount(type) {
         radioDemo.classList.add('active');
         radioLive.classList.remove('active');
 
-        // ডেমো অ্যাকাউন্টে সব কয়েনের ব্যাকগ্রাউন্ডে DEMO লেখা থাকবে
         watermark.style.display = 'block';
         watermark.innerText = 'DEMO';
     }
@@ -215,13 +213,8 @@ function updateBalanceUI(val) {
     }
 }
 
-// ডিপোজিট মডাল
-function openDepositModal() {
-    document.getElementById('depositModal').style.display = 'flex';
-}
-function closeDepositModal() {
-    document.getElementById('depositModal').style.display = 'none';
-}
+function openDepositModal() { document.getElementById('depositModal').style.display = 'flex'; }
+function closeDepositModal() { document.getElementById('depositModal').style.display = 'none'; }
 
 function setDepMethod(method, number, note) {
     selectedDepMethod = method;
@@ -264,7 +257,6 @@ function submitDepositForm() {
     });
 }
 
-// টাইমার পপআপ
 function toggleTimePopup() {
     let p = document.getElementById('timeSelectPopup');
     let willOpen = (p.style.display !== 'block');
@@ -373,32 +365,36 @@ function settleTrade(trade) {
     });
 }
 
+// কয়েন সিলেক্ট করার সময় ডেটা রেস-কন্ডিশন ফিক্স
 function selectAsset(key) {
+    isSwitchingAsset = true;
     activeAssetKey = key;
+    activeDecimals = ASSET_DECIMALS[key] || 2;
     document.getElementById('activeCoinIcon').innerHTML = COIN_ICONS[key];
     document.getElementById('curName').innerText = `${key}/USD (OTC)`;
+
     fetch(`/api/history/${key}`)
     .then(r => r.json())
     .then(data => {
-        if (data.success) {
+        if (data.success && data.meta.ticker === activeAssetKey) {
             candles = data.history;
             activeDecimals = data.meta.decimals;
             currentPayout = data.meta.payout;
             document.getElementById('curPayout').innerText = `${currentPayout}% ▼`;
             updatePayoutCalc();
             closeAssetModal();
+            isSwitchingAsset = false;
             drawChart();
         }
     });
 }
 
-// চার্ট ও কোটেক্স মার্কার রেন্ডার
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
     ctx.clearRect(0, 0, width, height);
 
-    if (candles.length === 0) return;
+    if (candles.length === 0 || isSwitchingAsset) return;
 
     let totalUnit = candleWidth + candleSpacing;
     let baseRightX = width - 80 + panOffset;
@@ -425,14 +421,14 @@ function drawChart() {
 
     let minP = Math.min(...prices);
     let maxP = Math.max(...prices);
-    let range = (maxP - minP) || 0.001;
+    let range = (maxP - minP) || (0.001 * Math.pow(10, 4 - activeDecimals));
     let padY = 35;
 
     function getY(p) {
         return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
-    // গ্রিড
+    // অনুভূমিক গ্রিড
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -449,7 +445,7 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // ক্যান্ডেলস্টিক
+    // ক্যান্ডেলস্টিক রেন্ডার (কোনো স্পাইক ছাড়া স্মুথ সংযোগ)
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -472,10 +468,10 @@ function drawChart() {
         ctx.fillRect(Math.floor(c.x), Math.floor(topY), Math.ceil(candleWidth), Math.ceil(h));
     });
 
-    // লাইভ প্রাইস লাইন
     let last = candles[candles.length - 1];
     let liveY = getY(last.close);
 
+    // লাইভ ড্যাশ লাইন
     ctx.setLineDash([3, 3]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
     ctx.beginPath();
@@ -513,7 +509,7 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
 
-    // QUOTEX স্টাইল ট্রেড লাইন ও অ্যারো
+    // Quotex স্টাইল ট্রেড লাইন ও অ্যারো
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let entryX = getX(tr.startCandleIdx);
         let entryY = getY(tr.entryPrice);
@@ -572,7 +568,7 @@ function drawChart() {
     });
 }
 
-// WebSocket কানেকশন
+// WebSocket কানেকশন (কয়েন মিসম্যাচ গার্ড সহ)
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -586,7 +582,7 @@ ws.onmessage = (event) => {
             if (el) el.innerText = msg.assets[k].price;
         }
 
-        if (msg.assets[activeAssetKey]) {
+        if (!isSwitchingAsset && msg.assets[activeAssetKey]) {
             let item = msg.assets[activeAssetKey];
             if (candles.length > 0) {
                 let last = candles[candles.length - 1];
@@ -594,7 +590,7 @@ ws.onmessage = (event) => {
                     candles[candles.length - 1] = item.candle;
                 } else {
                     candles.push(item.candle);
-                    if (candles.length > 1200) candles.shift();
+                    if (candles.length > 1000) candles.shift();
                 }
             }
         }
@@ -650,11 +646,11 @@ function openAssetModal() { document.getElementById('assetModal').style.display 
 function closeAssetModal() { document.getElementById('assetModal').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
 function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
+
 function openDrawer(page) { document.getElementById('globalDrawer').style.display = 'flex'; }
 function closeAllDrawers() { document.getElementById('globalDrawer').style.display = 'none'; }
 function toggleToolsMenu() {}
 
-// প্রাথমিক ইনিশিয়ালাইজেশন (ডেমোতে DEMO ওয়াটারমার্ক সক্রিয় থাকবে)
 selectAsset('BTC');
 switchAccount('demo');
 setTimeout(fitCanvas, 200);

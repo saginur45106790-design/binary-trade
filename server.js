@@ -16,38 +16,56 @@ let users = {
 };
 let transactions = [];
 
+// ৮টি কয়েনের স্থায়ী বেঞ্চমার্ক প্রাইস
 let ASSETS = {
-  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68520.50, decimals: 2, payout: 92, vol: 3.5 },
-  'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3423.70, decimals: 2, payout: 90, vol: 0.8 },
-  'SOL':  { name: 'Solana', ticker: 'SOL', price: 177.25, decimals: 2, payout: 88, vol: 0.15 },
-  'BNB':  { name: 'BNB', ticker: 'BNB', price: 590.20, decimals: 2, payout: 88, vol: 0.25 },
-  'XRP':  { name: 'XRP', ticker: 'XRP', price: 0.6250, decimals: 4, payout: 85, vol: 0.0006 },
-  'DOGE': { name: 'Dogecoin', ticker: 'DOGE', price: 0.1425, decimals: 4, payout: 82, vol: 0.0003 },
-  'TON':  { name: 'Toncoin', ticker: 'TON', price: 5.850, decimals: 3, payout: 86, vol: 0.006 },
-  'ADA':  { name: 'Cardano', ticker: 'ADA', price: 0.4850, decimals: 4, payout: 84, vol: 0.0005 }
+  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68520.50, basePrice: 68520.50, decimals: 2, payout: 92, vol: 2.5 },
+  'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, payout: 90, vol: 0.6 },
+  'SOL':  { name: 'Solana', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, payout: 88, vol: 0.12 },
+  'BNB':  { name: 'BNB', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, payout: 88, vol: 0.20 },
+  'XRP':  { name: 'XRP', ticker: 'XRP', price: 0.6250, basePrice: 0.6250, decimals: 4, payout: 85, vol: 0.0004 },
+  'DOGE': { name: 'Dogecoin', ticker: 'DOGE', price: 0.1425, basePrice: 0.1425, decimals: 4, payout: 82, vol: 0.0002 },
+  'TON':  { name: 'Toncoin', ticker: 'TON', price: 5.850, basePrice: 5.850, decimals: 3, payout: 86, vol: 0.004 },
+  'ADA':  { name: 'Cardano', ticker: 'ADA', price: 0.4850, basePrice: 0.4850, decimals: 4, payout: 84, vol: 0.0004 }
 };
 
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// প্রতিটি কয়েনের জন্য ৮০০টি অতীতের ক্যান্ডেল তৈরি (প্রায় ১৩-১৪ ঘণ্টার দীর্ঘ হিস্ট্রি)
-for (let key in ASSETS) {
-  let meta = ASSETS[key];
-  candleHistories[key] = [];
-  let p = meta.price;
-  for (let i = 800; i > 0; i--) {
-    let t = currentCandleMinute - (i * 60);
-    let o = p;
-    let delta = (Math.random() - 0.49) * meta.vol * 2.2;
-    let c = parseFloat((o + delta).toFixed(meta.decimals));
-    let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol).toFixed(meta.decimals));
-    let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol).toFixed(meta.decimals));
-    candleHistories[key].push({ time: t, open: o, high: h, low: l, close: c });
-    p = c;
-  }
-  candleHistories[key].push({ time: currentCandleMinute, open: p, high: p, low: p, close: p });
-}
+// ব্যাকওয়ার্ড ক্যান্ডেল জেনারেশন (বর্তমান প্রাইস থেকে পেছনে তৈরি, ফলে কোনো স্পাইক বা জাম্প হবে না)
+function initMarketHistory() {
+  for (let key in ASSETS) {
+    let meta = ASSETS[key];
+    let list = [];
+    let cur = meta.price;
 
+    for (let i = 0; i < 800; i++) {
+      let t = currentCandleMinute - (i * 60);
+      let delta = (Math.random() - 0.5) * meta.vol * 1.5 - (cur - meta.basePrice) * 0.004;
+      let prevClose = parseFloat((cur - delta).toFixed(meta.decimals));
+      let o = prevClose;
+      let c = cur;
+      let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol * 0.8).toFixed(meta.decimals));
+      let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol * 0.8).toFixed(meta.decimals));
+
+      list.unshift({ time: t, open: o, high: h, low: l, close: c });
+      cur = prevClose;
+    }
+
+    // শেষ ক্যান্ডেলটি বর্তমান মিনিট হিসেবে লাইভ প্রাইসে সেট
+    list[list.length - 1] = {
+      time: currentCandleMinute,
+      open: meta.price,
+      high: meta.price,
+      low: meta.price,
+      close: meta.price
+    };
+
+    candleHistories[key] = list;
+  }
+}
+initMarketHistory();
+
+// লাইভ স্মুথ মার্কেট টিক ইঞ্জিন
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -58,7 +76,9 @@ setInterval(() => {
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
-    let delta = (Math.random() - 0.495) * meta.vol;
+    // রিয়েলিস্টিক মিন-রিভার্সন (প্রাইস স্বাভাবিক গতিতে ওঠানামা করবে)
+    let drift = -(meta.price - meta.basePrice) * 0.002;
+    let delta = (Math.random() - 0.5) * meta.vol * 0.5 + drift;
     meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
 
     let list = candleHistories[key];
@@ -72,7 +92,7 @@ setInterval(() => {
         low: meta.price,
         close: meta.price
       });
-      if (list.length > 1200) list.shift();
+      if (list.length > 1000) list.shift();
     } else {
       if (meta.price > lastCandle.high) lastCandle.high = meta.price;
       if (meta.price < lastCandle.low) lastCandle.low = meta.price;
@@ -201,7 +221,7 @@ app.post('/api/deposit', (req, res) => {
     time: new Date().toLocaleTimeString()
   };
   transactions.unshift(tx);
-  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন রিভিউ করবেন।" });
+  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
 });
 
 app.get(['/admin', '/admin-secret-panel'], (req, res) => {
@@ -240,4 +260,4 @@ app.post('/api/admin/action', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Trading Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Stable Market Server running on port ${PORT}`));
