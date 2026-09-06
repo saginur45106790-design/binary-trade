@@ -11,8 +11,11 @@ app.use(express.json({ limit: '30mb' }));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ইউজার ডাটাবেস
 let users = {
-  "demo_user": { liveBalance: 10.00, demoBalance: 11070.12, activeAccount: "demo", control: "normal" }
+  "demo_user": { id: "85857047", email: "teachsajib@gmail.com", liveBalance: 10.00, demoBalance: 11070.12, status: "Active" },
+  "user_85857048": { id: "85857048", email: "trader_rahim@gmail.com", liveBalance: 25.50, demoBalance: 10000.00, status: "Active" },
+  "user_85857049": { id: "85857049", email: "karim_fx@gmail.com", liveBalance: 50.00, demoBalance: 10000.00, status: "Active" }
 };
 
 let ASSETS = {
@@ -51,13 +54,7 @@ function init24HourMarket() {
     }
 
     meta.price = cur;
-    list.push({
-      time: currentCandleMinute,
-      open: meta.price,
-      high: meta.price,
-      low: meta.price,
-      close: meta.price
-    });
+    list.push({ time: currentCandleMinute, open: meta.price, high: meta.price, low: meta.price, close: meta.price });
     candleHistories[key] = list;
   }
 }
@@ -81,13 +78,7 @@ setInterval(() => {
     let lastCandle = list[list.length - 1];
 
     if (isNewMinute) {
-      list.push({
-        time: nowMinute,
-        open: meta.price,
-        high: meta.price,
-        low: meta.price,
-        close: meta.price
-      });
+      list.push({ time: nowMinute, open: meta.price, high: meta.price, low: meta.price, close: meta.price });
       if (list.length > 1440) list.shift();
     } else {
       if (meta.price > lastCandle.high) lastCandle.high = meta.price;
@@ -98,61 +89,28 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  let tickPayload = {
-    type: 'TICK',
-    countdown: remainingSec,
-    serverTime: now,
-    assets: {}
-  };
-
+  let tickPayload = { type: 'TICK', countdown: remainingSec, serverTime: now, assets: {} };
   for (let key in ASSETS) {
-    let list = candleHistories[key];
     tickPayload.assets[key] = {
       price: ASSETS[key].price.toFixed(ASSETS[key].decimals),
-      candle: list[list.length - 1],
+      candle: candleHistories[key][candleHistories[key].length - 1],
       payout: ASSETS[key].payout
     };
   }
 
   let broadcastData = JSON.stringify(tickPayload);
   wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(broadcastData);
-    }
+    if (client.readyState === WebSocket.OPEN) client.send(broadcastData);
   });
 }, 1000);
 
-let lifetimeTrades = [
-  { id: "TR-90214", asset: "BTC/USD (OTC)", direction: "UP", amount: 1.00, entryPrice: "68520.50", exitPrice: "68524.20", profit: 1.92, isWin: true, time: "24/08/2026, 21:14:02", accountType: "live" }
-];
-
-let depositHistory = [
-  { id: "128385243", date: "24/08/2026, 20:39:08", status: "Failed", amount: 10.00, method: "Bkash (P2C)", type: "Deposit" },
-  { id: "126022410", date: "31/07/2026, 14:34:41", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" }
-];
-
+let lifetimeTrades = [];
 let transactions = [
-  { id: "128385243", username: "demo_user", type: "Withdraw", method: "Bkash (P2C)", amount: 10.00, status: "Failed", date: "24.08.2026", details: "017XXXXXXXX" }
+  { id: "128385243", username: "demo_user", type: "Withdraw", method: "Bkash (P2C)", amount: 10.00, status: "Failed", date: "24.08.2026", details: "017XXXXXXXX" },
+  { id: "126022410", username: "demo_user", type: "Withdraw", method: "Binance Pay", amount: 13.00, status: "Approved", date: "31.07.2026", details: "85857047" }
 ];
-
-let supportTickets = [
-  {
-    id: "TK-849201",
-    username: "demo_user",
-    category: "Deposit Issue",
-    message: "Deposited via bKash, please verify my transaction.",
-    screenshot: "",
-    status: "Answered",
-    createdAt: "24/08/2026, 18:22:10",
-    replies: [
-      { sender: "Admin Support", message: "Your payment has been approved and added to your balance.", time: "24/08/2026, 18:25:40" }
-    ]
-  }
-];
-
-let tournamentsList = [
-  { id: "tour_01", title: "Weekend Battle", status: "ACTIVE NOW", prizePool: "5000 $", entryFee: "1 $", duration: "2 days" },
-  { id: "tour_02", title: "Crazy Wednesday", status: "UNTIL START: 2 DAY(S)", prizePool: "7500 $", entryFee: "10 $", duration: "1 day" }
+let depositHistory = [
+  { id: "128385243", username: "demo_user", date: "24/08/2026, 20:39:08", status: "Approved", amount: 10.00, method: "Bkash", trxId: "TRX9921", type: "Deposit" }
 ];
 
 app.get('/api/history/:asset', (req, res) => {
@@ -170,7 +128,7 @@ app.post('/api/trade', (req, res) => {
   let tradeAmount = Number(amount) || 1;
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
-  if (targetBal < tradeAmount) return res.json({ success: false, message: "Insufficient balance!" });
+  if (targetBal < tradeAmount) return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
 
   if (accountType === 'live') user.liveBalance -= tradeAmount;
   else user.demoBalance -= tradeAmount;
@@ -194,12 +152,8 @@ app.post('/api/settle-trade', (req, res) => {
   let tradeAmount = Number(amount) || 1;
 
   let isWin = false;
-  if (user.control === 'win') isWin = true;
-  else if (user.control === 'loss') isWin = false;
-  else {
-    if (direction === 'UP') isWin = (Number(exitPrice) > Number(entryPrice));
-    else if (direction === 'DOWN') isWin = (Number(exitPrice) < Number(entryPrice));
-  }
+  if (direction === 'UP') isWin = (Number(exitPrice) > Number(entryPrice));
+  else if (direction === 'DOWN') isWin = (Number(exitPrice) < Number(entryPrice));
 
   let profit = isWin ? parseFloat((tradeAmount * (1 + selectedAsset.payout / 100)).toFixed(2)) : 0;
   if (isWin) {
@@ -209,6 +163,7 @@ app.post('/api/settle-trade', (req, res) => {
 
   let newTradeRecord = {
     id: "TR-" + Math.floor(10000 + Math.random() * 90000),
+    username: username || "demo_user",
     asset: `${asset}/USD (OTC)`,
     direction,
     amount: tradeAmount,
@@ -229,25 +184,9 @@ app.post('/api/settle-trade', (req, res) => {
   });
 });
 
-app.post('/api/sell-trade', (req, res) => {
-  const { username, amount, accountType } = req.body;
-  let user = users[username] || users["demo_user"];
-  let refundAmt = parseFloat((Number(amount) * 0.25).toFixed(2));
-
-  if (accountType === 'live') user.liveBalance += refundAmt;
-  else user.demoBalance += refundAmt;
-
-  res.json({
-    success: true,
-    refund: refundAmt,
-    balance: (accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2)
-  });
-});
-
 app.post('/api/switch-account', (req, res) => {
   const { username, type } = req.body;
   let user = users[username] || users["demo_user"];
-  user.activeAccount = type;
   res.json({ success: true, activeAccount: type, balance: type === 'live' ? user.liveBalance : user.demoBalance });
 });
 
@@ -259,15 +198,108 @@ app.post('/api/reset-demo', (req, res) => {
 
 app.get('/api/user/info', (req, res) => {
   let user = users["demo_user"];
-  res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance, activeAccount: user.activeAccount });
+  res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
 });
 
-app.get('/api/tournaments', (req, res) => res.json({ success: true, tournaments: tournamentsList }));
-app.get('/api/support/tickets', (req, res) => res.json({ success: true, tickets: supportTickets }));
 app.get('/api/user/trades', (req, res) => res.json({ success: true, trades: lifetimeTrades }));
 app.get('/api/payments', (req, res) => res.json({ success: true, deposits: depositHistory, withdrawals: transactions }));
-app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.get('/api/admin/data', (req, res) => res.json({ users, assets: ASSETS }));
+
+// -------------------------------------------------------------
+// অ্যাডমিন প্যানেল এপিআই রুটস
+// -------------------------------------------------------------
+app.get(['/admin', '/admin-secret-panel'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/api/admin/overview', (req, res) => {
+  let totalUsers = Object.keys(users).length;
+  let totalDeposits = depositHistory.filter(d => d.status === 'Approved').reduce((s, d) => s + Number(d.amount), 0);
+  let totalWithdrawals = transactions.filter(t => t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
+  let pendingDeposits = depositHistory.filter(d => d.status === 'Pending').length;
+  let pendingWithdrawals = transactions.filter(t => t.status === 'Pending').length;
+
+  res.json({
+    totalUsers,
+    totalDeposits,
+    totalWithdrawals,
+    pendingDeposits,
+    pendingWithdrawals,
+    users,
+    deposits: depositHistory,
+    withdrawals: transactions,
+    trades: lifetimeTrades,
+    assets: ASSETS
+  });
+});
+
+// অ্যাডমিন: ব্যালেন্স অ্যাড / ক্রেডিট / ডেবিট
+app.post('/api/admin/adjust-balance', (req, res) => {
+  const { username, amount, type } = req.body;
+  let user = users[username];
+  if (!user) return res.json({ success: false, message: "ব্যবহারকারী পাওয়া যায়নি!" });
+
+  let delta = parseFloat(amount);
+  if (isNaN(delta) || delta <= 0) return res.json({ success: false, message: "সঠিক পরিমাণ প্রদান করুন।" });
+
+  if (type === 'add') {
+    user.liveBalance = parseFloat((user.liveBalance + delta).toFixed(2));
+  } else if (type === 'deduct') {
+    if (user.liveBalance < delta) return res.json({ success: false, message: "ব্যবহারকারীর লাইভ ব্যালেন্স অপর্যাপ্ত!" });
+    user.liveBalance = parseFloat((user.liveBalance - delta).toFixed(2));
+  }
+
+  res.json({ success: true, message: `ব্যালেন্স সফলভাবে আপডেট হয়েছে। বর্তমান ব্যালেন্স: $${user.liveBalance.toFixed(2)}`, newBalance: user.liveBalance });
+});
+
+// অ্যাডমিন: ডিপোজিট অনুমোদন বা বাতিল
+app.post('/api/admin/deposit-action', (req, res) => {
+  const { id, action } = req.body;
+  let dep = depositHistory.find(d => d.id === id);
+  if (!dep) return res.json({ success: false, message: "ডিপোজিট রিকোয়েস্ট পাওয়া যায়নি।" });
+
+  if (action === 'approve') {
+    dep.status = 'Approved';
+    if (users[dep.username]) {
+      users[dep.username].liveBalance += parseFloat(dep.amount);
+    }
+  } else {
+    dep.status = 'Rejected';
+  }
+
+  res.json({ success: true, message: `ডিপোজিট রিকোয়েস্ট ${action === 'approve' ? 'অনুমোদিত' : 'বাতিল'} হয়েছে।` });
+});
+
+// অ্যাডমিন: উইথড্রয়াল অনুমোদন বা বাতিল
+app.post('/api/admin/withdraw-action', (req, res) => {
+  const { id, action } = req.body;
+  let w = transactions.find(t => t.id === id);
+  if (!w) return res.json({ success: false, message: "উইথড্রয়াল রিকোয়েস্ট পাওয়া যায়নি।" });
+
+  if (action === 'approve') {
+    w.status = 'Approved';
+  } else {
+    w.status = 'Rejected';
+    // বাতিল হলে টাকা ব্যবহারকারীর অ্যাকাউন্টে ফেরত
+    if (users[w.username]) {
+      users[w.username].liveBalance += parseFloat(w.amount);
+    }
+  }
+
+  res.json({ success: true, message: `উইথড্রয়াল রিকোয়েস্ট ${action === 'approve' ? 'অনুমোদিত' : 'বাতিল'} হয়েছে।` });
+});
+
+// অ্যাডমিন: ক্রিপ্টো পেআউট শতাংশ পরিবর্তন
+app.post('/api/admin/update-payout', (req, res) => {
+  const { asset, payout } = req.body;
+  if (ASSETS[asset]) {
+    let p = parseInt(payout);
+    if (p >= 10 && p <= 98) {
+      ASSETS[asset].payout = p;
+      return res.json({ success: true, message: `${asset} এর পেআউট ${p}% এ সেট করা হয়েছে।` });
+    }
+  }
+  res.json({ success: false, message: "সঠিক পেআউট মান প্রদান করুন (১০-৯৮%)।" });
+});
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Stable Server on port ${PORT}`));
+server.listen(PORT, () => console.log(`Trading Engine & Admin Portal running on port ${PORT}`));
