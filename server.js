@@ -12,11 +12,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 let users = {
-  "demo_user": { liveBalance: 0.03, demoBalance: 11061.95, activeAccount: "demo", control: "normal" }
+  "demo_user": { liveBalance: 10.00, demoBalance: 11061.95, activeAccount: "demo", control: "normal" }
 };
 let transactions = [];
 
-// ৮টি কয়েনের মাস্টার কনফিগারেশন
 let ASSETS = {
   'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68450.00, decimals: 2, payout: 92, vol: 3.5 },
   'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3420.00, decimals: 2, payout: 90, vol: 0.8 },
@@ -28,64 +27,60 @@ let ASSETS = {
   'ADA':  { name: 'Cardano', ticker: 'ADA', price: 0.4850, decimals: 4, payout: 84, vol: 0.0005 }
 };
 
-const STORAGE_FILE = path.join(__dirname, 'market_candles.json');
 let candleHistories = {};
 let currentCandles = {};
-
-// লোকাল ফাইল থেকে পারসিস্টেন্ট ক্যান্ডেল লোড অথবা নতুন শুরু
-if (fs.existsSync(STORAGE_FILE)) {
-  try {
-    let saved = JSON.parse(fs.readFileSync(STORAGE_FILE, 'utf8'));
-    candleHistories = saved.histories || {};
-    if (saved.assets) {
-      for (let k in saved.assets) {
-        if (ASSETS[k]) ASSETS[k].payout = saved.assets[k].payout;
-      }
-    }
-  } catch (e) {
-    candleHistories = {};
-  }
-}
-
-// হিস্ট্রি না থাকলে প্রাথমিক ১০০টি ক্যান্ডেল তৈরি
-let nowSec = Math.floor(Date.now() / 1000);
-let nowMinute = Math.floor(nowSec / 60) * 60;
+let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
 for (let key in ASSETS) {
   let meta = ASSETS[key];
-  if (!candleHistories[key] || candleHistories[key].length === 0) {
-    candleHistories[key] = [];
-    let p = meta.price;
-    for (let i = 120; i > 0; i--) {
-      let t = nowMinute - (i * 60);
-      let o = p;
-      let delta = (Math.random() - 0.49) * meta.vol * 2.5;
-      let c = parseFloat((o + delta).toFixed(meta.decimals));
-      let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol * 1.2).toFixed(meta.decimals));
-      let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol * 1.2).toFixed(meta.decimals));
-      candleHistories[key].push({ time: t, open: o, high: h, low: l, close: c });
-      p = c;
-    }
-    meta.price = p;
-  } else {
-    meta.price = candleHistories[key][candleHistories[key].length - 1].close;
+  candleHistories[key] = [];
+  let p = meta.price;
+  for (let i = 120; i > 0; i--) {
+    let t = currentCandleMinute - (i * 60);
+    let o = p;
+    let delta = (Math.random() - 0.49) * meta.vol * 2.5;
+    let c = parseFloat((o + delta).toFixed(meta.decimals));
+    let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol * 1.2).toFixed(meta.decimals));
+    let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol * 1.2).toFixed(meta.decimals));
+    candleHistories[key].push({ time: t, open: o, high: h, low: l, close: c });
+    p = c;
   }
-
-  currentCandles[key] = {
-    time: nowMinute,
-    open: meta.price,
-    high: meta.price,
-    low: meta.price,
-    close: meta.price
-  };
+  meta.price = p;
+  currentCandles[key] = { time: currentCandleMinute, open: p, high: p, low: p, close: p };
 }
 
-// সেন্ট্রাল ইঞ্জিন: প্রতি সেকেন্ডে সকল কয়েন একই সাথে সিঙ্ক রাখা
+// ৬০ সেকেন্ডে নতুন ক্যান্ডেল শুরু ও হিস্ট্রিতে পুশ
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
   let nowMinute = Math.floor(sec / 60) * 60;
   let remainingSec = 60 - (sec % 60);
+
+  let isNewMinute = (nowMinute > currentCandleMinute);
+
+  for (let key in ASSETS) {
+    let meta = ASSETS[key];
+    let delta = (Math.random() - 0.495) * meta.vol;
+    meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
+
+    if (isNewMinute) {
+      candleHistories[key].push({ ...currentCandles[key] });
+      if (candleHistories[key].length > 300) candleHistories[key].shift();
+      currentCandles[key] = {
+        time: nowMinute,
+        open: meta.price,
+        high: meta.price,
+        low: meta.price,
+        close: meta.price
+      };
+    } else {
+      if (meta.price > currentCandles[key].high) currentCandles[key].high = meta.price;
+      if (meta.price < currentCandles[key].low) currentCandles[key].low = meta.price;
+      currentCandles[key].close = meta.price;
+    }
+  }
+
+  if (isNewMinute) currentCandleMinute = nowMinute;
 
   let tickPayload = {
     type: 'TICK',
@@ -95,35 +90,11 @@ setInterval(() => {
   };
 
   for (let key in ASSETS) {
-    let meta = ASSETS[key];
-    let delta = (Math.random() - 0.495) * meta.vol;
-    meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
-
-    let candle = currentCandles[key];
-
-    // ঠিক ৬০ সেকেন্ড পার হলে নতুন ক্যান্ডেল পার্মানেন্ট সেভ হবে
-    if (nowMinute > candle.time) {
-      candleHistories[key].push({ ...candle });
-      if (candleHistories[key].length > 300) candleHistories[key].shift();
-      currentCandles[key] = {
-        time: nowMinute,
-        open: meta.price,
-        high: meta.price,
-        low: meta.price,
-        close: meta.price
-      };
-      // ব্যাকগ্রাউন্ডে সেভ রাখা
-      fs.writeFile(STORAGE_FILE, JSON.stringify({ histories: candleHistories, assets: ASSETS }), () => {});
-    } else {
-      if (meta.price > candle.high) candle.high = meta.price;
-      if (meta.price < candle.low) candle.low = meta.price;
-      candle.close = meta.price;
-    }
-
     tickPayload.assets[key] = {
-      price: meta.price.toFixed(meta.decimals),
+      price: ASSETS[key].price.toFixed(ASSETS[key].decimals),
       candle: currentCandles[key],
-      payout: meta.payout
+      history: candleHistories[key],
+      payout: ASSETS[key].payout
     };
   }
 
@@ -133,7 +104,6 @@ setInterval(() => {
   });
 }, 1000);
 
-// সব ইউজারের জন্য সেইম হিস্ট্রি এপিআই
 app.get('/api/history/:asset', (req, res) => {
   let asset = req.params.asset || 'BTC';
   if (candleHistories[asset]) {
@@ -175,18 +145,16 @@ app.post('/api/trade', (req, res) => {
   });
 });
 
-// ট্রেড সেটেলমেন্ট (বাস্তব মার্কেট প্রাইস অনুযায়ী)
+// ট্রেড সেটেলমেন্ট
 app.post('/api/settle-trade', (req, res) => {
   const { username, entryPrice, exitPrice, direction, amount, accountType, asset } = req.body;
   let user = users[username] || users["demo_user"];
   let selectedAsset = ASSETS[asset] || ASSETS['BTC'];
 
   let isWin = false;
-  if (user.control === 'win') {
-    isWin = true;
-  } else if (user.control === 'loss') {
-    isWin = false;
-  } else {
+  if (user.control === 'win') isWin = true;
+  else if (user.control === 'loss') isWin = false;
+  else {
     if (direction === 'UP') isWin = (Number(exitPrice) > Number(entryPrice));
     else if (direction === 'DOWN') isWin = (Number(exitPrice) < Number(entryPrice));
   }
@@ -203,7 +171,29 @@ app.post('/api/settle-trade', (req, res) => {
   res.json({ success: true, isWin, profit, balance: finalBal.toFixed(2) });
 });
 
-// সুইচ অ্যাকাউন্ট
+// ডিপোজিট সাবমিট (বিকাশ, নগদ, রকেট, বাইনান্স)
+app.post('/api/deposit', (req, res) => {
+  const { username, method, amount, trxId, senderNumber } = req.body;
+  if (!amount || amount <= 0 || !trxId) {
+    return res.json({ success: false, message: "সকল তথ্য সঠিকভাবে পূরণ করুন!" });
+  }
+
+  let tx = {
+    id: Date.now(),
+    username: username || "demo_user",
+    type: "Deposit",
+    method: method,
+    amount: Number(amount),
+    senderNumber: senderNumber || "N/A",
+    trxId: trxId,
+    status: "Pending",
+    time: new Date().toLocaleString()
+  };
+
+  transactions.unshift(tx);
+  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে! অ্যাডমিন রিভিউ করার পর ব্যালেন্স যোগ হবে।" });
+});
+
 app.post('/api/switch-account', (req, res) => {
   const { username, type } = req.body;
   let user = users[username] || users["demo_user"];
@@ -211,25 +201,31 @@ app.post('/api/switch-account', (req, res) => {
   res.json({ success: true, activeAccount: type, balance: type === 'live' ? user.liveBalance : user.demoBalance });
 });
 
-// অ্যাডমিন রাউট ও এপিআই
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.get('/admin-secret-panel', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-
-app.get('/api/admin/data', (req, res) => {
-  let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
-  let totalWithdraw = transactions.filter(t => t.type === 'Withdraw' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
-  res.json({ users, transactions, assets: ASSETS, totalDeposit, totalWithdraw });
+app.get('/api/user/info', (req, res) => {
+  let user = users["demo_user"];
+  res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
 });
 
-// অ্যাডমিন থেকে কয়েনের আলাদা আলাদা পেআউট (%) আপডেট করা
-app.post('/api/admin/update-payout', (req, res) => {
-  const { asset, payout } = req.body;
-  if (ASSETS[asset]) {
-    ASSETS[asset].payout = Number(payout);
-    fs.writeFile(STORAGE_FILE, JSON.stringify({ histories: candleHistories, assets: ASSETS }), () => {});
-    res.json({ success: true, message: `${asset} পেআউট ${payout}% এ আপডেট হয়েছে!` });
+// অ্যাডমিন রাউট
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get('/api/admin/data', (req, res) => {
+  let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
+  res.json({ users, transactions, assets: ASSETS, totalDeposit });
+});
+
+// অ্যাডমিন ট্রানজাকশন অ্যাপ্রুভ বা রিজেক্ট
+app.post('/api/admin/tx-action', (req, res) => {
+  const { txId, status } = req.body;
+  let tx = transactions.find(t => t.id == txId);
+  if (tx) {
+    tx.status = status;
+    if (status === 'Approved' && tx.type === 'Deposit') {
+      let u = users[tx.username] || users["demo_user"];
+      u.liveBalance += Number(tx.amount);
+    }
+    res.json({ success: true });
   } else {
-    res.json({ success: false, message: "Asset not found" });
+    res.json({ success: false, message: "Transaction not found" });
   }
 });
 
@@ -241,14 +237,5 @@ app.post('/api/admin/action', (req, res) => {
   } else res.json({ success: false });
 });
 
-app.post('/api/admin/tx-action', (req, res) => {
-  const { txId, status } = req.body;
-  let tx = transactions.find(t => t.id == txId);
-  if (tx) {
-    tx.status = status;
-    res.json({ success: true });
-  } else res.json({ success: false });
-});
-
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Master Trading Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deposit Funds | Pocket Trading</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #0c1017; color: #fff; padding: 16px; display: flex; justify-content: center; }
+        .dep-container { width: 100%; max-width: 480px; }
+        .dep-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #1a2232; }
+        .back-btn { color: #8fa0b5; text-decoration: none; font-size: 14px; font-weight: 700; }
+        
+        .method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; }
+        .method-card { background: #161e2e; border: 2px solid #233145; padding: 14px; border-radius: 10px; cursor: pointer; text-align: center; font-weight: 700; font-size: 14px; }
+        .method-card.active { border-color: #0070f3; background: #1a273e; }
+        
+        .info-card { background: #1a2335; border-left: 4px solid #00e676; padding: 14px; border-radius: 6px; margin-bottom: 20px; font-size: 13px; line-height: 1.6; }
+        .info-card b { color: #00e676; font-size: 15px; }
+        
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; color: #8fa0b5; margin-bottom: 6px; }
+        .form-group input { width: 100%; background: #161e2e; border: 1px solid #28364f; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; outline: none; }
+        
+        .submit-btn { width: 100%; background: #00b074; color: #fff; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: 800; cursor: pointer; margin-top: 8px; }
+        .alert-msg { padding: 12px; border-radius: 6px; margin-top: 15px; display: none; font-size: 13px; text-align: center; }
+        .alert-success { background: rgba(0, 230, 118, 0.15); color: #00e676; border: 1px solid #00e676; }
+    </style>
+</head>
+<body>
+    <div class="dep-container">
+        <div class="dep-header">
+            <a href="/" class="back-btn">← ফিরে যান (Trade)</a>
+            <h3>ডিপোজিট পেজ</h3>
+        </div>
+
+        <div class="method-grid">
+            <div class="method-card active" onclick="setMethod('Bkash', '01700000000', 'Personal (Send Money)')">বিকাশ (bKash)</div>
+            <div class="method-card" onclick="setMethod('Nagad', '01800000000', 'Personal (Send Money)')">নগদ (Nagad)</div>
+            <div class="method-card" onclick="setMethod('Rocket', '01900000000', 'Personal (Send Money)')">রকেট (Rocket)</div>
+            <div class="method-card" onclick="setMethod('Binance', '85857047', 'Binance Pay ID (USDT)')">বাইনান্স (Binance Pay)</div>
+        </div>
+
+        <div class="info-card">
+            <span id="methodTitle">বিকাশ Personal (Send Money):</span><br>
+            নম্বর / Pay ID: <b id="payNumber">01700000000</b><br>
+            <small style="color:#8fa0b5;">টাকা পাঠানোর পর নিচের ফর্মে Transaction ID দিয়ে সাবমিট করুন।</small>
+        </div>
+
+        <div class="form-group">
+            <label>ডিপোজিট পরিমাণ (ডলারে - $)</label>
+            <input type="number" id="depAmount" placeholder="যেমন: 10" min="1">
+        </div>
+
+        <div class="form-group">
+            <label>যে নম্বর বা আইডি থেকে পাঠিয়েছেন (Sender Number/ID)</label>
+            <input type="text" id="senderNumber" placeholder="যেমন: 017XXXXXXXX">
+        </div>
+
+        <div class="form-group">
+            <label>Transaction ID (TrxID)</label>
+            <input type="text" id="depTrx" placeholder="যেমন: BKA98234JS">
+        </div>
+
+        <button class="submit-btn" onclick="submitDeposit()">কনফার্ম ডিপোজিট</button>
+        <div id="alertBox" class="alert-msg alert-success"></div>
+    </div>
+
+    <script>
+        let selectedMethod = 'Bkash';
+
+        function setMethod(method, number, note) {
+            selectedMethod = method;
+            document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('methodTitle').innerText = `${method} ${note}:`;
+            document.getElementById('payNumber').innerText = number;
+        }
+
+        function submitDeposit() {
+            let amount = document.getElementById('depAmount').value;
+            let sender = document.getElementById('senderNumber').value;
+            let trxId = document.getElementById('depTrx').value;
+            let alertBox = document.getElementById('alertBox');
+
+            if (!amount || !trxId) {
+                alert("পরিমাণ এবং Transaction ID পূরণ করুন!");
+                return;
+            }
+
+            fetch('/api/deposit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    username: 'demo_user',
+                    method: selectedMethod,
+                    amount: amount,
+                    senderNumber: sender,
+                    trxId: trxId
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    alertBox.innerText = data.message;
+                    alertBox.style.display = 'block';
+                    document.getElementById('depAmount').value = '';
+                    document.getElementById('senderNumber').value = '';
+                    document.getElementById('depTrx').value = '';
+                } else {
+                    alert(data.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
