@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option</title>
-    <link rel="stylesheet" href="style.css?v=8.0">
+    <link rel="stylesheet" href="style.css?v=10.0">
 </head>
 <body>
     <div class="app-root">
@@ -21,7 +21,7 @@
                     <span class="bell-icon">🔔</span>
                     <span class="badge-num">13</span>
                 </div>
-                <button class="deposit-btn" onclick="window.location.href='/deposit.html'">Deposit</button>
+                <button class="deposit-btn" onclick="openDepositModal()">Deposit</button>
             </div>
         </header>
 
@@ -39,7 +39,7 @@
 
             <div id="tradeOpenToast" class="open-trade-toast">
                 <span class="toast-dot"></span>
-                <span id="toastMsg">Trade opened with price: 68450.00 BTC/USD (OTC)</span>
+                <span id="toastMsg">Trade opened</span>
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
@@ -74,7 +74,10 @@
                     <span class="box-lbl">Investment</span>
                     <div class="stepper-wrap">
                         <button class="step-btn" onclick="stepAmt(-1)">−</button>
-                        <span class="inv-val"><span id="invAmt">1</span> $</span>
+                        <div class="inv-input-wrap">
+                            <input type="number" id="invAmtInput" value="1" min="1" oninput="onInvestInput(this.value)">
+                            <span>$</span>
+                        </div>
                         <button class="step-btn" onclick="stepAmt(1)">+</button>
                     </div>
                     <span class="switch-txt">SWITCH</span>
@@ -108,99 +111,98 @@
         </div>
     </div>
 
+    <div id="accountModal" class="acc-modal-overlay" onclick="closeAccountModal(event)">
+        <div class="acc-dropdown-card">
+            <div class="acc-head">
+                <div class="std-badge">✈️ STANDARD: <b>+0% profit</b></div>
+                <span class="eye-btn">👁️</span>
+            </div>
+            <div class="user-email-id">
+                <div class="u-mail">teachsajib@gmail.com</div>
+                <div class="u-id">ID: 85857047</div>
+            </div>
+
+            <div class="acc-option" onclick="switchAccount('live')">
+                <div class="opt-title">Live Account</div>
+                <div class="opt-bal" id="modalLiveBal">$10.00</div>
+                <div class="opt-sub">Real funds</div>
+            </div>
+
+            <div class="acc-option" onclick="switchAccount('demo')">
+                <div class="opt-title">Demo Account</div>
+                <div class="opt-bal" id="modalDemoBal">$11,061.95 🔄</div>
+                <div class="opt-sub">Practice balance</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="depositModal" class="full-screen-modal">
+        <div class="modal-inner">
+            <div class="modal-header">
+                <h3>Deposit Funds</h3>
+                <span class="x-close" onclick="closeDepositModal()">✕</span>
+            </div>
+            <div class="dep-methods">
+                <div class="dep-pill active" onclick="setDepMethod('Bkash', '01700000000', 'Personal (Send Money)')">bKash</div>
+                <div class="dep-pill" onclick="setDepMethod('Nagad', '01800000000', 'Personal (Send Money)')">Nagad</div>
+                <div class="dep-pill" onclick="setDepMethod('Rocket', '01900000000', 'Personal (Send Money)')">Rocket</div>
+                <div class="dep-pill" onclick="setDepMethod('Binance', '85857047', 'Pay ID (USDT)')">Binance</div>
+            </div>
+            <div class="dep-info-box">
+                <span id="depMethodLabel">bKash Personal (Send Money):</span>
+                <b id="depTargetNumber">01700000000</b>
+            </div>
+            <div class="form-row">
+                <input type="number" id="depAmountInput" placeholder="Amount ($)" min="1">
+            </div>
+            <div class="form-row">
+                <input type="text" id="depSenderInput" placeholder="Your Phone Number / Pay ID">
+            </div>
+            <div class="form-row">
+                <input type="text" id="depTrxInput" placeholder="Transaction ID (TrxID)">
+            </div>
+            <button class="btn-confirm-dep" onclick="submitDepositForm()">Confirm Deposit</button>
+        </div>
+    </div>
+
     <div id="assetModal" class="full-screen-modal">
         <div class="modal-inner">
             <div class="modal-header">
-                <h3>Select Popular Crypto Pair</h3>
+                <h3>Select Crypto Pair</h3>
                 <span class="x-close" onclick="closeAssetModal()">✕</span>
             </div>
             <div class="asset-list-view">
                 <div class="asset-item" onclick="selectAsset('BTC')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo btc-logo">₿</span>
-                        <div><b>Bitcoin</b> <small>BTC/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">92%</b>
-                        <span id="price-tag-BTC" class="coin-live-p">68,450.00</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo btc-logo">₿</span><div><b>Bitcoin</b> <small>BTC/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">92%</b><span id="price-tag-BTC" class="coin-live-p">68,481.50</span></div>
                 </div>
-
                 <div class="asset-item" onclick="selectAsset('ETH')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo eth-logo">Ξ</span>
-                        <div><b>Ethereum</b> <small>ETH/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">90%</b>
-                        <span id="price-tag-ETH" class="coin-live-p">3,420.00</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo eth-logo">Ξ</span><div><b>Ethereum</b> <small>ETH/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">90%</b><span id="price-tag-ETH" class="coin-live-p">3,420.00</span></div>
                 </div>
-
                 <div class="asset-item" onclick="selectAsset('SOL')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo sol-logo">◎</span>
-                        <div><b>Solana</b> <small>SOL/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">88%</b>
-                        <span id="price-tag-SOL" class="coin-live-p">175.50</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo sol-logo">◎</span><div><b>Solana</b> <small>SOL/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">88%</b><span id="price-tag-SOL" class="coin-live-p">177.25</span></div>
                 </div>
-
                 <div class="asset-item" onclick="selectAsset('BNB')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo bnb-logo">◆</span>
-                        <div><b>BNB</b> <small>BNB/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">88%</b>
-                        <span id="price-tag-BNB" class="coin-live-p">590.20</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo bnb-logo">◆</span><div><b>BNB</b> <small>BNB/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">88%</b><span id="price-tag-BNB" class="coin-live-p">590.20</span></div>
                 </div>
-
                 <div class="asset-item" onclick="selectAsset('XRP')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo xrp-logo">✕</span>
-                        <div><b>XRP</b> <small>XRP/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">85%</b>
-                        <span id="price-tag-XRP" class="coin-live-p">0.6250</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo xrp-logo">✕</span><div><b>XRP</b> <small>XRP/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">85%</b><span id="price-tag-XRP" class="coin-live-p">0.6250</span></div>
                 </div>
-
                 <div class="asset-item" onclick="selectAsset('DOGE')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo doge-logo">Ð</span>
-                        <div><b>Dogecoin</b> <small>DOGE/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">82%</b>
-                        <span id="price-tag-DOGE" class="coin-live-p">0.1425</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo doge-logo">Ð</span><div><b>Dogecoin</b> <small>DOGE/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">82%</b><span id="price-tag-DOGE" class="coin-live-p">0.1425</span></div>
                 </div>
-
                 <div class="asset-item" onclick="selectAsset('TON')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo ton-logo">💎</span>
-                        <div><b>Toncoin</b> <small>TON/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">86%</b>
-                        <span id="price-tag-TON" class="coin-live-p">5.850</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo ton-logo">💎</span><div><b>Toncoin</b> <small>TON/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">86%</b><span id="price-tag-TON" class="coin-live-p">5.850</span></div>
                 </div>
-
                 <div class="asset-item" onclick="selectAsset('ADA')">
-                    <div class="coin-meta-left">
-                        <span class="c-logo ada-logo">₳</span>
-                        <div><b>Cardano</b> <small>ADA/USD (OTC)</small></div>
-                    </div>
-                    <div class="coin-meta-right">
-                        <b class="green-pct">84%</b>
-                        <span id="price-tag-ADA" class="coin-live-p">0.4850</span>
-                    </div>
+                    <div class="coin-meta-left"><span class="c-logo ada-logo">₳</span><div><b>Cardano</b> <small>ADA/USD (OTC)</small></div></div>
+                    <div class="coin-meta-right"><b class="green-pct">84%</b><span id="price-tag-ADA" class="coin-live-p">0.4850</span></div>
                 </div>
             </div>
         </div>
@@ -211,7 +213,6 @@
             <button id="tabTimerBtn" class="t-tab active" onclick="switchPopupTab('timer')">TIMER</button>
             <button id="tabTimeBtn" class="t-tab" onclick="switchPopupTab('time')">TIME</button>
         </div>
-
         <div class="time-grid" id="gridTimerMode">
             <button onclick="selectTimer(5, '00:00:05')">00:05</button>
             <button onclick="selectTimer(10, '00:00:10')">00:10</button>
@@ -226,7 +227,6 @@
             <button onclick="selectTimer(3600, '01:00:00')">01:00:00</button>
             <button onclick="selectTimer(7200, '02:00:00')">02:00:00</button>
         </div>
-
         <div class="time-grid" id="gridTimeMode" style="display: none;"></div>
         <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
     </div>
@@ -236,64 +236,23 @@
             <div class="drawer-top-bar">
                 <select id="drawerPageSelect" onchange="switchDrawerPage(this.value)">
                     <option value="profile">My Account</option>
-                    <option value="withdrawal">Withdrawal</option>
-                    <option value="payments">Payments</option>
                     <option value="trades">Trades</option>
-                    <option value="analytics">Analytics</option>
                 </select>
                 <span class="drawer-x" onclick="closeAllDrawers()">✕</span>
             </div>
-
             <div id="page-profile" class="drawer-page-body">
                 <div class="user-avatar-badge">
                     <div class="avatar-circle">👤</div>
-                    <div>
-                        <b>teachsajib@gmail.com</b>
-                        <div style="font-size:11px; color:#6e829c;">ID: 85857047 <span style="color:#00b074;">✔ Verified</span></div>
-                    </div>
+                    <div><b>teachsajib@gmail.com</b><div style="font-size:11px; color:#6e829c;">ID: 85857047</div></div>
                 </div>
-                <div class="form-group"><label>Nickname</label><input type="text" value="SojibTrader" readonly></div>
-                <div class="form-group"><label>First Name</label><input type="text" value="MD Sajib" readonly></div>
-                <div class="form-group"><label>Last Name</label><input type="text" value="Hossain" readonly></div>
             </div>
-
-            <div id="page-withdrawal" class="drawer-page-body" style="display:none;">
-                <div class="bal-card">Available: <b>0.03 $</b></div>
-                <div class="form-group"><label>Amount ($)</label><input type="number" value="10"></div>
-                <button class="primary-btn">Confirm Withdrawal</button>
-            </div>
-
             <div id="page-trades" class="drawer-page-body" style="display:none;">
-                <h4>Trades History</h4>
-                <div class="trade-history-item win"><span>BTC/USD (OTC)</span> <b>+$1.92</b></div>
-                <div class="trade-history-item loss"><span>ETH/USD (OTC)</span> <b>-$1.00</b></div>
-            </div>
-
-            <div id="page-analytics" class="drawer-page-body" style="display:none;">
-                <div class="circle-metric">129<br><small>Trades</small></div>
-                <p style="margin-top:10px;">Profitable trades: <b style="color:#00b074;">47%</b></p>
+                <h4>Trade History</h4>
+                <div id="tradesListDrawer"></div>
             </div>
         </div>
     </div>
 
-    <div id="accountModal" class="acc-modal-overlay" onclick="closeAccountModal(event)">
-        <div class="acc-dropdown-card">
-            <div class="acc-head"><div class="std-badge">✈️ STANDARD: <b>+0% profit</b></div></div>
-            <div class="user-email-id">
-                <div class="u-mail">teachsajib@gmail.com</div>
-                <div class="u-id">ID: 85857047</div>
-            </div>
-            <div class="acc-option" onclick="switchAccount('live')">
-                <div class="opt-title">Live Account</div>
-                <div class="opt-bal" id="modalLiveBal">$0.03</div>
-            </div>
-            <div class="acc-option" onclick="switchAccount('demo')">
-                <div class="opt-title">Demo Account</div>
-                <div class="opt-bal" id="modalDemoBal">$11,061.95 🔄</div>
-            </div>
-        </div>
-    </div>
-
-    <script src="script.js?v=9.0"></script>
+    <script src="script.js?v=10.0"></script>
 </body>
 </html>

@@ -17,9 +17,9 @@ let users = {
 let transactions = [];
 
 let ASSETS = {
-  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68461.50, decimals: 2, payout: 92, vol: 3.5 },
+  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68481.50, decimals: 2, payout: 92, vol: 3.5 },
   'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3420.00, decimals: 2, payout: 90, vol: 0.8 },
-  'SOL':  { name: 'Solana', ticker: 'SOL', price: 175.50, decimals: 2, payout: 88, vol: 0.15 },
+  'SOL':  { name: 'Solana', ticker: 'SOL', price: 177.25, decimals: 2, payout: 88, vol: 0.15 },
   'BNB':  { name: 'BNB', ticker: 'BNB', price: 590.20, decimals: 2, payout: 88, vol: 0.25 },
   'XRP':  { name: 'XRP', ticker: 'XRP', price: 0.6250, decimals: 4, payout: 85, vol: 0.0006 },
   'DOGE': { name: 'Dogecoin', ticker: 'DOGE', price: 0.1425, decimals: 4, payout: 82, vol: 0.0003 },
@@ -37,14 +37,13 @@ for (let key in ASSETS) {
   for (let i = 80; i > 0; i--) {
     let t = currentCandleMinute - (i * 60);
     let o = p;
-    let delta = (Math.random() - 0.49) * meta.vol * 2.5;
+    let delta = (Math.random() - 0.49) * meta.vol * 2.2;
     let c = parseFloat((o + delta).toFixed(meta.decimals));
     let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol).toFixed(meta.decimals));
     let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol).toFixed(meta.decimals));
     candleHistories[key].push({ time: t, open: o, high: h, low: l, close: c });
     p = c;
   }
-  // শেষ ক্যান্ডেলটি বর্তমান মিনিট হিসেবে সেট
   candleHistories[key].push({ time: currentCandleMinute, open: p, high: p, low: p, close: p });
 }
 
@@ -117,16 +116,18 @@ app.get('/api/history/:asset', (req, res) => {
   }
 });
 
-// ট্রেড ও ডিপোজিট এপিআই
 app.post('/api/trade', (req, res) => {
   const { username, amount, direction, accountType, durationSec, asset } = req.body;
   let user = users[username] || users["demo_user"];
+  let tradeAmount = Number(amount) || 1;
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
-  if (targetBal < amount) return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
+  if (targetBal < tradeAmount) {
+    return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
+  }
 
-  if (accountType === 'live') user.liveBalance -= amount;
-  else user.demoBalance -= amount;
+  if (accountType === 'live') user.liveBalance -= tradeAmount;
+  else user.demoBalance -= tradeAmount;
 
   let selectedAsset = ASSETS[asset] || ASSETS['BTC'];
   res.json({
@@ -134,7 +135,7 @@ app.post('/api/trade', (req, res) => {
     entryPrice: selectedAsset.price.toFixed(selectedAsset.decimals),
     balance: (accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2),
     direction,
-    amount,
+    amount: tradeAmount,
     durationSec,
     asset
   });
@@ -144,6 +145,7 @@ app.post('/api/settle-trade', (req, res) => {
   const { username, entryPrice, exitPrice, direction, amount, accountType, asset } = req.body;
   let user = users[username] || users["demo_user"];
   let selectedAsset = ASSETS[asset] || ASSETS['BTC'];
+  let tradeAmount = Number(amount) || 1;
 
   let isWin = false;
   if (user.control === 'win') isWin = true;
@@ -153,38 +155,55 @@ app.post('/api/settle-trade', (req, res) => {
     else if (direction === 'DOWN') isWin = (Number(exitPrice) < Number(entryPrice));
   }
 
-  let profit = isWin ? parseFloat((amount * (1 + selectedAsset.payout / 100)).toFixed(2)) : 0;
+  let profit = isWin ? parseFloat((tradeAmount * (1 + selectedAsset.payout / 100)).toFixed(2)) : 0;
   if (isWin) {
     if (accountType === 'live') user.liveBalance += profit;
     else user.demoBalance += profit;
   }
 
-  res.json({ success: true, isWin, profit, balance: (accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2) });
+  res.json({
+    success: true,
+    isWin,
+    profit,
+    balance: (accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2)
+  });
+});
+
+app.post('/api/switch-account', (req, res) => {
+  const { username, type } = req.body;
+  let user = users[username] || users["demo_user"];
+  user.activeAccount = type;
+  res.json({ success: true, activeAccount: type, balance: type === 'live' ? user.liveBalance : user.demoBalance });
 });
 
 app.post('/api/deposit', (req, res) => {
   const { username, method, amount, trxId, senderNumber } = req.body;
-  transactions.unshift({
+  if (!amount || Number(amount) <= 0 || !trxId) {
+    return res.json({ success: false, message: "পরিমাণ এবং TrxID পূরণ করুন!" });
+  }
+
+  let tx = {
     id: Date.now(),
     username: username || "demo_user",
     type: "Deposit",
     method,
     amount: Number(amount),
-    senderNumber,
+    senderNumber: senderNumber || "N/A",
     trxId,
     status: "Pending",
     time: new Date().toLocaleTimeString()
-  });
-  res.json({ success: true, message: "রিকোয়েস্ট জমা হয়েছে! অ্যাডমিন রিভিউ করবেন।" });
+  };
+  transactions.unshift(tx);
+  res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
 });
 
-// অ্যাডমিন রাউট নিশ্চিতকরণ
 app.get(['/admin', '/admin-secret-panel'], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 app.get('/api/admin/data', (req, res) => {
-  res.json({ users, transactions, assets: ASSETS });
+  let totalDeposit = transactions.filter(t => t.type === 'Deposit' && t.status === 'Approved').reduce((s, t) => s + Number(t.amount), 0);
+  res.json({ users, transactions, assets: ASSETS, totalDeposit });
 });
 
 app.post('/api/admin/tx-action', (req, res) => {
@@ -192,7 +211,10 @@ app.post('/api/admin/tx-action', (req, res) => {
   let tx = transactions.find(t => t.id == txId);
   if (tx) {
     tx.status = status;
-    if (status === 'Approved') users[tx.username].liveBalance += Number(tx.amount);
+    if (status === 'Approved') {
+      let u = users[tx.username] || users["demo_user"];
+      u.liveBalance += Number(tx.amount);
+    }
     res.json({ success: true });
   } else res.json({ success: false });
 });
@@ -214,4 +236,4 @@ app.post('/api/admin/action', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Master server running on port ${PORT}`));

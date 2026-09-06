@@ -50,16 +50,8 @@ body, html {
 .acc-bal { color: #fff; font-size: 13px; font-weight: 700; }
 .chevron { font-size: 9px; color: #8c9ba5; }
 
-.top-bar-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.notification-btn {
-    position: relative;
-    cursor: pointer;
-    padding: 4px;
-}
+.top-bar-right { display: flex; align-items: center; gap: 10px; }
+.notification-btn { position: relative; cursor: pointer; padding: 4px; }
 .bell-icon { font-size: 18px; }
 .badge-num {
     position: absolute;
@@ -235,14 +227,25 @@ input:checked + .slider:before { transform: translateX(14px); }
     display: flex;
     flex-direction: column;
     position: relative;
-    cursor: pointer;
 }
+.timer-box { cursor: pointer; }
 .box-lbl { font-size: 10px; color: #6e829c; }
 .box-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
 
 .stepper-wrap { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
-.step-btn { background: none; border: none; color: #fff; font-size: 18px; font-weight: 700; cursor: pointer; }
-.inv-val { font-size: 14px; font-weight: 700; }
+.step-btn { background: none; border: none; color: #fff; font-size: 20px; font-weight: 700; cursor: pointer; padding: 0 6px; }
+.inv-input-wrap { display: flex; align-items: center; justify-content: center; }
+.inv-input-wrap input {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    width: 48px;
+    text-align: center;
+    outline: none;
+}
+.inv-input-wrap span { font-size: 14px; font-weight: 700; }
 .switch-txt {
     position: absolute;
     bottom: -7px;
@@ -304,7 +307,7 @@ input:checked + .slider:before { transform: translateX(14px); }
 .f-icon.active { color: #fff; }
 .f-badge { position: absolute; top: -4px; right: -6px; background: #0070f3; color: #fff; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 8px; }
 
-/* ক্রিপ্টো লোগো এবং মডাল ডিজাইন */
+/* ডিপোজিট ও অন্যান্য মডাল */
 .full-screen-modal {
     display: none;
     position: fixed;
@@ -316,7 +319,7 @@ input:checked + .slider:before { transform: translateX(14px); }
 .modal-inner {
     background: #171d28;
     width: 100%;
-    max-height: 80vh;
+    max-height: 85vh;
     border-radius: 16px 16px 0 0;
     padding: 16px;
     overflow-y: auto;
@@ -324,6 +327,54 @@ input:checked + .slider:before { transform: translateX(14px); }
 .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .x-close { font-size: 20px; cursor: pointer; }
 
+.dep-methods { display: flex; gap: 8px; margin-bottom: 14px; }
+.dep-pill {
+    flex: 1;
+    background: #202b3d;
+    border: 1px solid #2d3d56;
+    padding: 8px 4px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+}
+.dep-pill.active { background: #0070f3; border-color: #0070f3; color: #fff; }
+.dep-info-box {
+    background: #131924;
+    border: 1px solid #253347;
+    border-left: 3px solid #00e676;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+.dep-info-box b { display: block; color: #00e676; font-size: 14px; margin-top: 2px; }
+.form-row { margin-bottom: 10px; }
+.form-row input {
+    width: 100%;
+    background: #121824;
+    border: 1px solid #253347;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+}
+.btn-confirm-dep {
+    width: 100%;
+    background: #00b074;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 4px;
+}
+
+/* অ্যাসেট তালিকা ও ক্রিপ্টো লোগো */
 .asset-item {
     display: flex;
     justify-content: space-between;
@@ -338,7 +389,6 @@ input:checked + .slider:before { transform: translateX(14px); }
 .green-pct { color: #00e676; font-size: 13px; }
 .coin-live-p { display: block; font-size: 11px; color: #8fa0b5; font-family: monospace; }
 
-/* ক্রিপ্টো আইকন স্টাইল */
 .c-logo {
     width: 32px;
     height: 32px;
@@ -359,13 +409,40 @@ input:checked + .slider:before { transform: translateX(14px); }
 .ton-logo { background: #0088cc; font-size: 14px; }
 .ada-logo { background: #0033ad; }
 
-.coin-icon-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+/* অ্যাকাউন্ট স্যুইচ মডাল */
+.acc-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
 }
+.acc-dropdown-card {
+    position: absolute;
+    top: 50px;
+    left: 12px;
+    width: 290px;
+    background: #19202c;
+    border: 1px solid #263245;
+    border-radius: 8px;
+    padding: 14px;
+}
+.acc-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #232c3d; padding-bottom: 8px; }
+.std-badge { font-size: 11px; color: #00b074; }
+.user-email-id { margin-top: 10px; font-size: 12px; }
+.acc-option {
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    background: #20293a;
+    margin-top: 8px;
+}
+.acc-option:hover { background: #253347; }
+.opt-title { font-size: 12px; color: #8fa0b5; }
+.opt-bal { font-size: 14px; font-weight: 700; color: #fff; margin: 2px 0; }
+.opt-sub { font-size: 10px; color: #5a6e87; }
 
-/* টাইম পপআপ ডায়ালগ */
+/* টাইম ডায়ালগ */
 .time-popup-dialog {
     display: none;
     position: fixed;
@@ -388,9 +465,5 @@ input:checked + .slider:before { transform: translateX(14px); }
 .time-grid button.selected { background: #0070f3; border-color: #0070f3; }
 .set-manually-btn { width: 100%; background: #0070f3; border: none; color: #ffffff; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: 700; margin-top: 10px; cursor: pointer; }
 
-.acc-modal-overlay, .global-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
-.acc-dropdown-card, .drawer-content-card {
-    position: absolute; top: 50px; left: 12px; width: 290px; background: #19202c; border: 1px solid #263245; border-radius: 8px; padding: 14px;
-}
-.global-drawer-overlay { align-items: flex-end; }
-.drawer-content-card { position: static; width: 100%; max-height: 80vh; border-radius: 16px 16px 0 0; }
+.global-drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: flex-end; }
+.drawer-content-card { width: 100%; max-height: 80vh; background: #171d28; border-radius: 16px 16px 0 0; padding: 14px; }

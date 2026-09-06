@@ -5,7 +5,7 @@ let candles = [];
 let activeTrades = [];
 let currentAccount = 'demo';
 let demoBalance = 11061.95;
-let liveBalance = 0.03;
+let liveBalance = 10.00;
 let panOffset = 0;
 let remainingCountdown = 60;
 
@@ -20,6 +20,22 @@ let initialPinchDistance = null;
 let currentMode = 'timer';
 let selectedTimerSeconds = 60;
 let selectedTimerDisplay = '00:01:00';
+let selectedTimeValue = '';
+let targetExpiryEpoch = 0;
+
+let currentInvestAmount = 1;
+let selectedDepMethod = 'Bkash';
+
+const COIN_ICONS = {
+    'BTC': '<span class="c-logo btc-logo" style="width:20px;height:20px;font-size:11px;">₿</span>',
+    'ETH': '<span class="c-logo eth-logo" style="width:20px;height:20px;font-size:11px;">Ξ</span>',
+    'SOL': '<span class="c-logo sol-logo" style="width:20px;height:20px;font-size:11px;">◎</span>',
+    'BNB': '<span class="c-logo bnb-logo" style="width:20px;height:20px;font-size:11px;">◆</span>',
+    'XRP': '<span class="c-logo xrp-logo" style="width:20px;height:20px;font-size:11px;">✕</span>',
+    'DOGE': '<span class="c-logo doge-logo" style="width:20px;height:20px;font-size:11px;">Ð</span>',
+    'TON': '<span class="c-logo ton-logo" style="width:20px;height:20px;font-size:10px;">💎</span>',
+    'ADA': '<span class="c-logo ada-logo" style="width:20px;height:20px;font-size:11px;">₳</span>'
+};
 
 function fitCanvas() {
     const dpr = window.devicePixelRatio || 1;
@@ -39,6 +55,7 @@ let isPanning = false;
 
 canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length === 2) {
+        isPanning = false;
         initialPinchDistance = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY
@@ -78,6 +95,188 @@ canvas.addEventListener('touchend', () => {
     isPanning = false;
     initialPinchDistance = null;
 });
+
+// ইনভেস্টমেন্ট কন্ট্রোল (১ থেকে ১০০+)
+function stepAmt(delta) {
+    currentInvestAmount = Math.max(1, currentInvestAmount + delta);
+    document.getElementById('invAmtInput').value = currentInvestAmount;
+    updatePayoutCalc();
+}
+
+function onInvestInput(val) {
+    let num = Number(val);
+    if (!isNaN(num) && num >= 1) {
+        currentInvestAmount = num;
+        updatePayoutCalc();
+    }
+}
+
+function updatePayoutCalc() {
+    let ratio = 1 + (currentPayout / 100);
+    let total = (currentInvestAmount * ratio).toFixed(2);
+    document.getElementById('calcPayout').innerText = `${total} $`;
+}
+
+// অ্যাকাউন্ট সুইচিং (লাইভ <-> ডেমো)
+function toggleAccountModal() {
+    let m = document.getElementById('accountModal');
+    m.style.display = m.style.display === 'block' ? 'none' : 'block';
+}
+
+function closeAccountModal(e) {
+    if (e.target.id === 'accountModal') {
+        document.getElementById('accountModal').style.display = 'none';
+    }
+}
+
+function switchAccount(type) {
+    currentAccount = type;
+    document.getElementById('accountModal').style.display = 'none';
+
+    let lbl = document.getElementById('accountLabel');
+    let icon = document.getElementById('accountIcon');
+
+    if (type === 'live') {
+        lbl.innerText = "LIVE";
+        lbl.className = "acc-label live";
+        icon.innerText = "✈️";
+        updateBalanceUI(liveBalance);
+    } else {
+        lbl.innerText = "DEMO";
+        lbl.className = "acc-label demo";
+        icon.innerText = "🎓";
+        updateBalanceUI(demoBalance);
+    }
+
+    fetch('/api/switch-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'demo_user', type })
+    });
+}
+
+function updateBalanceUI(val) {
+    let num = Number(val) || 0;
+    let str = "$" + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    document.getElementById('accountBal').innerText = str;
+    if (currentAccount === 'live') {
+        liveBalance = num;
+        document.getElementById('modalLiveBal').innerText = str;
+    } else {
+        demoBalance = num;
+        document.getElementById('modalDemoBal').innerText = str + " 🔄";
+    }
+}
+
+// ডিপোজিট মডাল
+function openDepositModal() {
+    document.getElementById('depositModal').style.display = 'flex';
+}
+function closeDepositModal() {
+    document.getElementById('depositModal').style.display = 'none';
+}
+
+function setDepMethod(method, number, note) {
+    selectedDepMethod = method;
+    document.querySelectorAll('.dep-pill').forEach(p => p.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('depMethodLabel').innerText = `${method} ${note}:`;
+    document.getElementById('depTargetNumber').innerText = number;
+}
+
+function submitDepositForm() {
+    let amount = document.getElementById('depAmountInput').value;
+    let sender = document.getElementById('depSenderInput').value;
+    let trx = document.getElementById('depTrxInput').value;
+
+    if (!amount || !trx) {
+        alert("পরিমাণ এবং Transaction ID লিখুন!");
+        return;
+    }
+
+    fetch('/api/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: 'demo_user',
+            method: selectedDepMethod,
+            amount,
+            senderNumber: sender,
+            trxId: trx
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        alert(d.message);
+        if (d.success) {
+            document.getElementById('depAmountInput').value = '';
+            document.getElementById('depSenderInput').value = '';
+            document.getElementById('depTrxInput').value = '';
+            closeDepositModal();
+        }
+    });
+}
+
+// টাইমার পপআপ ও টাইম মোড
+function toggleTimePopup() {
+    let p = document.getElementById('timeSelectPopup');
+    let willOpen = (p.style.display !== 'block');
+    p.style.display = willOpen ? 'block' : 'none';
+    if (willOpen && currentMode === 'time') renderTimeModeGrid();
+}
+
+function switchPopupTab(tab) {
+    currentMode = tab;
+    if (tab === 'time') {
+        document.getElementById('tabTimeBtn').classList.add('active');
+        document.getElementById('tabTimerBtn').classList.remove('active');
+        document.getElementById('gridTimeMode').style.display = 'grid';
+        document.getElementById('gridTimerMode').style.display = 'none';
+        renderTimeModeGrid();
+        document.getElementById('dockTimeLabel').innerText = 'Time';
+        document.getElementById('dockTimeValue').innerText = selectedTimeValue || '00:01';
+    } else {
+        document.getElementById('tabTimerBtn').classList.add('active');
+        document.getElementById('tabTimeBtn').classList.remove('active');
+        document.getElementById('gridTimerMode').style.display = 'grid';
+        document.getElementById('gridTimeMode').style.display = 'none';
+        document.getElementById('dockTimeLabel').innerText = 'Timer';
+        document.getElementById('dockTimeValue').innerText = selectedTimerDisplay;
+    }
+}
+
+function selectTimer(sec, display) {
+    selectedTimerSeconds = sec;
+    selectedTimerDisplay = display;
+    document.getElementById('dockTimeValue').innerText = display;
+    document.querySelectorAll('#gridTimerMode button').forEach(b => b.classList.remove('selected'));
+    event.target.classList.add('selected');
+    document.getElementById('timeSelectPopup').style.display = 'none';
+}
+
+function renderTimeModeGrid() {
+    let container = document.getElementById('gridTimeMode');
+    container.innerHTML = '';
+    let now = new Date();
+    let offsets = [1, 2, 3, 4, 5, 10, 15, 30, 45, 60, 120, 240];
+
+    offsets.forEach((offset) => {
+        let t = new Date(now.getTime() + offset * 60000);
+        let timeStr = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+        let btn = document.createElement('button');
+        btn.innerText = timeStr;
+        if (timeStr === selectedTimeValue) btn.classList.add('selected');
+        btn.onclick = () => {
+            selectedTimeValue = timeStr;
+            let targetD = new Date(t);
+            targetD.setSeconds(0, 0);
+            targetExpiryEpoch = targetD.getTime();
+            document.getElementById('dockTimeValue').innerText = timeStr;
+            toggleTimePopup();
+        };
+        container.appendChild(btn);
+    });
+}
 
 function syncClock() {
     let now = new Date();
@@ -130,6 +329,7 @@ function settleTrade(trade) {
 function selectAsset(key) {
     activeAssetKey = key;
     document.getElementById('chartWatermark').innerText = key;
+    document.getElementById('activeCoinIcon').innerHTML = COIN_ICONS[key];
     document.getElementById('curName').innerText = `${key}/USD (OTC)`;
     fetch(`/api/history/${key}`)
     .then(r => r.json())
@@ -139,13 +339,14 @@ function selectAsset(key) {
             activeDecimals = data.meta.decimals;
             currentPayout = data.meta.payout;
             document.getElementById('curPayout').innerText = `${currentPayout}% ▼`;
+            updatePayoutCalc();
             closeAssetModal();
             drawChart();
         }
     });
 }
 
-// চার্ট ড্রয়িং (ক্যান্ডেল কোনোভাবেই বিচ্ছিন্ন হবে না)
+// চার্ট ও Quotex স্টাইল লম্বা অ্যারো লাইন রেন্ডার
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
@@ -225,7 +426,7 @@ function drawChart() {
         ctx.fillRect(Math.floor(c.x), Math.floor(topY), Math.ceil(candleWidth), Math.ceil(h));
     });
 
-    // শেষ ক্যান্ডেলের প্রাইস লাইন
+    // সর্বশেষ লাইভ ক্যান্ডেল প্রাইস লাইন
     let last = candles[candles.length - 1];
     let liveY = getY(last.close);
 
@@ -246,8 +447,8 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
-    // উলম্ব এক্সপায়ারেশন ড্যাশ লাইন (সর্বশেষ ক্যান্ডেলের ঠিক পরে)
-    let expX = baseRightX + totalUnit;
+    // উলম্ব এক্সপায়ারেশন ড্যাশ লাইন
+    let expX = baseRightX + (candleWidth + candleSpacing);
     ctx.setLineDash([4, 4]);
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.beginPath();
@@ -266,30 +467,72 @@ function drawChart() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
 
-    // সক্রিয় ট্রেড
+    // QUOTEX স্টাইল ট্রেড লাইন ও অ্যারো মার্কার
     let nowSec = Math.floor(Date.now() / 1000);
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let entryX = getX(tr.startCandleIdx);
         let entryY = getY(tr.entryPrice);
-        let tradeColor = tr.direction === 'UP' ? '#00b074' : '#eb5757';
+        let isUp = (tr.direction === 'UP');
+        let tradeColor = isUp ? '#00e676' : '#ff334b';
 
-        ctx.setLineDash([3, 3]);
+        // ১. কোটেক্স স্টাইল অনুভূমিক ড্যাশ লাইন (এন্ট্রি পয়েন্ট থেকে বর্তমান এক্সপায়ারেশন পর্যন্ত)
+        ctx.setLineDash([4, 4]);
         ctx.strokeStyle = tradeColor;
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
         ctx.moveTo(entryX, entryY);
         ctx.lineTo(expX, entryY);
         ctx.stroke();
         ctx.setLineDash([]);
 
+        // ২. লম্বা উলম্ব এরোরো নির্দেশক (কোটেক্স মার্কার)
+        let arrowLen = 18;
+        let targetArrowY = isUp ? (entryY - arrowLen) : (entryY + arrowLen);
+
+        ctx.strokeStyle = tradeColor;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(entryX, entryY);
+        ctx.lineTo(entryX, targetArrowY);
+        ctx.stroke();
+
+        // অ্যারো হেড (তীরমুখ)
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
-        ctx.arc(entryX, entryY, 6, 0, Math.PI * 2);
+        if (isUp) {
+            ctx.moveTo(entryX - 5, entryY - arrowLen + 6);
+            ctx.lineTo(entryX, entryY - arrowLen);
+            ctx.lineTo(entryX + 5, entryY - arrowLen + 6);
+        } else {
+            ctx.moveTo(entryX - 5, entryY + arrowLen - 6);
+            ctx.lineTo(entryX, entryY + arrowLen);
+            ctx.lineTo(entryX + 5, entryY + arrowLen - 6);
+        }
         ctx.fill();
+
+        // ৩. এন্ট্রি সার্কেল ও অ্যামাউন্ট ব্যাজ
+        ctx.fillStyle = tradeColor;
+        ctx.beginPath();
+        ctx.arc(entryX, entryY, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.fillText(isUp ? '▲' : '▼', entryX - 3.5, entryY + 3);
+
+        // ৪. শেষ প্রান্তে কোটেক্স স্টাইল অ্যামাউন্ট পিল ($1.00)
+        ctx.fillStyle = tradeColor;
+        ctx.beginPath();
+        ctx.roundRect(expX - 2, entryY - 9, 44, 18, 4);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(`$${tr.amount}`, expX + 3, entryY + 4);
     });
 }
 
-// WebSocket কানেকশন
+// WebSocket
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -297,6 +540,11 @@ ws.onmessage = (event) => {
     let msg = JSON.parse(event.data);
     if (msg.type === 'TICK') {
         remainingCountdown = msg.countdown;
+
+        for (let k in msg.assets) {
+            let el = document.getElementById(`price-tag-${k}`);
+            if (el) el.innerText = msg.assets[k].price;
+        }
 
         if (msg.assets[activeAssetKey]) {
             let item = msg.assets[activeAssetKey];
@@ -315,8 +563,9 @@ ws.onmessage = (event) => {
 };
 
 function placeOrder(direction) {
-    let amount = Number(document.getElementById('invAmt').innerText);
+    let amount = currentInvestAmount;
     let nowSec = Math.floor(Date.now() / 1000);
+    let totalSec = (currentMode === 'timer') ? selectedTimerSeconds : 60;
 
     fetch('/api/trade', {
         method: 'POST',
@@ -326,7 +575,7 @@ function placeOrder(direction) {
             amount,
             direction,
             accountType: currentAccount,
-            durationSec: selectedTimerSeconds,
+            durationSec: totalSec,
             asset: activeAssetKey
         })
     })
@@ -335,31 +584,40 @@ function placeOrder(direction) {
         if (!data.success) return alert(data.message);
 
         updateBalanceUI(data.balance);
+
         activeTrades.push({
             id: Date.now(),
             entryPrice: parseFloat(data.entryPrice),
             entryTime: nowSec,
-            expireTime: nowSec + selectedTimerSeconds,
+            expireTime: nowSec + totalSec,
             direction: data.direction,
             amount,
             asset: activeAssetKey,
             startCandleIdx: candles.length - 1
         });
+
+        let toast = document.getElementById('tradeOpenToast');
+        document.getElementById('toastMsg').innerText = `Trade opened: $${amount} on ${activeAssetKey}`;
+        toast.style.display = 'flex';
+        setTimeout(() => { toast.style.display = 'none'; }, 3000);
+
         drawChart();
     });
-}
-
-function updateBalanceUI(val) {
-    let str = "$" + Number(val).toLocaleString(undefined, { minimumFractionDigits: 2 });
-    document.getElementById('accountBal').innerText = str;
-    if (currentAccount === 'live') liveBalance = Number(val);
-    else demoBalance = Number(val);
 }
 
 function resetPan() { panOffset = 0; drawChart(); }
 function openAssetModal() { document.getElementById('assetModal').style.display = 'flex'; }
 function closeAssetModal() { document.getElementById('assetModal').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
+function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
+
+function openDrawer(page) {
+    document.getElementById('globalDrawer').style.display = 'flex';
+}
+function closeAllDrawers() {
+    document.getElementById('globalDrawer').style.display = 'none';
+}
+function toggleToolsMenu() {}
 
 selectAsset('BTC');
 setTimeout(fitCanvas, 200);
