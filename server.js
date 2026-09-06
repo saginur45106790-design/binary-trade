@@ -14,9 +14,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 let users = {
   "demo_user": { liveBalance: 10.00, demoBalance: 11061.95, activeAccount: "demo", control: "normal" }
 };
-let transactions = [];
 
-// ৮টি কয়েনের স্থায়ী বেঞ্চমার্ক প্রাইস
+// ডিফল্ট হিস্ট্রি (স্ক্রিনশট ৮৩৮ অনুযায়ী)
+let transactions = [
+  { id: "128385243", username: "demo_user", type: "Withdraw", method: "Bkash (P2C)", amount: 10.00, status: "Failed", date: "24.08.2026", details: "017XXXXXXXX" },
+  { id: "126022410", username: "demo_user", type: "Withdraw", method: "Binance Pay", amount: 13.00, status: "Successed", date: "31.07.2026", details: "85857047" },
+  { id: "125912179", username: "demo_user", type: "Withdraw", method: "Binance Pay", amount: 13.00, status: "Successed", date: "30.07.2026", details: "85857047" }
+];
+
 let ASSETS = {
   'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68520.50, basePrice: 68520.50, decimals: 2, payout: 92, vol: 2.5 },
   'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, payout: 90, vol: 0.6 },
@@ -31,7 +36,6 @@ let ASSETS = {
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// ব্যাকওয়ার্ড ক্যান্ডেল জেনারেশন (বর্তমান প্রাইস থেকে পেছনে তৈরি, ফলে কোনো স্পাইক বা জাম্প হবে না)
 function initMarketHistory() {
   for (let key in ASSETS) {
     let meta = ASSETS[key];
@@ -51,7 +55,6 @@ function initMarketHistory() {
       cur = prevClose;
     }
 
-    // শেষ ক্যান্ডেলটি বর্তমান মিনিট হিসেবে লাইভ প্রাইসে সেট
     list[list.length - 1] = {
       time: currentCandleMinute,
       open: meta.price,
@@ -65,7 +68,6 @@ function initMarketHistory() {
 }
 initMarketHistory();
 
-// লাইভ স্মুথ মার্কেট টিক ইঞ্জিন
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -76,7 +78,6 @@ setInterval(() => {
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
-    // রিয়েলিস্টিক মিন-রিভার্সন (প্রাইস স্বাভাবিক গতিতে ওঠানামা করবে)
     let drift = -(meta.price - meta.basePrice) * 0.002;
     let delta = (Math.random() - 0.5) * meta.vol * 0.5 + drift;
     meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
@@ -127,11 +128,7 @@ setInterval(() => {
 app.get('/api/history/:asset', (req, res) => {
   let asset = req.params.asset || 'BTC';
   if (candleHistories[asset]) {
-    res.json({
-      success: true,
-      history: candleHistories[asset],
-      meta: ASSETS[asset]
-    });
+    res.json({ success: true, history: candleHistories[asset], meta: ASSETS[asset] });
   } else {
     res.json({ success: false });
   }
@@ -143,9 +140,7 @@ app.post('/api/trade', (req, res) => {
   let tradeAmount = Number(amount) || 1;
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
-  if (targetBal < tradeAmount) {
-    return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
-  }
+  if (targetBal < tradeAmount) return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
 
   if (accountType === 'live') user.liveBalance -= tradeAmount;
   else user.demoBalance -= tradeAmount;
@@ -203,14 +198,63 @@ app.post('/api/reset-demo', (req, res) => {
   res.json({ success: true, balance: user.demoBalance.toFixed(2) });
 });
 
-app.post('/api/deposit', (req, res) => {
-  const { username, method, amount, trxId, senderNumber } = req.body;
-  if (!amount || Number(amount) <= 0 || !trxId) {
-    return res.json({ success: false, message: "পরিমাণ এবং TrxID পূরণ করুন!" });
+app.get('/api/user/info', (req, res) => {
+  let user = users["demo_user"];
+  res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
+});
+
+app.get('/api/withdrawals', (req, res) => {
+  let list = transactions.filter(t => t.type === 'Withdraw');
+  res.json({ success: true, withdrawals: list, liveBalance: users["demo_user"].liveBalance });
+});
+
+// উইথড্রয়াল সাবমিট API
+app.post('/api/withdraw', (req, res) => {
+  const { username, amount, method, receiveType, accountId, firstName, lastName } = req.body;
+  let user = users[username] || users["demo_user"];
+  let numAmt = parseFloat(amount);
+
+  if (!numAmt || numAmt < 10) {
+    return res.json({ success: false, message: "Minimum withdrawal amount is $10" });
   }
 
+  if (user.liveBalance < numAmt) {
+    return res.json({ success: false, message: "Insufficient balance for withdrawal!" });
+  }
+
+  user.liveBalance = parseFloat((user.liveBalance - numAmt).toFixed(2));
+
+  let now = new Date();
+  let day = String(now.getDate()).padStart(2, '0');
+  let month = String(now.getMonth() + 1).padStart(2, '0');
+  let year = now.getFullYear();
+  let dateStr = `${day}.${month}.${year}`;
+
+  let newTx = {
+    id: String(Math.floor(100000000 + Math.random() * 900000000)),
+    username: username || "demo_user",
+    type: "Withdraw",
+    method: method || "Binance Pay",
+    amount: numAmt,
+    status: "Pending",
+    date: dateStr,
+    details: accountId
+  };
+
+  transactions.unshift(newTx);
+
+  res.json({
+    success: true,
+    message: "Withdrawal request submitted successfully!",
+    newBalance: user.liveBalance,
+    tx: newTx
+  });
+});
+
+app.post('/api/deposit', (req, res) => {
+  const { username, method, amount, trxId, senderNumber } = req.body;
   let tx = {
-    id: Date.now(),
+    id: String(Date.now()),
     username: username || "demo_user",
     type: "Deposit",
     method,
@@ -218,7 +262,7 @@ app.post('/api/deposit', (req, res) => {
     senderNumber: senderNumber || "N/A",
     trxId,
     status: "Pending",
-    time: new Date().toLocaleTimeString()
+    date: new Date().toLocaleDateString()
   };
   transactions.unshift(tx);
   res.json({ success: true, message: "ডিপোজিট রিকোয়েস্ট সফলভাবে জমা হয়েছে!" });
@@ -238,7 +282,11 @@ app.post('/api/admin/tx-action', (req, res) => {
   let tx = transactions.find(t => t.id == txId);
   if (tx) {
     tx.status = status;
-    if (status === 'Approved') users[tx.username].liveBalance += Number(tx.amount);
+    if (status === 'Approved' && tx.type === 'Deposit') {
+      users[tx.username].liveBalance += Number(tx.amount);
+    } else if (status === 'Rejected' && tx.type === 'Withdraw') {
+      users[tx.username].liveBalance += Number(tx.amount); // টাকা ফেরত দেওয়া
+    }
     res.json({ success: true });
   } else res.json({ success: false });
 });
@@ -260,4 +308,4 @@ app.post('/api/admin/action', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Stable Market Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Master Server running on port ${PORT}`));
