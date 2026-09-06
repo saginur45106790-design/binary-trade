@@ -872,3 +872,138 @@ function claimBonusReward(bonusId) {
 // প্রতি ২ মিনিটে ব্যাকগ্রাউন্ডে বোনাস রিফ্রেশ
 setInterval(fetchBonuses, 120000);
 fetchBonuses();
+
+// -------------------------------------------------------------
+// ❓ কাস্টমার সাপোর্ট ডেস্ক হ্যান্ডলার
+// -------------------------------------------------------------
+let selectedScreenshotBase64 = "";
+
+function openSupportModal() {
+    document.getElementById('supportModal').style.display = 'flex';
+    fetchUserTickets();
+}
+
+function closeSupportModal() {
+    document.getElementById('supportModal').style.display = 'none';
+}
+
+function switchSupportTab(tab) {
+    let tabCreate = document.getElementById('tabSupportCreate');
+    let tabHist = document.getElementById('tabSupportHistory');
+    let viewCreate = document.getElementById('supportCreateView');
+    let viewHist = document.getElementById('supportHistoryView');
+
+    if (tab === 'create') {
+        tabCreate.classList.add('active');
+        tabHist.classList.remove('active');
+        viewCreate.style.display = 'block';
+        viewHist.style.display = 'none';
+    } else {
+        tabHist.classList.add('active');
+        tabCreate.classList.remove('active');
+        viewHist.style.display = 'block';
+        viewCreate.style.display = 'none';
+        fetchUserTickets();
+    }
+}
+
+function handleScreenshotUpload(event) {
+    let file = event.target.files[0];
+    if (!file) return;
+
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        selectedScreenshotBase64 = e.target.result;
+        let preview = document.getElementById('supImgPreview');
+        preview.src = selectedScreenshotBase64;
+        preview.style.display = 'block';
+        document.getElementById('uploadHintText').innerText = `✔ ${file.name} attached`;
+    };
+    reader.readAsDataURL(file);
+}
+
+function submitSupportTicket() {
+    let subject = document.getElementById('supSubject').value.trim();
+    let message = document.getElementById('supMessage').value.trim();
+
+    if (!subject || !message) {
+        return alert("Please enter subject and message details!");
+    }
+
+    fetch('/api/support/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: "demo_user",
+            subject,
+            message,
+            screenshot: selectedScreenshotBase64
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            alert(d.message);
+            document.getElementById('supSubject').value = '';
+            document.getElementById('supMessage').value = '';
+            document.getElementById('supFile').value = '';
+            document.getElementById('supImgPreview').style.display = 'none';
+            document.getElementById('uploadHintText').innerText = "📷 Click here to select screenshot";
+            selectedScreenshotBase64 = "";
+
+            switchSupportTab('history');
+        } else {
+            alert(d.message);
+        }
+    });
+}
+
+function fetchUserTickets() {
+    fetch('/api/support/tickets?username=demo_user')
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            let container = document.getElementById('userTicketsList');
+            let countBadge = document.getElementById('ticketCountBadge');
+            if (countBadge) countBadge.innerText = d.tickets.length;
+
+            if (d.tickets.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:30px; color:#6e829c; font-size:13px;">You have no open support tickets.</div>`;
+                return;
+            }
+
+            let html = '';
+            d.tickets.forEach(t => {
+                let isSolved = (t.status === 'Solved');
+                html += `
+                    <div class="support-ticket-card">
+                        <div class="tkt-top-row">
+                            <span class="tkt-id-txt">${t.id}</span>
+                            <span class="tkt-status-badge ${isSolved ? 'solved' : 'pending'}">${t.status}</span>
+                        </div>
+                        <div class="tkt-subject-txt">${t.subject}</div>
+                        <div class="tkt-msg-txt">${t.message}</div>
+                        ${t.screenshot ? `<img src="${t.screenshot}" class="screenshot-preview-thumb">` : ''}
+                        <div class="tkt-time-txt">Submitted on: ${t.createdAt}</div>
+
+                        ${isSolved ? `
+                            <div class="admin-reply-box">
+                                <div class="admin-reply-head">
+                                    <span>✔ Official Admin Solution:</span>
+                                    <span>${t.repliedAt}</span>
+                                </div>
+                                <div class="admin-reply-text">${t.adminReply}</div>
+                            </div>
+                        ` : `
+                            <div style="font-size:11px; color:#f5a623; margin-top:8px; font-weight:700;">
+                                ⏳ Admin is reviewing your issue and screenshot. Solution will appear here!
+                            </div>
+                        `}
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+    });
+}

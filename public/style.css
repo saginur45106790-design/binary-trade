@@ -733,3 +733,127 @@ input:checked + .slider:before { transform: translateX(14px); }
     cursor: default;
     border: 1px solid #00e676;
 }
+
+/* -------------------------------------------------------------
+   কাস্টমার সাপোর্ট ও হেল্পডেস্ক স্টাইল
+------------------------------------------------------------- */
+.support-tabs {
+    display: flex;
+    background: #101621;
+    border-radius: 6px;
+    padding: 3px;
+    margin-bottom: 14px;
+}
+.sup-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #8fa0b5;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.sup-tab.active {
+    background: #0070f3;
+    color: #ffffff;
+}
+
+.form-lbl {
+    display: block;
+    font-size: 11px;
+    color: #8fa0b5;
+    margin-bottom: 4px;
+    font-weight: 600;
+}
+.sup-input, .sup-textarea {
+    width: 100%;
+    background: #141c28;
+    border: 1px solid #233145;
+    color: #fff;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    outline: none;
+    font-family: inherit;
+}
+.sup-input:focus, .sup-textarea:focus {
+    border-color: #0070f3;
+}
+
+.upload-box {
+    background: #141c28;
+    border: 1px dashed #2e415a;
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: #8fa0b5;
+}
+.upload-box:hover {
+    border-color: #0070f3;
+    color: #fff;
+}
+.screenshot-preview-thumb {
+    width: 100%;
+    max-height: 140px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-top: 8px;
+    border: 1px solid #233145;
+}
+
+/* টিকিট হিস্ট্রি কার্ড */
+.support-ticket-card {
+    background: #16202e;
+    border: 1px solid #233145;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+.tkt-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #202b3d;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+}
+.tkt-id-txt { font-size: 13px; font-weight: 800; color: #fff; }
+.tkt-status-badge {
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+.tkt-status-badge.pending { background: #2a2512; color: #f5a623; border: 1px solid #f5a623; }
+.tkt-status-badge.solved { background: #12281e; color: #00e676; border: 1px solid #00e676; }
+
+.tkt-subject-txt { font-size: 13px; font-weight: 700; color: #dce6f2; }
+.tkt-msg-txt { font-size: 12px; color: #8fa0b5; margin-top: 4px; line-height: 1.4; }
+.tkt-time-txt { font-size: 10px; color: #5a6e87; margin-top: 6px; }
+
+/* অ্যাডমিনের রিপ্লাই বক্স */
+.admin-reply-box {
+    background: #13251e;
+    border: 1px solid #00e676;
+    border-radius: 6px;
+    padding: 10px;
+    margin-top: 10px;
+}
+.admin-reply-head {
+    font-size: 11px;
+    font-weight: 800;
+    color: #00e676;
+    display: flex;
+    justify-content: space-between;
+}
+.admin-reply-text {
+    font-size: 12px;
+    color: #e2f9ee;
+    margin-top: 4px;
+    line-height: 1.4;
+}

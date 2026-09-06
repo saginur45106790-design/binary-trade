@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Master Admin | Pocket Trading Engine</title>
+    <title>Master Admin | Support Helpdesk & Engine</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
         body { background: #0b0e14; color: #e1e7f0; padding: 20px; }
@@ -13,23 +13,28 @@
         .admin-header h1 { font-size: 22px; font-weight: 800; color: #fff; }
         .badge { background: #0070f3; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 4px; }
 
-        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; margin-bottom: 24px; }
-        .card { background: #131924; border: 1px solid #1e2838; border-radius: 10px; padding: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-        .card-title { font-size: 14px; font-weight: 700; color: #8fa0b5; margin-bottom: 16px; text-transform: uppercase; }
+        .card { background: #131924; border: 1px solid #1e2838; border-radius: 10px; padding: 18px; margin-bottom: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .card-title { font-size: 15px; font-weight: 800; color: #8fa0b5; margin-bottom: 16px; text-transform: uppercase; }
 
-        .form-group { margin-bottom: 12px; }
-        .form-group label { display: block; font-size: 12px; color: #8fa0b5; margin-bottom: 4px; }
-        .form-control { width: 100%; background: #0e141e; border: 1px solid #2a3b54; color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
-        .form-control:focus { border-color: #0070f3; }
+        .ticket-item { background: #182230; border: 1px solid #253347; border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+        .tkt-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .tkt-user { font-size: 13px; color: #00e676; font-weight: 700; }
+        .tkt-subject { font-size: 15px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+        .tkt-body { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 10px; }
 
-        .btn-create { width: 100%; background: #00b074; color: #fff; border: none; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: 800; cursor: pointer; }
-        .btn-create:hover { background: #009361; }
+        .tkt-img-box img { max-width: 240px; max-height: 150px; border-radius: 6px; border: 1px solid #2c3c54; cursor: pointer; }
+        
+        .reply-textarea { width: 100%; background: #0e141e; border: 1px solid #2a3b54; color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; margin-top: 8px; }
+        .btn-reply { background: #0070f3; color: #fff; border: none; padding: 8px 16px; border-radius: 4px; font-size: 12px; font-weight: 800; cursor: pointer; margin-top: 8px; }
+        .btn-reply:hover { background: #005ecb; }
 
-        .bonus-item { background: #182230; border: 1px solid #253347; border-left: 4px solid #f5a623; padding: 12px; border-radius: 6px; margin-bottom: 10px; }
-        .bonus-head { display: flex; justify-content: space-between; align-items: center; }
-        .bonus-amt { color: #00e676; font-size: 16px; font-weight: 800; }
-        .bonus-timer { font-size: 11px; color: #f5a623; font-weight: 700; margin-top: 4px; }
-        .btn-del { background: #eb5757; color: #fff; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .status-badge { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; }
+        .status-pending { background: #f5a623; color: #000; }
+        .status-solved { background: #00e676; color: #000; }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px; }
+        .form-control { width: 100%; background: #0e141e; border: 1px solid #2a3b54; color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; margin-bottom: 8px; }
+        .btn-create { width: 100%; background: #00b074; color: #fff; border: none; padding: 10px; border-radius: 6px; font-weight: 800; cursor: pointer; }
 
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #1a2332; }
@@ -41,52 +46,39 @@
 <body>
     <div class="admin-wrap">
         <header class="admin-header">
-            <h1>🏆 Master Admin | 24-Hour Bonus & Controls <span class="badge">LIVE</span></h1>
+            <h1>🛡️ Admin Support Desk & Platform Controls <span class="badge">LIVE</span></h1>
         </header>
 
-        <div class="grid-2">
+        <div class="card">
+            <div class="card-title">💬 User Support Tickets & Inquiries</div>
+            <div id="ticketsContainer">
+                <p style="color:#6e829c; font-size:13px;">Loading support tickets...</p>
+            </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 24px;">
             <div class="card">
-                <div class="card-title">🎁 Create New 24-Hour Bonus Offer</div>
-                <div class="form-group">
-                    <label>Offer Title</label>
-                    <input type="text" id="bTitle" class="form-control" placeholder="e.g. Weekend Mega Referral Bonus">
-                </div>
-                <div class="form-group">
-                    <label>Bonus Category</label>
-                    <select id="bType" class="form-control">
-                        <option value="Referral Bonus">Referral Bonus (রেফার বোনাস)</option>
-                        <option value="Trading Bonus">Trading Target Bonus (ট্রেড টার্গেট বোনাস)</option>
-                        <option value="Deposit Booster">Deposit Booster (ডিপোজিট বোনাস)</option>
-                        <option value="Special Festival">Special Festival (স্পেশাল অফার)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Bonus Reward Amount (USD $)</label>
-                    <input type="number" id="bAmount" class="form-control" placeholder="10" min="1">
-                </div>
-                <div class="form-group">
-                    <label>Description / Rules</label>
-                    <textarea id="bDesc" class="form-control" rows="2" placeholder="Tell traders how to complete & claim this bonus..."></textarea>
-                </div>
+                <div class="card-title">🎁 Publish 24-Hour Bonus</div>
+                <input type="text" id="bTitle" class="form-control" placeholder="Title (e.g. Daily Bonus)">
+                <select id="bType" class="form-control">
+                    <option value="Referral Bonus">Referral Bonus</option>
+                    <option value="Trading Bonus">Trading Target Bonus</option>
+                    <option value="Deposit Booster">Deposit Booster</option>
+                </select>
+                <input type="number" id="bAmount" class="form-control" placeholder="Amount ($)" min="1">
+                <textarea id="bDesc" class="form-control" rows="2" placeholder="Description..."></textarea>
                 <button class="btn-create" onclick="publishBonus()">🚀 Publish 24h Bonus</button>
             </div>
 
             <div class="card">
-                <div class="card-title">⏳ Active 24-Hour Bonuses (Live on Trophy Icon)</div>
-                <div id="activeBonusListContainer">
-                    <p style="color:#6e829c; font-size:13px;">Loading active bonuses...</p>
-                </div>
+                <div class="card-title">🎯 User Mode Control</div>
+                <table>
+                    <thead>
+                        <tr><th>User</th><th>Live Bal</th><th>Mode</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
             </div>
-        </div>
-
-        <div class="card" style="margin-bottom:20px;">
-            <div class="card-title">🎯 User Mode Control</div>
-            <table>
-                <thead>
-                    <tr><th>User</th><th>Live Balance</th><th>Demo Balance</th><th>Status</th><th>Control</th></tr>
-                </thead>
-                <tbody id="userTableBody"></tbody>
-            </table>
         </div>
     </div>
 
@@ -104,46 +96,60 @@
             fetch('/api/admin/data')
             .then(r => r.json())
             .then(d => {
-                // বোনাস তালিকা রেন্ডার
-                let bContainer = document.getElementById('activeBonusListContainer');
-                if (!d.bonuses || d.bonuses.length === 0) {
-                    bContainer.innerHTML = `<p style="color:#6e829c; font-size:13px;">No active 24-hour bonus right now.</p>`;
+                // ১. সাপোর্ট টিকেট তালিকা রেন্ডার
+                let tContainer = document.getElementById('ticketsContainer');
+                if (!d.supportTickets || d.supportTickets.length === 0) {
+                    tContainer.innerHTML = `<p style="color:#6e829c; font-size:13px;">No support tickets submitted yet.</p>`;
                 } else {
-                    let now = Date.now();
                     let html = '';
-                    d.bonuses.forEach(b => {
-                        let msLeft = Math.max(0, (24 * 60 * 60 * 1000) - (now - b.createdAt));
-                        let hrs = Math.floor(msLeft / (1000 * 60 * 60));
-                        let mins = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
-
+                    d.supportTickets.forEach(t => {
+                        let isSolved = (t.status === "Solved");
                         html += `
-                            <div class="bonus-item">
-                                <div class="bonus-head">
+                            <div class="ticket-item">
+                                <div class="tkt-head">
                                     <div>
-                                        <b style="color:#fff; font-size:14px;">${b.title}</b>
-                                        <span style="font-size:11px; color:#8fa0b5; display:block;">${b.type}</span>
+                                        <b style="color:#fff;">${t.id}</b> | <span class="tkt-user">${t.username}</span>
+                                        <small style="color:#6e829c; display:block; font-size:11px;">${t.createdAt}</small>
                                     </div>
-                                    <div style="text-align:right;">
-                                        <span class="bonus-amt">+$${parseFloat(b.amount).toFixed(2)}</span>
-                                        <button class="btn-del" onclick="deleteBonus('${b.id}')" style="display:block; margin-top:4px;">Delete</button>
-                                    </div>
+                                    <span class="status-badge ${isSolved ? 'status-solved' : 'status-pending'}">${t.status}</span>
                                 </div>
-                                <p style="font-size:12px; color:#cbd5e1; margin-top:6px;">${b.description}</p>
-                                <div class="bonus-timer">⏳ Expires in: ${hrs}h ${mins}m | Claimed: ${b.claimedBy ? b.claimedBy.length : 0} users</div>
+                                <div class="tkt-subject">${t.subject}</div>
+                                <div class="tkt-body">${t.message}</div>
+
+                                ${t.screenshot ? `
+                                    <div class="tkt-img-box" style="margin-bottom:10px;">
+                                        <div style="font-size:11px; color:#8fa0b5; margin-bottom:4px;">User Attached Screenshot:</div>
+                                        <a href="${t.screenshot}" target="_blank">
+                                            <img src="${t.screenshot}" alt="Screenshot">
+                                        </a>
+                                    </div>
+                                ` : ''}
+
+                                ${isSolved ? `
+                                    <div style="background:#13251e; border:1px solid #00e676; border-radius:6px; padding:10px; margin-top:8px;">
+                                        <b style="color:#00e676; font-size:11px;">Admin Solution (${t.repliedAt}):</b>
+                                        <div style="font-size:12px; color:#e2f9ee; margin-top:4px;">${t.adminReply}</div>
+                                    </div>
+                                ` : `
+                                    <div style="margin-top:10px;">
+                                        <label style="font-size:11px; color:#8fa0b5; font-weight:700;">Write Solution / Reply to User:</label>
+                                        <textarea id="reply-${t.id}" class="reply-textarea" rows="2" placeholder="Explain the detailed solution for the user..."></textarea>
+                                        <button class="btn-reply" onclick="sendReply('${t.id}')">Send Solution to User</button>
+                                    </div>
+                                `}
                             </div>
                         `;
                     });
-                    bContainer.innerHTML = html;
+                    tContainer.innerHTML = html;
                 }
 
-                // ইউজার টেবিল
+                // ২. ইউজার টেবিল
                 let uHtml = '';
                 for (let u in d.users) {
                     let usr = d.users[u];
                     uHtml += `<tr>
                         <td><b>${u}</b></td>
                         <td style="color:#00e676;">$${usr.liveBalance.toFixed(2)}</td>
-                        <td style="color:#f5a623;">$${usr.demoBalance.toFixed(2)}</td>
                         <td><b>${usr.control.toUpperCase()}</b></td>
                         <td>
                             <button onclick="setMode('${u}','win')" style="background:#00b074; color:#fff; border:none; padding:4px 8px; border-radius:4px; font-weight:700; cursor:pointer;">WIN</button>
@@ -156,13 +162,29 @@
             });
         }
 
+        function sendReply(ticketId) {
+            let text = document.getElementById(`reply-${ticketId}`).value.trim();
+            if (!text) return alert("Please enter a reply before sending!");
+
+            fetch('/api/admin/support-reply', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticketId, adminReply: text })
+            })
+            .then(r => r.json())
+            .then(d => {
+                showToast(d.message);
+                loadData();
+            });
+        }
+
         function publishBonus() {
             let title = document.getElementById('bTitle').value.trim();
             let type = document.getElementById('bType').value;
             let amount = document.getElementById('bAmount').value;
             let desc = document.getElementById('bDesc').value.trim();
 
-            if (!title || !amount) return alert("Title and Amount are required!");
+            if (!title || !amount) return alert("Title and Amount required!");
 
             fetch('/api/admin/create-bonus', {
                 method: 'POST',
@@ -177,15 +199,6 @@
                 document.getElementById('bDesc').value = '';
                 loadData();
             });
-        }
-
-        function deleteBonus(id) {
-            if (!confirm("Are you sure you want to delete this bonus?")) return;
-            fetch('/api/admin/delete-bonus', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ bonusId: id })
-            }).then(() => { showToast("Bonus deleted!"); loadData(); });
         }
 
         function setMode(u, m) {

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option Terminal</title>
-    <link rel="stylesheet" href="style.css?v=18.0">
+    <link rel="stylesheet" href="style.css?v=19.0">
 </head>
 <body>
     <div class="app-root">
@@ -146,9 +146,11 @@
                 <div class="f-icon active" onclick="closeAllDrawers()">
                     <svg viewBox="0 0 24 24"><path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/></svg>
                 </div>
-                <div class="f-icon" onclick="alert('Support: support@pocketoption.com')">
+
+                <div class="f-icon" onclick="openSupportModal()">
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/></svg>
                 </div>
+
                 <div class="f-icon" onclick="window.location.href='/profile.html'">
                     <svg viewBox="0 0 24 24"><path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/></svg>
                 </div>
@@ -166,19 +168,57 @@
         </div>
     </div>
 
+    <div id="supportModal" class="full-screen-modal">
+        <div class="modal-inner">
+            <div class="modal-header">
+                <h3>💬 Customer Support Desk</h3>
+                <span class="x-close" onclick="closeSupportModal()">✕</span>
+            </div>
+
+            <div class="support-tabs">
+                <button id="tabSupportCreate" class="sup-tab active" onclick="switchSupportTab('create')">New Ticket</button>
+                <button id="tabSupportHistory" class="sup-tab" onclick="switchSupportTab('history')">My Tickets (<span id="ticketCountBadge">0</span>)</button>
+            </div>
+
+            <div id="supportCreateView">
+                <div class="form-row">
+                    <label class="form-lbl">Subject / Issue Type</label>
+                    <input type="text" id="supSubject" class="sup-input" placeholder="e.g. Deposit not credited / Chart issue">
+                </div>
+
+                <div class="form-row">
+                    <label class="form-lbl">Describe Your Problem</label>
+                    <textarea id="supMessage" class="sup-textarea" rows="3" placeholder="Explain what happened in detail so Admin can solve it..."></textarea>
+                </div>
+
+                <div class="form-row">
+                    <label class="form-lbl">Attach Screenshot (Optional)</label>
+                    <div class="upload-box" onclick="document.getElementById('supFile').click()">
+                        <span id="uploadHintText">📷 Click here to select screenshot</span>
+                        <input type="file" id="supFile" accept="image/*" style="display: none;" onchange="handleScreenshotUpload(event)">
+                    </div>
+                    <img id="supImgPreview" class="screenshot-preview-thumb" style="display: none;">
+                </div>
+
+                <button class="btn-confirm-dep" onclick="submitSupportTicket()">🚀 Send to Admin Support</button>
+            </div>
+
+            <div id="supportHistoryView" style="display: none;">
+                <div id="userTicketsList"></div>
+            </div>
+        </div>
+    </div>
+
     <div id="bonusTournamentsModal" class="full-screen-modal">
         <div class="modal-inner">
             <div class="modal-header">
                 <h3>🏆 Active 24h Bonuses & Offers</h3>
                 <span class="x-close" onclick="closeTournamentsBonusModal()">✕</span>
             </div>
-
             <div class="bonus-modal-subhead">
                 Participate, complete tasks or refer traders to claim instant cash bonuses. Offers expire automatically after 24 hours!
             </div>
-
-            <div id="activeBonusCardsContainer">
-                </div>
+            <div id="activeBonusCardsContainer"></div>
         </div>
     </div>
 
@@ -315,6 +355,6 @@
         <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
     </div>
 
-    <script src="script.js?v=18.0"></script>
+    <script src="script.js?v=19.0"></script>
 </body>
 </html>

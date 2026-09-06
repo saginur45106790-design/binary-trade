@@ -8,14 +8,31 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.json());
+// স্ক্রিনশট আপলোডের জন্য 20mb পেলোড লিমিট
+app.use(express.json({ limit: '20mb' }));
+app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 let users = {
   "demo_user": { liveBalance: 10.00, demoBalance: 11072.87, activeAccount: "demo", control: "normal" }
 };
 
-// ২৪ ঘণ্টার ডায়নামিক বোনাস স্টোরেজ
+// কাস্টমার সাপোর্ট টিকেট ডেটাবেজ
+let supportTickets = [
+  {
+    id: "TKT-85810",
+    username: "demo_user",
+    subject: "Withdrawal processing time inquiry",
+    message: "I submitted a Binance withdrawal request 2 hours ago. When will it be approved?",
+    screenshot: "",
+    status: "Solved",
+    adminReply: "Hello Sajib! Your Binance Pay withdrawal has been reviewed and approved successfully. Funds should reflect in your Binance account within a few minutes.",
+    createdAt: "06/09/2026, 15:20:10",
+    repliedAt: "06/09/2026, 15:45:00"
+  }
+];
+
+// ২৪ ঘণ্টার ডায়নামিক বোনাস
 let activeBonuses = [
   {
     id: "b_ref_01",
@@ -23,7 +40,7 @@ let activeBonuses = [
     type: "Referral Bonus",
     amount: 10.00,
     description: "Invite 1 active friend to trade and claim your instant $10 cash reward!",
-    createdAt: Date.now() - (2 * 60 * 60 * 1000), // ২ ঘণ্টা আগে তৈরি
+    createdAt: Date.now() - (2 * 60 * 60 * 1000),
     claimedBy: []
   },
   {
@@ -32,28 +49,20 @@ let activeBonuses = [
     type: "Trading Bonus",
     amount: 5.00,
     description: "Complete your daily target today and claim a $5 trading booster bonus!",
-    createdAt: Date.now() - (5 * 60 * 60 * 1000), // ৫ ঘণ্টা আগে তৈরি
+    createdAt: Date.now() - (5 * 60 * 60 * 1000),
     claimedBy: []
   }
 ];
 
-// ২৪ ঘণ্টা পার হলে বোনাস স্বয়ংক্রিয়ভাবে ডিলিট করার ফিল্টার
 function getValidBonuses() {
   let now = Date.now();
-  let dayMs = 24 * 60 * 60 * 1000;
-  activeBonuses = activeBonuses.filter(b => (now - b.createdAt) < dayMs);
+  activeBonuses = activeBonuses.filter(b => (now - b.createdAt) < (24 * 60 * 60 * 1000));
   return activeBonuses;
 }
 
-// প্রতি ১ মিনিটে এক্সপায়ার হওয়া বোনাস ক্লিনআপ
-setInterval(() => {
-  getValidBonuses();
-}, 60000);
-
 let depositHistory = [
   { id: "128385243", date: "24/08/2026, 20:39:08", status: "Failed", amount: 10.00, method: "Bkash (P2C)", type: "Deposit" },
-  { id: "126022410", date: "31/07/2026, 14:34:41", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" },
-  { id: "125912179", date: "30/07/2026, 10:34:34", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" }
+  { id: "126022410", date: "31/07/2026, 14:34:41", status: "Successed", amount: 13.00, method: "Binance Pay", type: "Deposit" }
 ];
 
 let transactions = [
@@ -249,7 +258,57 @@ app.get('/api/user/info', (req, res) => {
 });
 
 // ----------------------------------------------------
-// বোনাস API (ইউজার ক্লেইম ও ২৪ ঘণ্টা ভ্যালিডেশন)
+// ❓ কাস্টমার সাপোর্ট টিকেট API (সমস্যা ও স্ক্রিনশট)
+// ----------------------------------------------------
+app.get('/api/support/tickets', (req, res) => {
+  let username = req.query.username || "demo_user";
+  let userTickets = supportTickets.filter(t => t.username === username);
+  res.json({ success: true, tickets: userTickets });
+});
+
+app.post('/api/support/create', (req, res) => {
+  const { username, subject, message, screenshot } = req.body;
+  if (!subject || !message) {
+    return res.json({ success: false, message: "Please enter subject and problem details!" });
+  }
+
+  let now = new Date();
+  let timeStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}, ${now.toTimeString().split(' ')[0]}`;
+
+  let newTicket = {
+    id: "TKT-" + Math.floor(10000 + Math.random() * 90000),
+    username: username || "demo_user",
+    subject: subject.trim(),
+    message: message.trim(),
+    screenshot: screenshot || "",
+    status: "Pending",
+    adminReply: "",
+    createdAt: timeStr,
+    repliedAt: ""
+  };
+
+  supportTickets.unshift(newTicket);
+  res.json({ success: true, message: "Your support request has been submitted to Admin!", ticket: newTicket });
+});
+
+// অ্যাডমিন থেকে সাপোর্ট রিপ্লাই
+app.post('/api/admin/support-reply', (req, res) => {
+  const { ticketId, adminReply } = req.body;
+  let t = supportTickets.find(item => item.id === ticketId);
+  if (!t) return res.json({ success: false, message: "Ticket not found!" });
+
+  let now = new Date();
+  let timeStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}, ${now.toTimeString().split(' ')[0]}`;
+
+  t.adminReply = adminReply.trim();
+  t.status = "Solved";
+  t.repliedAt = timeStr;
+
+  res.json({ success: true, message: "Solution sent to user successfully!" });
+});
+
+// ----------------------------------------------------
+// বোনাস API
 // ----------------------------------------------------
 app.get('/api/bonuses', (req, res) => {
   let list = getValidBonuses();
@@ -261,41 +320,29 @@ app.post('/api/bonuses/claim', (req, res) => {
   let validList = getValidBonuses();
   let b = validList.find(item => item.id === bonusId);
 
-  if (!b) {
-    return res.json({ success: false, message: "Bonus offer has expired or does not exist!" });
-  }
+  if (!b) return res.json({ success: false, message: "Bonus expired!" });
 
   let user = users[username] || users["demo_user"];
   if (b.claimedBy && b.claimedBy.includes(username || "demo_user")) {
-    return res.json({ success: false, message: "You have already claimed this bonus!" });
+    return res.json({ success: false, message: "You already claimed this bonus!" });
   }
 
-  // বোনাস অ্যাকাউন্টে যোগ করা
   let amt = Number(b.amount) || 0;
-  if (accountType === 'live') {
-    user.liveBalance = parseFloat((user.liveBalance + amt).toFixed(2));
-  } else {
-    user.demoBalance = parseFloat((user.demoBalance + amt).toFixed(2));
-  }
+  if (accountType === 'live') user.liveBalance = parseFloat((user.liveBalance + amt).toFixed(2));
+  else user.demoBalance = parseFloat((user.demoBalance + amt).toFixed(2));
 
   b.claimedBy = b.claimedBy || [];
   b.claimedBy.push(username || "demo_user");
 
   res.json({
     success: true,
-    message: `Congratulations! $${amt.toFixed(2)} bonus added to your account.`,
-    newBalance: accountType === 'live' ? user.liveBalance : user.demoBalance,
-    bonusId: b.id
+    message: `Congratulations! $${amt.toFixed(2)} bonus added.`,
+    newBalance: accountType === 'live' ? user.liveBalance : user.demoBalance
   });
 });
 
-// অ্যাডমিন থেকে নতুন ২৪ ঘণ্টার বোনাস তৈরি
 app.post('/api/admin/create-bonus', (req, res) => {
   const { title, type, amount, description } = req.body;
-  if (!title || !amount) {
-    return res.json({ success: false, message: "Title and Amount are required!" });
-  }
-
   let newBonus = {
     id: "b_" + Date.now(),
     title: title.trim(),
@@ -305,16 +352,14 @@ app.post('/api/admin/create-bonus', (req, res) => {
     createdAt: Date.now(),
     claimedBy: []
   };
-
   activeBonuses.unshift(newBonus);
-  res.json({ success: true, message: "New 24-hour bonus published successfully!", bonus: newBonus });
+  res.json({ success: true, message: "Bonus published!", bonus: newBonus });
 });
 
-// অ্যাডমিন থেকে বোনাস ডিলিট করা
 app.post('/api/admin/delete-bonus', (req, res) => {
   const { bonusId } = req.body;
   activeBonuses = activeBonuses.filter(b => b.id !== bonusId);
-  res.json({ success: true, message: "Bonus offer deleted." });
+  res.json({ success: true, message: "Bonus deleted." });
 });
 
 app.get('/api/payments', (req, res) => res.json({ success: true, deposits: depositHistory }));
@@ -325,7 +370,7 @@ app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(
 app.get('/api/admin/data', (req, res) => {
   let bonuses = getValidBonuses();
   let totalDeposit = depositHistory.filter(t => t.status === 'Successed').reduce((s, t) => s + Number(t.amount), 0);
-  res.json({ users, transactions, depositHistory, assets: ASSETS, bonuses, totalDeposit });
+  res.json({ users, transactions, depositHistory, assets: ASSETS, bonuses, supportTickets, totalDeposit });
 });
 
 app.post('/api/admin/action', (req, res) => {
