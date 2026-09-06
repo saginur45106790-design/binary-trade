@@ -10,7 +10,7 @@
 body, html {
     width: 100%;
     height: 100%;
-    background-color: #171d28;
+    background-color: #121824;
     color: #fff;
     overflow-x: hidden;
     overflow-y: auto;
@@ -27,19 +27,19 @@ body, html {
 
 .top-bar {
     height: 48px;
-    background: #1b2230;
+    background: #171f2c;
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 12px;
-    border-bottom: 1px solid #232c3d;
+    border-bottom: 1px solid #202b3d;
 }
 
 .account-select-pill {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #222b3d;
+    background: #1e2838;
     padding: 5px 10px;
     border-radius: 6px;
     cursor: pointer;
@@ -80,7 +80,7 @@ body, html {
 .chart-box-container {
     flex: 1;
     position: relative;
-    background: #171d28;
+    background: #121824;
     overflow: hidden;
 }
 
@@ -91,7 +91,6 @@ body, html {
     touch-action: none;
 }
 
-/* চার্ট ব্যাকগ্রাউন্ড ওয়াটারমার্ক */
 .watermark-text {
     position: absolute;
     top: 50%;
@@ -119,7 +118,7 @@ body, html {
     z-index: 5;
 }
 .sub-menu-btn {
-    background: #1c2536;
+    background: #1c2638;
     padding: 4px 8px;
     border-radius: 4px;
     color: #8fa0b5;
@@ -183,8 +182,8 @@ body, html {
 
 /* বটম প্যানেল */
 .dock-panel {
-    background: #1b2230;
-    border-top: 1px solid #232c3d;
+    background: #171f2c;
+    border-top: 1px solid #202b3d;
     padding: 10px 14px 6px;
     display: flex;
     flex-direction: column;
@@ -224,8 +223,8 @@ input:checked + .slider:before { transform: translateX(14px); }
 .dock-row-2 { display: flex; gap: 10px; }
 .timer-box, .invest-box {
     flex: 1;
-    background: #222b3d;
-    border: 1px solid #2d3950;
+    background: #1e2838;
+    border: 1px solid #273449;
     border-radius: 6px;
     padding: 6px 10px;
     display: flex;
@@ -256,7 +255,7 @@ input:checked + .slider:before { transform: translateX(14px); }
     left: 50%;
     transform: translateX(-50%);
     font-size: 8px;
-    background: #1b2230;
+    background: #171f2c;
     color: #0070f3;
     padding: 0 4px;
     font-weight: 800;
@@ -271,7 +270,7 @@ input:checked + .slider:before { transform: translateX(14px); }
     overflow: hidden;
     white-space: nowrap;
 }
-.payout-dots { color: #232c3d; letter-spacing: 2px; flex: 1; text-align: center; }
+.payout-dots { color: #202b3d; letter-spacing: 2px; flex: 1; text-align: center; }
 .payout-amt { color: #fff; font-size: 13px; font-weight: 800; }
 
 .dock-actions { display: flex; gap: 10px; }
@@ -300,98 +299,60 @@ input:checked + .slider:before { transform: translateX(14px); }
     font-weight: 900;
 }
 
-.footer-icons {
+/* -------------------------------------------------------------
+   ফুটার ন্যাভিগেশন বার - হুবহু স্ক্রিনশট ৮৫৬ অনুযায়ী
+------------------------------------------------------------- */
+.footer-icons, .footer-nav {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding-top: 6px;
-    border-top: 1px solid #232c3d;
-}
-.f-icon { font-size: 17px; color: #6e829c; cursor: pointer; position: relative; }
-.f-icon.active { color: #fff; }
-.f-badge { position: absolute; top: -4px; right: -6px; background: #0070f3; color: #fff; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 8px; }
-
-/* রিয়েলিস্টিক অ্যাকাউন্ট সুইচ ড্রপডাউন (স্ক্রিনশট ৭৪৬ ও ৮২৭) */
-.acc-modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-}
-.acc-dropdown-card {
-    position: absolute;
-    top: 52px;
-    left: 12px;
-    width: 300px;
+    height: 52px;
+    padding: 0 8px;
     background: #171f2c;
-    border: 1px solid #28374d;
-    border-radius: 10px;
-    padding: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    border-top: 1px solid #202b3d;
 }
-.acc-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #222e40; }
-.std-badge { font-size: 11px; color: #00b074; }
-.user-email-id { margin-top: 10px; }
-.u-mail { font-size: 13px; font-weight: 700; color: #fff; }
-.u-id { font-size: 11px; color: #6e829c; margin-top: 2px; }
 
-.currency-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    margin: 12px 0 10px;
-    color: #8fa0b5;
-}
-.currency-row b { color: #fff; }
-.btn-change { background: #0070f3; color: #fff; border: none; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
-
-.acc-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    background: #1c2738;
-    border: 1px solid #253347;
-    margin-top: 10px;
-    transition: 0.2s;
-}
-.acc-option.active { border-color: #0070f3; background: #1e2c42; }
-
-.acc-radio-circle {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid #5a6e87;
-    margin-top: 2px;
+.f-icon, .f-btn {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: #607185;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
 }
-.acc-radio-circle.active {
-    border-color: #0070f3;
+
+.f-icon.active, .f-btn.active {
+    color: #ffffff;
 }
-.acc-radio-circle.active:after {
-    content: "";
-    width: 8px;
-    height: 8px;
-    background: #0070f3;
+
+.f-icon svg, .f-btn svg {
+    display: block;
+    width: 22px;
+    height: 22px;
+    fill: currentColor;
+}
+
+.f-badge {
+    position: absolute;
+    top: 5px;
+    right: 3px;
+    background: #258aff;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 900;
+    width: 15px;
+    height: 15px;
     border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
-.acc-opt-info { flex: 1; }
-.opt-title { font-size: 12px; color: #8fa0b5; font-weight: 600; }
-.opt-bal-row { display: flex; align-items: center; justify-content: space-between; margin: 2px 0; }
-.opt-bal { font-size: 15px; font-weight: 800; color: #fff; }
-.reset-demo-btn { font-size: 14px; cursor: pointer; opacity: 0.75; }
-.reset-demo-btn:hover { opacity: 1; transform: rotate(45deg); }
-.opt-sub { font-size: 10px; color: #5a6e87; }
-.blue-link { color: #0070f3; font-weight: 700; margin-left: 4px; }
-
-/* ডিপোজিট ও অন্যান্য মডাল */
+/* মোডাল ও পপআপ */
 .full-screen-modal {
     display: none;
     position: fixed;
@@ -458,7 +419,6 @@ input:checked + .slider:before { transform: translateX(14px); }
     margin-top: 4px;
 }
 
-/* কয়েন আইকন ও ক্রিপ্টো তালিকা */
 .asset-item {
     display: flex;
     justify-content: space-between;
@@ -493,7 +453,83 @@ input:checked + .slider:before { transform: translateX(14px); }
 .ton-logo { background: #0088cc; font-size: 14px; }
 .ada-logo { background: #0033ad; }
 
-/* টাইম ডায়ালগ */
+.acc-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+}
+.acc-dropdown-card {
+    position: absolute;
+    top: 52px;
+    left: 12px;
+    width: 300px;
+    background: #171f2c;
+    border: 1px solid #28374d;
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+.acc-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #222e40; }
+.std-badge { font-size: 11px; color: #00b074; }
+.user-email-id { margin-top: 10px; }
+.u-mail { font-size: 13px; font-weight: 700; color: #fff; }
+.u-id { font-size: 11px; color: #6e829c; margin-top: 2px; }
+
+.currency-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    margin: 12px 0 10px;
+    color: #8fa0b5;
+}
+.currency-row b { color: #fff; }
+.btn-change { background: #0070f3; color: #fff; border: none; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
+
+.acc-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #1c2738;
+    border: 1px solid #253347;
+    margin-top: 10px;
+    transition: 0.2s;
+}
+.acc-option.active { border-color: #0070f3; background: #1e2c42; }
+
+.acc-radio-circle {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #5a6e87;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.acc-radio-circle.active { border-color: #0070f3; }
+.acc-radio-circle.active:after {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: #0070f3;
+    border-radius: 50%;
+}
+
+.acc-opt-info { flex: 1; }
+.opt-title { font-size: 12px; color: #8fa0b5; font-weight: 600; }
+.opt-bal-row { display: flex; align-items: center; justify-content: space-between; margin: 2px 0; }
+.opt-bal { font-size: 15px; font-weight: 800; color: #fff; }
+.reset-demo-btn { font-size: 14px; cursor: pointer; opacity: 0.75; }
+.reset-demo-btn:hover { opacity: 1; transform: rotate(45deg); }
+.opt-sub { font-size: 10px; color: #5a6e87; }
+.blue-link { color: #0070f3; font-weight: 700; margin-left: 4px; }
+
 .time-popup-dialog {
     display: none;
     position: fixed;

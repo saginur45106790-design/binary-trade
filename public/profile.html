@@ -4,40 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Profile & Withdrawal | Pocket Option</title>
+    <link rel="stylesheet" href="style.css?v=13.0">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #121824; color: #fff; padding-bottom: 75px; overflow-x: hidden; }
+        body { padding-bottom: 75px; }
 
-        /* শীর্ষ বার */
-        .top-bar {
-            height: 50px;
-            background: #171f2c;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 14px;
-            border-bottom: 1px solid #202b3d;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .account-pill {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: #1e2838;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-        .acc-label-live { color: #00b074; font-size: 11px; }
-        .top-right { display: flex; align-items: center; gap: 12px; }
-        .bell-badge { position: relative; font-size: 18px; cursor: pointer; }
-        .badge-count { position: absolute; top: -4px; right: -6px; background: #ff5252; color: #fff; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 8px; }
-        .deposit-btn { background: #00b074; color: #fff; border: none; padding: 7px 16px; border-radius: 6px; font-size: 13px; font-weight: 700; cursor: pointer; }
-
-        /* ৫০% বোনাস ব্যানার */
         .bonus-banner {
             background: linear-gradient(90deg, #00b074, #00c853);
             color: #fff;
@@ -54,7 +24,6 @@
         .bonus-tag { background: #1c2637; color: #fff; padding: 2px 6px; border-radius: 10px; font-size: 11px; }
         .banner-close { cursor: pointer; font-size: 14px; opacity: 0.8; }
 
-        /* অ্যাকর্ডিয়ন ড্রপডাউন (স্ক্রিনশট ৮৩৬) */
         .accordion-wrapper { margin: 0 14px 14px; position: relative; }
         .accordion-header {
             background: #1c2638;
@@ -83,16 +52,12 @@
             color: #d1dbe8;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
         .menu-item:hover { background: #1f2a3c; }
 
         .section-box { padding: 0 14px; }
         .sec-title { font-size: 15px; font-weight: 800; margin: 12px 0 10px; color: #fff; }
 
-        /* পার্সোনাল ডেটা ফর্ম */
         .avatar-card { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
         .avatar-circle {
             width: 58px; height: 58px; border-radius: 50%; background: #0070f3;
@@ -122,9 +87,6 @@
             border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 10px 0 20px;
         }
 
-        /* -------------------------------------------------------------
-           WITHDRAWAL PAGE STYLES (SCREENSHOTS 837, 838, 839, 840, 841)
-        ------------------------------------------------------------- */
         .account-summary-block { margin-bottom: 18px; }
         .acc-info-lbl { font-size: 12px; color: #8fa0b5; margin-bottom: 2px; }
         .acc-info-val { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 14px; }
@@ -132,7 +94,6 @@
         .currency-suffix { position: absolute; right: 14px; top: 12px; color: #6e829c; font-weight: 700; font-size: 13px; }
         .error-hint-text { color: #eb5757; font-size: 11px; margin-top: 4px; display: none; line-height: 1.4; }
 
-        /* কনফার্ম বাটন (নীল বোতাম ও ডানমুখী তীর) */
         .btn-confirm-withdrawal {
             width: 100%; background: #0070f3; color: #fff; border: none; padding: 13px 18px;
             border-radius: 6px; font-size: 15px; font-weight: 800; cursor: pointer; margin: 16px 0 20px;
@@ -144,7 +105,6 @@
             display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900;
         }
 
-        /* Some of your latest requests */
         .requests-header {
             display: flex; justify-content: space-between; align-items: center;
             font-size: 15px; font-weight: 800; margin: 20px 0 12px; color: #fff;
@@ -153,9 +113,7 @@
             background: #0070f3; width: 20px; height: 20px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff;
         }
-        .req-card-item {
-            padding: 10px 0; border-bottom: 1px solid #1c2637;
-        }
+        .req-card-item { padding: 10px 0; border-bottom: 1px solid #1c2637; }
         .req-row-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; }
         .req-row-mid { display: flex; justify-content: space-between; font-size: 11px; color: #6e829c; margin-top: 3px; }
         .req-status-tag { font-size: 11px; font-weight: 700; margin-top: 3px; }
@@ -163,7 +121,6 @@
         .req-status-tag.successed { color: #00e676; }
         .req-status-tag.pending { color: #f5a623; }
 
-        /* FAQ অ্যাকর্ডিয়ন (স্ক্রিনশট ৮৩৮, ৮৩৯) */
         .faq-box { margin-top: 24px; }
         .faq-head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .faq-head-row b { font-size: 15px; }
@@ -171,7 +128,6 @@
         .faq-question { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: #d5e0ee; }
         .faq-answer { display: none; font-size: 12px; color: #8fa0b5; margin-top: 8px; line-height: 1.5; }
 
-        /* বটম ইনফো ব্লক ও ট্রাস্ট ব্যাজ (স্ক্রিনশট ৮৩৯) */
         .trust-info-card {
             background: #141d2a; border: 1px solid #1d2a3d; border-radius: 8px;
             padding: 16px; margin-top: 20px; font-size: 12px; line-height: 1.8;
@@ -190,15 +146,11 @@
         }
         .badge-full { grid-column: span 2; }
 
-        /* ফুটার বার */
         .footer-nav {
-            position: fixed; bottom: 0; left: 0; right: 0; height: 54px;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 52px;
             background: #171f2c; border-top: 1px solid #202b3d; display: flex;
             justify-content: space-around; align-items: center; z-index: 100;
         }
-        .f-btn { font-size: 18px; color: #6e829c; cursor: pointer; position: relative; }
-        .f-btn.active { color: #fff; }
-        .f-badge { position: absolute; top: -4px; right: -6px; background: #0070f3; color: #fff; font-size: 9px; font-weight: 800; padding: 1px 4px; border-radius: 8px; }
 
         .toast {
             display: none; position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%);
@@ -309,15 +261,13 @@
             <span class="blue-circle-link">➔</span>
         </div>
 
-        <div id="latestRequestsList">
-            </div>
+        <div id="latestRequestsList"></div>
 
         <div class="faq-box">
             <div class="faq-head-row">
                 <b>FAQ:</b>
                 <span style="color:#0070f3; font-size:12px; font-weight:700; cursor:pointer;">Check out full FAQ ➔</span>
             </div>
-
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question"><span>How to withdraw money from the account?</span><span>▼</span></div>
                 <div class="faq-answer">Select your payment method, specify the desired amount and wallet details, then click "Confirm".</div>
@@ -329,30 +279,6 @@
             <div class="faq-item" onclick="toggleFaq(this)">
                 <div class="faq-question"><span>What is the minimum withdrawal amount?</span><span>▼</span></div>
                 <div class="faq-answer">The minimum withdrawal amount is $10 USD for most payment methods.</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>Is there any fee for depositing or withdrawing funds from the account?</span><span>▼</span></div>
-                <div class="faq-answer">The platform does not charge fees for the first 2 withdrawals in 24 hours. A 3% fee applies thereafter.</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>Do I need to provide any documents to make a withdrawal?</span><span>▼</span></div>
-                <div class="faq-answer">Standard withdrawals require a verified profile. If extra verification is needed, you will receive an email.</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>What is account verification?</span><span>▼</span></div>
-                <div class="faq-answer">Verification confirms your identity and secures your funds against unauthorized transactions.</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>How to understand that I need to go through account verification?</span><span>▼</span></div>
-                <div class="faq-answer">Check your profile page. Verified status is indicated by a green checkmark next to your ID.</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>How long does the verification process take?</span><span>▼</span></div>
-                <div class="faq-answer">Documents are usually reviewed within 1-3 business days.</div>
-            </div>
-            <div class="faq-item" onclick="toggleFaq(this)">
-                <div class="faq-question"><span>How do I know that I successfully passed verification?</span><span>▼</span></div>
-                <div class="faq-answer">A confirmation email will be sent, and your profile will display the "Verified" badge.</div>
             </div>
         </div>
 
@@ -374,7 +300,6 @@
 
     <div id="view-my-account" class="section-box">
         <div class="sec-title">Personal data:</div>
-
         <div class="avatar-card">
             <div class="avatar-circle">👤<span class="camera-badge">📷</span></div>
             <div>
@@ -383,7 +308,6 @@
                 <div class="verified-tag">✔ Verified</div>
             </div>
         </div>
-
         <div class="form-field"><span class="field-label">Nickname</span><input type="text" id="inpNickname" class="field-input" value="SojibTrader"></div>
         <div class="form-field"><span class="field-label">First Name</span><input type="text" id="inpFirstName" class="field-input" value="MD Sajib"></div>
         <div class="form-field"><span class="field-label">Last Name</span><input type="text" id="inpLastName" class="field-input" value="Hossain"></div>
@@ -398,48 +322,52 @@
             </select>
         </div>
         <div class="form-field"><span class="field-label">Address</span><input type="text" id="inpAddress" class="field-input" value="Akkelpur, Rajshahi, Bangladesh"></div>
-
         <button class="btn-save" onclick="savePersonalData()">Save</button>
     </div>
 
-    <div id="view-payments" class="section-box" style="display: none;">
-        <div class="sec-title">Payment History:</div>
-        <p style="color:#6e829c; font-size:13px;">No recent payment records found.</p>
-    </div>
-
-    <div id="view-trades" class="section-box" style="display: none;">
-        <div class="sec-title">Trade History:</div>
-        <p style="color:#6e829c; font-size:13px;">No closed trades yet.</p>
-    </div>
-
-    <div id="view-market" class="section-box" style="display: none;">
-        <div class="sec-title">Market & Promo:</div>
-        <p style="color:#6e829c; font-size:13px;">0 active promo codes.</p>
-    </div>
-
-    <div id="view-tournaments" class="section-box" style="display: none;">
-        <div class="sec-title">Tournaments:</div>
-        <p style="color:#6e829c; font-size:13px;">Daily battles are running.</p>
-    </div>
-
-    <div id="view-analytics" class="section-box" style="display: none;">
-        <div class="sec-title">Trading Analytics:</div>
-        <p style="color:#6e829c; font-size:13px;">Analytics calculated from real trades.</p>
-    </div>
+    <div id="view-payments" class="section-box" style="display: none;"><div class="sec-title">Payment History:</div><p style="color:#6e829c;">No payments recorded.</p></div>
+    <div id="view-trades" class="section-box" style="display: none;"><div class="sec-title">Trade History:</div><p style="color:#6e829c;">No trades recorded.</p></div>
+    <div id="view-market" class="section-box" style="display: none;"><div class="sec-title">Market:</div><p style="color:#6e829c;">0 active coupons.</p></div>
+    <div id="view-tournaments" class="section-box" style="display: none;"><div class="sec-title">Tournaments:</div><p style="color:#6e829c;">Daily battles live.</p></div>
+    <div id="view-analytics" class="section-box" style="display: none;"><div class="sec-title">Analytics:</div><p style="color:#6e829c;">Analytics based on live trades.</p></div>
 
     <nav class="footer-nav">
-        <div class="f-btn" onclick="window.location.href='/'">📊</div>
-        <div class="f-btn" onclick="alert('Support: support@pocketoption.com')">❔</div>
-        <div class="f-btn active">👤</div>
-        <div class="f-btn" onclick="switchSection('Tournaments')">🏆<span class="f-badge">4</span></div>
-        <div class="f-btn" onclick="switchSection('Market')">💬<span class="f-badge">4</span></div>
+        <div class="f-btn" onclick="window.location.href='/'">
+            <svg viewBox="0 0 24 24">
+                <path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/>
+            </svg>
+        </div>
+
+        <div class="f-btn" onclick="alert('Support: support@pocketoption.com')">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/>
+            </svg>
+        </div>
+
+        <div class="f-btn active">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/>
+            </svg>
+        </div>
+
+        <div class="f-btn" onclick="switchSection('Tournaments')">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.3A6 6 0 0 0 11 14.9V18H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2v-3.1A6 6 0 0 0 18.7 12H19a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3zM4 8V7a1 1 0 0 1 1-1h2v4.2A2 2 0 0 1 4 8zm16 0a2 2 0 0 1-3 2V6h2a1 1 0 0 1 1 1v1z"/>
+            </svg>
+            <span class="f-badge">4</span>
+        </div>
+
+        <div class="f-btn" onclick="switchSection('Market')">
+            <svg viewBox="0 0 24 24">
+                <path d="M19 3H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h11l4.2 3.2c.5.4 1.3 0 1.3-.7V6a3 3 0 0 0-2.5-3zM7.5 13a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+            </svg>
+            <span class="f-badge">4</span>
+        </div>
     </nav>
 
     <div id="toastBox" class="toast">Changes saved!</div>
 
     <script>
-        let currentLiveBalance = 10.00;
-
         function toggleDropdownMenu() {
             let menu = document.getElementById('accordionMenu');
             let chevron = document.getElementById('accordionChevron');
@@ -469,7 +397,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // পেমেন্ট মেথড পরিবর্তন হ্যান্ডলার
         function onPaymentMethodChange(val) {
             let rSelect = document.getElementById('withdrawReceiveType');
             let rLabel = document.getElementById('receiveInputLabel');
@@ -488,13 +415,11 @@
             validateAccountInput();
         }
 
-        // রিসিভ টাইপ পরিবর্তন হ্যান্ডলার
         function onReceiveTypeChange(val) {
             document.getElementById('receiveInputLabel').innerText = val;
             validateAccountInput();
         }
 
-        // ইনপুট ভ্যালিডেশন (Screenshot 841)
         function validateAccountInput() {
             let method = document.getElementById('withdrawMethod').value;
             let rType = document.getElementById('withdrawReceiveType').value;
@@ -520,7 +445,6 @@
             }
         }
 
-        // উইথড্রয়াল সাবমিট
         function submitWithdrawal() {
             if (!validateAccountInput()) return;
 
@@ -548,7 +472,6 @@
             .then(d => {
                 if (d.success) {
                     showToast(d.message);
-                    currentLiveBalance = d.newBalance;
                     updateBalDisplay(d.newBalance);
                     document.getElementById('withdrawAccountInput').value = '';
                     loadWithdrawals();
@@ -558,15 +481,12 @@
             });
         }
 
-        // রিকোয়েস্ট তালিকা লোড (Screenshot 838)
         function loadWithdrawals() {
             fetch('/api/withdrawals')
             .then(r => r.json())
             .then(d => {
                 if (d.success) {
-                    currentLiveBalance = d.liveBalance;
                     updateBalDisplay(d.liveBalance);
-
                     let listHtml = '';
                     d.withdrawals.forEach(item => {
                         let statusClass = item.status.toLowerCase();
