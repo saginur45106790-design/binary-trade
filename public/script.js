@@ -115,7 +115,6 @@ canvas.addEventListener('touchend', () => {
     initialPinchDistance = null;
 });
 
-// "Sell the trade" কার্ড পপআপ হ্যান্ডলার (রেফারেন্সের ইমেজ ১১৮ অনুযায়ী)
 function checkTradeClick(touchX, touchY) {
     const rect = canvas.getBoundingClientRect();
     let x = touchX - rect.left;
@@ -388,7 +387,11 @@ function syncClock() {
     let ss = String(now.getSeconds()).padStart(2, '0');
     document.getElementById('liveUtcClock').innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC+6`;
 
-    // End of trade টেক্সট আপডেট
+    // ১ মিনিটের ক্যান্ডেল টাইমার হিসেব (ঘড়ির কাঁটা অনুযায়ী প্রতি সেকেন্ডে কমবে)
+    let sec = Math.floor(now.getTime() / 1000);
+    remainingCountdown = 60 - (sec % 60);
+
+    // End of trade টেক্সট
     if (currentMode === 'time' && selectedTimeValue) {
         document.getElementById('endTradeTimeText').innerText = selectedTimeValue;
     } else {
@@ -396,10 +399,10 @@ function syncClock() {
         document.getElementById('endTradeTimeText').innerText = `${String(expDate.getHours()).padStart(2,'0')}:${String(expDate.getMinutes()).padStart(2,'0')}`;
     }
 
-    let curSec = Math.floor(now.getTime() / 1000);
+    // ট্রেড এক্সপায়ারি চেক
     for (let i = activeTrades.length - 1; i >= 0; i--) {
         let trade = activeTrades[i];
-        if (curSec >= trade.expireTime) {
+        if (sec >= trade.expireTime) {
             settleTrade(trade);
             activeTrades.splice(i, 1);
             updateTradeBadges();
@@ -407,7 +410,7 @@ function syncClock() {
     }
 
     if (activeSellTrade) {
-        let diffSec = Math.max(0, activeSellTrade.expireTime - curSec);
+        let diffSec = Math.max(0, activeSellTrade.expireTime - sec);
         let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
         let remS = String(diffSec % 60).padStart(2, '0');
         document.getElementById('sellTimeRem').innerText = `${remM}:${remS}`;
@@ -445,14 +448,14 @@ function settleTrade(trade) {
     });
 }
 
-// কয়েন স্যুইচিং (ক্রস-অ্যাসেট গ্লিচ জিরো করা হয়েছে)
+// কয়েন স্যুইচিং
 function selectAsset(key) {
     if (activeAssetKey === key && candles.length > 0) {
         closeAssetModal();
         return;
     }
     isLoadingAsset = true;
-    candles = []; // তাৎক্ষণিক ক্লিয়ার
+    candles = [];
     showChartLoader();
     closeAssetModal();
 
@@ -484,7 +487,7 @@ function selectAsset(key) {
 }
 
 // -------------------------------------------------------------
-// ক্যানভাস রেন্ডার লুপ (রেফারেন্সের হুবহু আর্কিটেকচার)
+// ক্যানভাস রেন্ডার লুপ (১ মিনিটের ক্যান্ডেল কাউন্টডাউন ও নো-টাইম ট্রেড মার্কার)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -495,7 +498,7 @@ function render() {
 
     if (candles.length === 0 || isLoadingAsset) return;
 
-    // স্মুথ লার্প ইন্টারপোলেশন
+    // মসৃণ লার্প ইন্টারপোলেশন
     renderLivePrice += (targetLivePrice - renderLivePrice) * 0.18;
     candles[candles.length - 1].close = parseFloat(renderLivePrice.toFixed(activeDecimals));
 
@@ -603,16 +606,29 @@ function render() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // কাউন্টডাউন ব্যাজ (- 00:29)
-    let cdM = Math.floor(remainingCountdown / 60);
+    // -------------------------------------------------------------
+    // ১ মিনিট ক্যান্ডেল টাইম (ট্রেড নিলেও কখনোই আটকাবে না)
+    // -------------------------------------------------------------
     let cdS = remainingCountdown % 60;
-    let cdStr = `${String(cdM).padStart(2,'0')}:${String(cdS).padStart(2,'0')}`;
+    let candleTimerStr = (remainingCountdown === 60) ? '01:00' : `00:${String(cdS).padStart(2, '0')}`;
 
-    ctx.fillStyle = 'rgba(23, 29, 42, 0.9)';
-    ctx.fillRect(expX - 25, liveY - 9, 50, 18);
+    // সাইড টাইম পিল
+    let pillW = 54;
+    let pillH = 20;
+    let pillX = expX + 6;
+    let pillY = liveY - (pillH / 2);
+
+    ctx.fillStyle = '#1c2638';
+    ctx.strokeStyle = '#2d3e56';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+    ctx.fill();
+    ctx.stroke();
+
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 10px monospace';
-    ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
+    ctx.fillText(candleTimerStr, pillX + 10, pillY + 14);
 
     // বটম টাইম স্কেল
     ctx.fillStyle = '#6e829c';
@@ -626,7 +642,7 @@ function render() {
     });
 
     // -------------------------------------------------------------
-    // রেফারেন্সের অরিজিনাল ট্রেড মার্কার (ইমেজ ১১০, ১১৮, ১৪৯)
+    // ট্রেডার রা ট্রেড নিলে শুধু আইকন দেখা যাবে (কোনো টাইম কাউন্ট/কাউন্টার থাকবে না)
     // -------------------------------------------------------------
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let entryX = getX(tr.startCandleIdx);
@@ -634,7 +650,7 @@ function render() {
         let isUp = (tr.direction === 'UP');
         let tradeColor = isUp ? '#00e676' : '#eb5757';
 
-        // অনুভূমিক ড্যাশ লাইন (ট্রেডের শেষ পর্যন্ত)
+        // অনুভূমিক ড্যাশ লাইন
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = tradeColor;
         ctx.lineWidth = 1.3;
@@ -644,7 +660,7 @@ function render() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // ১. ক্যান্ডেলের এন্ট্রি পয়েন্টে সলিড সার্কেল + অ্যারো
+        // ক্যান্ডেলের এন্ট্রি পয়েন্টে সলিড সার্কেল + অ্যারো আইকন
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(entryX, entryY, 7.5, 0, Math.PI * 2);
@@ -654,7 +670,7 @@ function render() {
         ctx.font = 'bold 9px sans-serif';
         ctx.fillText(isUp ? '↑' : '↓', entryX - 2.8, entryY + 3.2);
 
-        // ২. শেষ প্রান্তে ছোট এক্সপায়ারেশন ডট
+        // শেষ প্রান্তে ছোট এক্সপায়ারেশন ডট (কোনো টাইম টেক্সট নেই)
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(expX, entryY, 4, 0, Math.PI * 2);
@@ -662,15 +678,13 @@ function render() {
     });
 }
 
-// WebSocket
+// WebSocket কানেকশন
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
 ws.onmessage = (event) => {
     let msg = JSON.parse(event.data);
     if (msg.type === 'TICK') {
-        remainingCountdown = msg.countdown;
-
         for (let k in msg.assets) {
             let el = document.getElementById(`price-tag-${k}`);
             if (el) el.innerText = msg.assets[k].price;
@@ -746,7 +760,7 @@ function closeAllDrawers() {
 }
 function toggleToolsMenu() {}
 
-// প্রাথমিক ইনিশিয়ালাইজেশন
+// ইনিশিয়ালাইজেশন
 fitCanvas();
 selectAsset('BTC');
 switchAccount('demo');
