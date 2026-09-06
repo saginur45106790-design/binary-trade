@@ -1,8 +1,7 @@
 const canvas = document.getElementById('tradeCanvas');
 const ctx = canvas.getContext('2d');
 
-let candleHistory = [];
-let liveCandle = null;
+let candles = [];
 let activeTrades = [];
 let currentAccount = 'demo';
 let demoBalance = 11061.95;
@@ -14,26 +13,13 @@ let activeAssetKey = 'BTC';
 let activeDecimals = 2;
 let currentPayout = 92;
 
-const COIN_ICONS = {
-    'BTC': '<span class="c-logo btc-logo" style="width:20px;height:20px;font-size:11px;">₿</span>',
-    'ETH': '<span class="c-logo eth-logo" style="width:20px;height:20px;font-size:11px;">Ξ</span>',
-    'SOL': '<span class="c-logo sol-logo" style="width:20px;height:20px;font-size:11px;">◎</span>',
-    'BNB': '<span class="c-logo bnb-logo" style="width:20px;height:20px;font-size:11px;">◆</span>',
-    'XRP': '<span class="c-logo xrp-logo" style="width:20px;height:20px;font-size:11px;">✕</span>',
-    'DOGE': '<span class="c-logo doge-logo" style="width:20px;height:20px;font-size:11px;">Ð</span>',
-    'TON': '<span class="c-logo ton-logo" style="width:20px;height:20px;font-size:10px;">💎</span>',
-    'ADA': '<span class="c-logo ada-logo" style="width:20px;height:20px;font-size:11px;">₳</span>'
-};
-
 let candleWidth = 9;
-let candleSpacing = 5;
+let candleSpacing = 4;
 let initialPinchDistance = null;
 
 let currentMode = 'timer';
 let selectedTimerSeconds = 60;
 let selectedTimerDisplay = '00:01:00';
-let selectedTimeValue = '';
-let targetExpiryEpoch = 0;
 
 function fitCanvas() {
     const dpr = window.devicePixelRatio || 1;
@@ -53,7 +39,6 @@ let isPanning = false;
 
 canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length === 2) {
-        isPanning = false;
         initialPinchDistance = Math.hypot(
             e.touches[0].clientX - e.touches[1].clientX,
             e.touches[0].clientY - e.touches[1].clientY
@@ -72,18 +57,18 @@ canvas.addEventListener('touchmove', (e) => {
         );
         let factor = currentDist / initialPinchDistance;
         if (factor > 1.04 && candleWidth < 22) {
-            candleWidth = Math.min(22, candleWidth + 0.4);
-            candleSpacing = Math.min(10, candleSpacing + 0.18);
+            candleWidth = Math.min(22, candleWidth + 0.3);
+            candleSpacing = Math.min(10, candleSpacing + 0.15);
         } else if (factor < 0.96 && candleWidth > 4) {
-            candleWidth = Math.max(4, candleWidth - 0.4);
-            candleSpacing = Math.max(2, candleSpacing - 0.18);
+            candleWidth = Math.max(4, candleWidth - 0.3);
+            candleSpacing = Math.max(2, candleSpacing - 0.15);
         }
         initialPinchDistance = currentDist;
         drawChart();
     } else if (e.touches.length === 1 && isPanning) {
         panOffset += (e.touches[0].clientX - startX) * 0.95;
-        let maxPan = (candleHistory.length * (candleWidth + candleSpacing)) - 100;
-        panOffset = Math.max(-100, Math.min(maxPan, panOffset));
+        let maxPan = (candles.length * (candleWidth + candleSpacing)) - 80;
+        panOffset = Math.max(-60, Math.min(maxPan, panOffset));
         startX = e.touches[0].clientX;
         drawChart();
     }
@@ -94,43 +79,27 @@ canvas.addEventListener('touchend', () => {
     initialPinchDistance = null;
 });
 
-function syncClockAndTrades() {
+function syncClock() {
     let now = new Date();
     let hh = String(now.getHours()).padStart(2, '0');
     let mm = String(now.getMinutes()).padStart(2, '0');
     let ss = String(now.getSeconds()).padStart(2, '0');
-
     document.getElementById('liveUtcClock').innerText = `🟢 ${hh}:${mm}:${ss} UTC+6`;
-
-    if (currentMode === 'time') {
-        if (!targetExpiryEpoch || targetExpiryEpoch <= now.getTime()) {
-            let nextMin = new Date(now.getTime() + 60000);
-            nextMin.setSeconds(0, 0);
-            targetExpiryEpoch = nextMin.getTime();
-            selectedTimeValue = `${String(nextMin.getHours()).padStart(2,'0')}:${String(nextMin.getMinutes()).padStart(2,'0')}`;
-            document.getElementById('dockTimeValue').innerText = selectedTimeValue;
-            renderTimeModeGrid();
-        }
-    }
 
     let curSec = Math.floor(now.getTime() / 1000);
     for (let i = activeTrades.length - 1; i >= 0; i--) {
         let trade = activeTrades[i];
         if (curSec >= trade.expireTime) {
-            settleTradeExpiration(trade);
+            settleTrade(trade);
             activeTrades.splice(i, 1);
         }
     }
     drawChart();
 }
-setInterval(syncClockAndTrades, 1000);
-syncClockAndTrades();
+setInterval(syncClock, 1000);
 
-function settleTradeExpiration(trade) {
-    let exitP = (trade.asset === activeAssetKey && liveCandle) 
-        ? liveCandle.close 
-        : parseFloat(trade.entryPrice);
-
+function settleTrade(trade) {
+    let exitP = candles.length > 0 ? candles[candles.length - 1].close : trade.entryPrice;
     fetch('/api/settle-trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,157 +116,76 @@ function settleTradeExpiration(trade) {
     .then(r => r.json())
     .then(data => {
         updateBalanceUI(data.balance);
-
         let bubble = document.getElementById('resultBubble');
-        if (data.isWin) {
-            bubble.className = "result-popup-bubble";
-            document.getElementById('resProfitVal').innerText = `+${data.profit} $`;
-        } else {
-            bubble.className = "result-popup-bubble loss";
-            document.getElementById('resProfitVal').innerText = `0.00 $`;
-        }
+        bubble.className = data.isWin ? "result-popup-bubble" : "result-popup-bubble loss";
+        document.getElementById('resProfitVal').innerText = data.isWin ? `+${data.profit} $` : `0.00 $`;
         bubble.style.display = 'block';
         bubble.style.top = '48%';
         bubble.style.left = '35%';
         setTimeout(() => { bubble.style.display = 'none'; }, 4000);
-
         drawChart();
     });
 }
 
-function renderTimeModeGrid() {
-    let container = document.getElementById('gridTimeMode');
-    container.innerHTML = '';
-    let now = new Date();
-    let offsets = [1, 2, 3, 4, 5, 10, 15, 30, 45, 60, 120, 240];
-
-    offsets.forEach((offset) => {
-        let t = new Date(now.getTime() + offset * 60000);
-        let timeStr = `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
-        let btn = document.createElement('button');
-        btn.innerText = timeStr;
-        if (timeStr === selectedTimeValue) btn.classList.add('selected');
-        btn.onclick = () => {
-            selectedTimeValue = timeStr;
-            let targetD = new Date(t);
-            targetD.setSeconds(0, 0);
-            targetExpiryEpoch = targetD.getTime();
-            document.getElementById('dockTimeValue').innerText = timeStr;
-            toggleTimePopup();
-            syncClockAndTrades();
-        };
-        container.appendChild(btn);
-    });
-}
-
-function switchPopupTab(tab) {
-    currentMode = tab;
-    if (tab === 'time') {
-        document.getElementById('tabTimeBtn').classList.add('active');
-        document.getElementById('tabTimerBtn').classList.remove('active');
-        document.getElementById('gridTimeMode').style.display = 'grid';
-        document.getElementById('gridTimerMode').style.display = 'none';
-        renderTimeModeGrid();
-        document.getElementById('dockTimeLabel').innerText = 'Time';
-        document.getElementById('dockTimeValue').innerText = selectedTimeValue;
-    } else {
-        document.getElementById('tabTimerBtn').classList.add('active');
-        document.getElementById('tabTimeBtn').classList.remove('active');
-        document.getElementById('gridTimerMode').style.display = 'grid';
-        document.getElementById('gridTimeMode').style.display = 'none';
-        document.getElementById('dockTimeLabel').innerText = 'Timer';
-        document.getElementById('dockTimeValue').innerText = selectedTimerDisplay;
-    }
-    syncClockAndTrades();
-}
-
-function toggleTimePopup() {
-    let p = document.getElementById('timeSelectPopup');
-    let willOpen = p.style.display !== 'block';
-    p.style.display = willOpen ? 'block' : 'none';
-    if (willOpen && currentMode === 'time') renderTimeModeGrid();
-}
-
-function selectTimer(sec, display) {
-    selectedTimerSeconds = sec;
-    selectedTimerDisplay = display;
-    document.getElementById('dockTimeValue').innerText = display;
-    document.querySelectorAll('#gridTimerMode button').forEach(b => b.classList.remove('selected'));
-    event.target.classList.add('selected');
-    document.getElementById('timeSelectPopup').style.display = 'none';
-    syncClockAndTrades();
-}
-
-function resetPan() { panOffset = 0; drawChart(); }
-
 function selectAsset(key) {
     activeAssetKey = key;
     document.getElementById('chartWatermark').innerText = key;
-    document.getElementById('activeCoinIcon').innerHTML = COIN_ICONS[key];
     document.getElementById('curName').innerText = `${key}/USD (OTC)`;
-
     fetch(`/api/history/${key}`)
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            candleHistory = data.history;
-            liveCandle = data.candle;
+            candles = data.history;
             activeDecimals = data.meta.decimals;
             currentPayout = data.meta.payout;
             document.getElementById('curPayout').innerText = `${currentPayout}% ▼`;
-            updatePayoutDisplay();
             closeAssetModal();
             drawChart();
         }
     });
 }
 
-// চার্ট ড্রয়িং ইঞ্জিন (গ্যাপ মুক্ত পারফেক্ট কনসেকিউটিভ আর্কিটেকচার)
+// চার্ট ড্রয়িং (ক্যান্ডেল কোনোভাবেই বিচ্ছিন্ন হবে না)
 function drawChart() {
     const width = parseFloat(canvas.style.width) || canvas.width;
     const height = parseFloat(canvas.style.height) || canvas.height;
-
     ctx.clearRect(0, 0, width, height);
 
-    let allCandles = [...candleHistory];
-    if (liveCandle) allCandles.push(liveCandle);
-    if (allCandles.length === 0) return;
+    if (candles.length === 0) return;
 
     let totalUnit = candleWidth + candleSpacing;
-    let baseRightX = width - 95 + panOffset;
-    let N = allCandles.length;
+    let baseRightX = width - 80 + panOffset;
+    let N = candles.length;
 
-    // প্রতিটি ক্যান্ডেল ইনডেক্স অনুযায়ী নির্ভুল X পজিশন নির্ণয় (কখনোই গ্যাপ হবে না)
-    function getXByIndex(i) {
+    function getX(i) {
         return baseRightX - ((N - 1 - i) * totalUnit);
     }
 
-    // দৃশ্যমান ক্যান্ডেল ফিল্টার
     let visibleCandles = [];
     for (let i = 0; i < N; i++) {
-        let x = getXByIndex(i);
+        let x = getX(i);
         if (x >= -40 && x <= width + 40) {
-            visibleCandles.push({ candle: allCandles[i], x: x, index: i });
+            visibleCandles.push({ ...candles[i], x, index: i });
         }
     }
 
     if (visibleCandles.length === 0) {
-        visibleCandles = allCandles.map((c, i) => ({ candle: c, x: getXByIndex(i), index: i }));
+        visibleCandles = candles.map((c, i) => ({ ...c, x: getX(i), index: i }));
     }
 
-    let prices = visibleCandles.flatMap(v => [v.candle.high, v.candle.low]);
+    let prices = visibleCandles.flatMap(v => [v.high, v.low]);
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(t => prices.push(t.entryPrice));
 
     let minP = Math.min(...prices);
     let maxP = Math.max(...prices);
-    let range = (maxP - minP) || (0.0001 * Math.pow(10, 4 - activeDecimals));
+    let range = (maxP - minP) || 0.001;
     let padY = 35;
 
-    function getY(price) {
-        return height - padY - ((price - minP) / range) * (height - padY * 2);
+    function getY(p) {
+        return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
-    // হরিজন্টাল গ্রিড লাইন
+    // অনুভূমিক গ্রিড
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -314,10 +202,8 @@ function drawChart() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // নিখুঁত ক্যান্ডেলস্টিক আঁকা (ধারাবাহিকভাবে একটার পর একটা)
-    visibleCandles.forEach(v => {
-        let c = v.candle;
-        let x = v.x;
+    // ক্যান্ডেলস্টিক রেন্ডার
+    visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
 
@@ -326,137 +212,84 @@ function drawChart() {
         let openY = getY(c.open);
         let closeY = getY(c.close);
 
-        // উইক
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.moveTo(Math.floor(x + candleWidth / 2) + 0.5, Math.floor(highY));
-        ctx.lineTo(Math.floor(x + candleWidth / 2) + 0.5, Math.floor(lowY));
+        ctx.moveTo(Math.floor(c.x + candleWidth / 2) + 0.5, Math.floor(highY));
+        ctx.lineTo(Math.floor(c.x + candleWidth / 2) + 0.5, Math.floor(lowY));
         ctx.stroke();
 
-        // বডি
         ctx.fillStyle = color;
         let topY = Math.min(openY, closeY);
         let h = Math.abs(closeY - openY) || 1.5;
-        ctx.fillRect(Math.floor(x), Math.floor(topY), Math.ceil(candleWidth), Math.ceil(h));
+        ctx.fillRect(Math.floor(c.x), Math.floor(topY), Math.ceil(candleWidth), Math.ceil(h));
     });
 
-    // বটম টাইমলাইন
-    ctx.fillStyle = '#6e829c';
-    ctx.font = '10px sans-serif';
-    visibleCandles.forEach(v => {
-        if (v.index % 8 === 0) {
-            let d = new Date(v.candle.time * 1000);
-            let lbl = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-            ctx.fillText(lbl, Math.floor(v.x - 12), height - 6);
-        }
-    });
+    // শেষ ক্যান্ডেলের প্রাইস লাইন
+    let last = candles[candles.length - 1];
+    let liveY = getY(last.close);
 
-    // লাইভ প্রাইজ অনুভূমিক ডটেড লাইন ও নীল পিল
-    if (liveCandle) {
-        let liveY = getY(liveCandle.close);
+    ctx.setLineDash([3, 3]);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.beginPath();
+    ctx.moveTo(0, liveY);
+    ctx.lineTo(width - 55, liveY);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
-        ctx.setLineDash([3, 3]);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.beginPath();
-        ctx.moveTo(0, liveY);
-        ctx.lineTo(width - 55, liveY);
-        ctx.stroke();
-        ctx.setLineDash([]);
+    ctx.fillStyle = '#0070f3';
+    ctx.beginPath();
+    ctx.roundRect(width - 56, liveY - 10, 54, 20, 4);
+    ctx.fill();
 
-        ctx.fillStyle = '#0070f3';
-        ctx.beginPath();
-        ctx.roundRect(width - 56, liveY - 10, 54, 20, 4);
-        ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 10px monospace';
-        ctx.fillText(liveCandle.close.toFixed(activeDecimals), width - 51, liveY + 4);
-    }
+    // উলম্ব এক্সপায়ারেশন ড্যাশ লাইন (সর্বশেষ ক্যান্ডেলের ঠিক পরে)
+    let expX = baseRightX + totalUnit;
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.beginPath();
+    ctx.moveTo(expX, 0);
+    ctx.lineTo(expX, height - 20);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
+    let cdM = Math.floor(remainingCountdown / 60);
+    let cdS = remainingCountdown % 60;
+    let cdStr = `${String(cdM).padStart(2,'0')}:${String(cdS).padStart(2,'0')}`;
+
+    ctx.fillStyle = 'rgba(23, 29, 42, 0.85)';
+    ctx.fillRect(expX - 25, liveY - 9, 50, 18);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
+
+    // সক্রিয় ট্রেড
     let nowSec = Math.floor(Date.now() / 1000);
-
-    // ট্রেড না থাকলে এক্সপায়ারেশন উল্লম্ব লাইন
-    let thisAssetTrades = activeTrades.filter(t => t.asset === activeAssetKey);
-    if (thisAssetTrades.length === 0) {
-        let expCandleOffset = Math.max(1, Math.ceil(selectedTimerSeconds / 60));
-        let expX = baseRightX + (expCandleOffset * totalUnit);
-
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
-        ctx.beginPath();
-        ctx.moveTo(expX, 0);
-        ctx.lineTo(expX, height - 20);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        if (liveCandle) {
-            let liveY = getY(liveCandle.close);
-            let cdM = Math.floor(remainingCountdown / 60);
-            let cdS = remainingCountdown % 60;
-            let cdStr = `${String(cdM).padStart(2,'0')}:${String(cdS).padStart(2,'0')}`;
-
-            ctx.fillStyle = 'rgba(23, 29, 42, 0.85)';
-            ctx.fillRect(expX - 25, liveY - 9, 50, 18);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 10px monospace';
-            ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
-        }
-    }
-
-    // সক্রিয় ট্রেডের জন্য ড্যাশ লাইন ও এক্সপায়ারেশন উল্লম্ব লাইন (ক্যান্ডেলের সাথে লক)
-    thisAssetTrades.forEach(tr => {
-        let entryX = baseRightX - ((N - 1 - tr.startCandleIdx) * totalUnit);
-        let durationCandles = Math.max(1, Math.ceil(tr.durationSec / 60));
-        let expiryX = entryX + (durationCandles * totalUnit);
+    activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
+        let entryX = getX(tr.startCandleIdx);
         let entryY = getY(tr.entryPrice);
         let tradeColor = tr.direction === 'UP' ? '#00b074' : '#eb5757';
 
-        // ১. অনুভূমিক লাইন
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = tradeColor;
         ctx.lineWidth = 1.4;
         ctx.beginPath();
         ctx.moveTo(entryX, entryY);
-        ctx.lineTo(expiryX, entryY);
+        ctx.lineTo(expX, entryY);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // ২. উলম্ব এক্সপায়ারেশন লাইন
-        ctx.setLineDash([4, 4]);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(expiryX, 0);
-        ctx.lineTo(expiryX, height - 20);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // ৩. ডট ও তীর
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
-        ctx.arc(entryX, entryY, 7, 0, Math.PI * 2);
+        ctx.arc(entryX, entryY, 6, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9px sans-serif';
-        ctx.fillText(tr.direction === 'UP' ? '↑' : '↓', entryX - 3, entryY + 3);
-
-        // ৪. রিমেইনিং টাইম ব্যাজ
-        let diffSec = Math.max(0, tr.expireTime - nowSec);
-        let remM = Math.floor(diffSec / 60);
-        let remS = diffSec % 60;
-        let remStr = `${String(remM).padStart(2,'0')}:${String(remS).padStart(2,'0')}`;
-
-        ctx.fillStyle = 'rgba(23, 29, 42, 0.9)';
-        ctx.fillRect(expiryX - 25, entryY - 9, 50, 18);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 10px monospace';
-        ctx.fillText(`- ${remStr}`, expiryX - 23, entryY + 4);
     });
 }
 
-// WebSocket
+// WebSocket কানেকশন
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
@@ -465,51 +298,25 @@ ws.onmessage = (event) => {
     if (msg.type === 'TICK') {
         remainingCountdown = msg.countdown;
 
-        for (let k in msg.assets) {
-            let el = document.getElementById(`price-tag-${k}`);
-            if (el) el.innerText = msg.assets[k].price;
-        }
-
         if (msg.assets[activeAssetKey]) {
-            let cur = msg.assets[activeAssetKey];
-            liveCandle = cur.candle;
-            currentPayout = cur.payout;
-            document.getElementById('curPayout').innerText = `${currentPayout}% ▼`;
-            updatePayoutDisplay();
+            let item = msg.assets[activeAssetKey];
+            if (candles.length > 0) {
+                let last = candles[candles.length - 1];
+                if (last.time === item.candle.time) {
+                    candles[candles.length - 1] = item.candle;
+                } else {
+                    candles.push(item.candle);
+                    if (candles.length > 200) candles.shift();
+                }
+            }
         }
-
         drawChart();
     }
 };
 
-function updatePayoutDisplay() {
-    let cur = Number(document.getElementById('invAmt').innerText);
-    let ratio = 1 + (currentPayout / 100);
-    document.getElementById('calcPayout').innerText = (cur * ratio).toFixed(2) + " $";
-}
-
-function stepAmt(v) {
-    let cur = Number(document.getElementById('invAmt').innerText);
-    if (cur + v >= 1) {
-        document.getElementById('invAmt').innerText = cur + v;
-        updatePayoutDisplay();
-    }
-}
-
 function placeOrder(direction) {
     let amount = Number(document.getElementById('invAmt').innerText);
     let nowSec = Math.floor(Date.now() / 1000);
-    let totalSec = 60;
-
-    if (currentMode === 'timer') {
-        totalSec = selectedTimerSeconds;
-    } else {
-        if (targetExpiryEpoch && targetExpiryEpoch > Date.now()) {
-            totalSec = Math.floor((targetExpiryEpoch - Date.now()) / 1000);
-        } else {
-            totalSec = 60;
-        }
-    }
 
     fetch('/api/trade', {
         method: 'POST',
@@ -519,37 +326,25 @@ function placeOrder(direction) {
             amount,
             direction,
             accountType: currentAccount,
-            durationSec: totalSec,
+            durationSec: selectedTimerSeconds,
             asset: activeAssetKey
         })
     })
     .then(r => r.json())
     .then(data => {
-        if (!data.success) {
-            alert(data.message);
-            return;
-        }
+        if (!data.success) return alert(data.message);
 
         updateBalanceUI(data.balance);
-
-        let tradeObj = {
+        activeTrades.push({
             id: Date.now(),
             entryPrice: parseFloat(data.entryPrice),
             entryTime: nowSec,
-            expireTime: nowSec + totalSec,
-            durationSec: totalSec,
+            expireTime: nowSec + selectedTimerSeconds,
             direction: data.direction,
-            amount: amount,
+            amount,
             asset: activeAssetKey,
-            startCandleIdx: candleHistory.length
-        };
-        activeTrades.push(tradeObj);
-
-        let toast = document.getElementById('tradeOpenToast');
-        document.getElementById('toastMsg').innerText = `Trade opened with price: ${data.entryPrice} ${activeAssetKey}/USD (OTC)`;
-        toast.style.display = 'flex';
-        setTimeout(() => { toast.style.display = 'none'; }, 3000);
-
+            startCandleIdx: candles.length - 1
+        });
         drawChart();
     });
 }
@@ -557,59 +352,13 @@ function placeOrder(direction) {
 function updateBalanceUI(val) {
     let str = "$" + Number(val).toLocaleString(undefined, { minimumFractionDigits: 2 });
     document.getElementById('accountBal').innerText = str;
-    if (currentAccount === 'live') {
-        liveBalance = Number(val);
-        document.getElementById('modalLiveBal').innerText = str;
-    } else {
-        demoBalance = Number(val);
-        document.getElementById('modalDemoBal').innerText = str + " 🔄";
-    }
+    if (currentAccount === 'live') liveBalance = Number(val);
+    else demoBalance = Number(val);
 }
 
-function toggleAccountModal() {
-    let m = document.getElementById('accountModal');
-    m.style.display = m.style.display === 'block' ? 'none' : 'block';
-}
-function closeAccountModal(e) {
-    if (e.target.id === 'accountModal') e.target.style.display = 'none';
-}
-function switchAccount(type) {
-    currentAccount = type;
-    document.getElementById('accountModal').style.display = 'none';
-    let lbl = document.getElementById('accountLabel');
-    let icon = document.getElementById('accountIcon');
-
-    if (type === 'live') {
-        lbl.innerText = "LIVE";
-        lbl.className = "acc-label live";
-        icon.innerText = "✈️";
-        updateBalanceUI(liveBalance);
-    } else {
-        lbl.innerText = "DEMO";
-        lbl.className = "acc-label demo";
-        icon.innerText = "🎓";
-        updateBalanceUI(demoBalance);
-    }
-}
-
-function openDrawer(pageName) {
-    document.getElementById('globalDrawer').style.display = 'flex';
-    document.getElementById('drawerPageSelect').value = pageName === 'menu' ? 'profile' : pageName;
-    switchDrawerPage(document.getElementById('drawerPageSelect').value);
-}
-function closeAllDrawers() {
-    document.getElementById('globalDrawer').style.display = 'none';
-}
-function switchDrawerPage(page) {
-    document.querySelectorAll('.drawer-page-body').forEach(el => el.style.display = 'none');
-    let target = document.getElementById('page-' + page);
-    if (target) target.style.display = 'block';
-}
-
-function toggleToolsMenu() {}
+function resetPan() { panOffset = 0; drawChart(); }
 function openAssetModal() { document.getElementById('assetModal').style.display = 'flex'; }
 function closeAssetModal() { document.getElementById('assetModal').style.display = 'none'; }
-function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
 
 selectAsset('BTC');
