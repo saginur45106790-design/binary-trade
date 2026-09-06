@@ -1,3 +1,30 @@
+:root {
+    --bg-main: #121824;
+    --bg-top: #171f2c;
+    --bg-dock: #171f2c;
+    --bg-card: #1e2838;
+    --bg-card-border: #273449;
+    --text-main: #ffffff;
+    --text-sub: #6e829c;
+    --text-muted: #8fa0b5;
+    --chart-grid: rgba(255, 255, 255, 0.05);
+    --watermark-col: rgba(255, 255, 255, 0.025);
+}
+
+/* হোয়াইট / লাইট থিম ভেরিয়েবলস */
+body.theme-light {
+    --bg-main: #f0f2f5;
+    --bg-top: #ffffff;
+    --bg-dock: #ffffff;
+    --bg-card: #f8fafc;
+    --bg-card-border: #e2e8f0;
+    --text-main: #0f172a;
+    --text-sub: #64748b;
+    --text-muted: #475569;
+    --chart-grid: rgba(0, 0, 0, 0.06);
+    --watermark-col: rgba(0, 0, 0, 0.03);
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -10,12 +37,13 @@
 body, html {
     width: 100%;
     height: 100%;
-    background-color: #121824;
-    color: #fff;
+    background-color: var(--bg-main);
+    color: var(--text-main);
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior-y: contain;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .app-root {
@@ -27,19 +55,19 @@ body, html {
 
 .top-bar {
     height: 48px;
-    background: #171f2c;
+    background: var(--bg-top);
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0 12px;
-    border-bottom: 1px solid #202b3d;
+    border-bottom: 1px solid var(--bg-card-border);
 }
 
 .account-select-pill {
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #1e2838;
+    background: var(--bg-card);
     padding: 5px 10px;
     border-radius: 6px;
     cursor: pointer;
@@ -49,8 +77,8 @@ body, html {
 .acc-icon { font-size: 12px; display: flex; align-items: center; }
 .acc-label.live { color: #00b074; font-size: 11px; }
 .acc-label.demo { color: #f5a623; font-size: 11px; }
-.acc-bal { color: #fff; font-size: 13px; font-weight: 700; }
-.chevron { font-size: 9px; color: #8c9ba5; }
+.acc-bal { color: var(--text-main); font-size: 13px; font-weight: 700; }
+.chevron { font-size: 9px; color: var(--text-sub); }
 
 .top-bar-right { display: flex; align-items: center; gap: 10px; }
 .notification-btn { position: relative; cursor: pointer; padding: 4px; display: flex; align-items: center; }
@@ -79,7 +107,7 @@ body, html {
 .chart-box-container {
     flex: 1;
     position: relative;
-    background: #121824;
+    background: var(--bg-main);
     overflow: hidden;
 }
 
@@ -90,11 +118,11 @@ body, html {
     touch-action: none;
 }
 
-/* লোডিং অ্যানিমেশন */
+/* লোডার অ্যানিমেশন */
 .chart-loading-overlay {
     position: absolute;
     inset: 0;
-    background: #121824;
+    background: var(--bg-main);
     z-index: 45;
     display: flex;
     align-items: center;
@@ -107,7 +135,7 @@ body, html {
 .pocket-spinner-badge {
     position: relative; width: 80px; height: 80px; background: #ffffff;
     border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
 }
 .spinner-ring {
     position: absolute; inset: -4px; border-radius: 50%; border: 3px solid transparent;
@@ -123,13 +151,12 @@ body, html {
     transform: translate(-50%, -50%);
     font-size: 85px;
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.025);
+    color: var(--watermark-col);
     letter-spacing: 12px;
     pointer-events: none;
     display: block;
 }
 
-/* চার্ট শীর্ষ মেটা বার */
 .chart-meta-tags {
     position: absolute;
     top: 8px;
@@ -140,14 +167,15 @@ body, html {
     gap: 8px;
     pointer-events: none;
     font-size: 11px;
-    color: #6a7c94;
+    color: var(--text-sub);
     z-index: 5;
 }
 .sub-menu-btn, .briefcase-btn {
-    background: #1c2638;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
     padding: 4px 8px;
     border-radius: 4px;
-    color: #8fa0b5;
+    color: var(--text-muted);
     pointer-events: auto;
     font-size: 11px;
     cursor: pointer;
@@ -161,7 +189,7 @@ body, html {
     border-radius: 4px;
     margin-left: 2px;
 }
-.meta-tag-item { font-size: 10px; color: #6a7c94; }
+.meta-tag-item { font-size: 10px; color: var(--text-sub); }
 .meta-tag-item.end-tag { margin-left: auto; text-align: right; line-height: 1.2; }
 .meta-tag-item.end-tag b { color: #2a66e4; }
 
@@ -190,25 +218,24 @@ body, html {
     font-weight: 900;
     font-size: 14px;
     cursor: pointer;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     z-index: 10;
 }
 
-/* "Sell the trade" কার্ড (রেফারেন্সের ইমেজ ১১৮) */
 .sell-trade-card {
     display: none;
     position: absolute;
-    background: #1c2638;
-    border: 1px solid #2b374d;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
     border-radius: 6px;
     padding: 6px 10px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.4);
     z-index: 30;
     flex-direction: column;
     gap: 4px;
 }
-.st-head { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: #8fa0b5; font-weight: 600; }
-.st-timer { color: #fff; font-family: monospace; }
+.st-head { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: var(--text-muted); font-weight: 600; }
+.st-timer { color: var(--text-main); font-family: monospace; }
 .st-val-btn {
     background: #243044;
     border: 1px solid #33435c;
@@ -219,7 +246,6 @@ body, html {
 }
 .st-val-btn span { color: #fff; font-size: 13px; font-weight: 800; }
 
-/* রেজাল্ট বাবল (রেফারেন্সের ইমেজ ৮০ ও ১৫৩) */
 .result-popup-bubble {
     display: none;
     position: absolute;
@@ -227,7 +253,7 @@ body, html {
     color: #fff;
     padding: 6px 12px;
     border-radius: 6px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
     z-index: 25;
 }
 .result-popup-bubble.loss { background: #eb5757; }
@@ -235,7 +261,6 @@ body, html {
 .res-val { font-size: 15px; font-weight: 800; margin-top: 2px; }
 .res-x { cursor: pointer; }
 
-/* ওপেন ট্রেড টোস্ট (রেফারেন্সের ইমেজ ২৯) */
 .open-trade-toast {
     display: none;
     position: absolute;
@@ -255,21 +280,20 @@ body, html {
 }
 .toast-close { cursor: pointer; font-size: 12px; margin-left: 6px; }
 
-/* সক্রিয় ট্রেড ড্রয়ার */
 .trades-drawer {
     display: none;
     position: absolute;
     bottom: 0;
     left: 0;
     right: 0;
-    background: #1b2230;
-    border-top: 1px solid #283348;
+    background: var(--bg-dock);
+    border-top: 1px solid var(--bg-card-border);
     max-height: 180px;
     overflow-y: auto;
     z-index: 25;
 }
 .drawer-head {
-    background: #222b3d;
+    background: var(--bg-card);
     padding: 8px 12px;
     font-size: 12px;
     font-weight: 700;
@@ -278,10 +302,10 @@ body, html {
     cursor: pointer;
 }
 
-/* বটম প্যানেল */
+/* বটম ডক */
 .dock-panel {
-    background: #171f2c;
-    border-top: 1px solid #202b3d;
+    background: var(--bg-dock);
+    border-top: 1px solid var(--bg-card-border);
     padding: 10px 14px 6px;
     display: flex;
     flex-direction: column;
@@ -308,7 +332,7 @@ body, html {
     align-items: center;
     gap: 8px;
     font-size: 10px;
-    color: #63758d;
+    color: var(--text-sub);
     font-weight: 700;
 }
 .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
@@ -321,8 +345,8 @@ input:checked + .slider:before { transform: translateX(14px); }
 .dock-row-2 { display: flex; gap: 10px; }
 .timer-box, .invest-box {
     flex: 1;
-    background: #1e2838;
-    border: 1px solid #273449;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
     border-radius: 6px;
     padding: 6px 10px;
     display: flex;
@@ -330,16 +354,16 @@ input:checked + .slider:before { transform: translateX(14px); }
     position: relative;
 }
 .timer-box { cursor: pointer; }
-.box-lbl { font-size: 10px; color: #6e829c; }
+.box-lbl { font-size: 10px; color: var(--text-sub); }
 .box-val { font-size: 14px; font-weight: 700; margin-top: 2px; }
 
 .stepper-wrap { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
-.step-btn { background: none; border: none; color: #fff; font-size: 20px; font-weight: 700; cursor: pointer; padding: 0 6px; }
+.step-btn { background: none; border: none; color: var(--text-main); font-size: 20px; font-weight: 700; cursor: pointer; padding: 0 6px; }
 .inv-input-wrap { display: flex; align-items: center; justify-content: center; }
 .inv-input-wrap input {
     background: none;
     border: none;
-    color: #fff;
+    color: var(--text-main);
     font-size: 14px;
     font-weight: 700;
     width: 48px;
@@ -353,7 +377,7 @@ input:checked + .slider:before { transform: translateX(14px); }
     left: 50%;
     transform: translateX(-50%);
     font-size: 8px;
-    background: #171f2c;
+    background: var(--bg-dock);
     color: #0070f3;
     padding: 0 4px;
     font-weight: 800;
@@ -364,12 +388,12 @@ input:checked + .slider:before { transform: translateX(14px); }
     align-items: center;
     justify-content: space-between;
     font-size: 11px;
-    color: #6e829c;
+    color: var(--text-sub);
     overflow: hidden;
     white-space: nowrap;
 }
-.payout-dots { color: #202b3d; letter-spacing: 2px; flex: 1; text-align: center; }
-.payout-amt { color: #fff; font-size: 13px; font-weight: 800; }
+.payout-dots { color: var(--bg-card-border); letter-spacing: 2px; flex: 1; text-align: center; }
+.payout-amt { color: var(--text-main); font-size: 13px; font-weight: 800; }
 
 .dock-actions { display: flex; gap: 10px; }
 .btn-trade {
@@ -397,15 +421,14 @@ input:checked + .slider:before { transform: translateX(14px); }
     font-weight: 900;
 }
 
-/* ফুটার ন্যাভিগেশন বার */
 .footer-icons {
     display: flex;
     justify-content: space-around;
     align-items: center;
     height: 52px;
     padding: 0 8px;
-    background: #171f2c;
-    border-top: 1px solid #202b3d;
+    background: var(--bg-dock);
+    border-top: 1px solid var(--bg-card-border);
 }
 .f-icon {
     display: flex;
@@ -413,12 +436,12 @@ input:checked + .slider:before { transform: translateX(14px); }
     justify-content: center;
     width: 44px;
     height: 44px;
-    color: #607185;
+    color: var(--text-sub);
     cursor: pointer;
     position: relative;
     transition: color 0.2s ease;
 }
-.f-icon.active { color: #ffffff; }
+.f-icon.active { color: var(--text-main); }
 .f-icon svg { display: block; width: 22px; height: 22px; fill: currentColor; }
 .f-badge {
     position: absolute;
@@ -434,10 +457,112 @@ input:checked + .slider:before { transform: translateX(14px); }
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
 }
 
-/* মোডাল ও পপআপ */
+/* -------------------------------------------------------------
+   স্ক্রিনশট ৮৮৫: প্রধান ড্রয়ার মেনু স্টাইল
+------------------------------------------------------------- */
+.main-menu-sheet {
+    max-height: 90vh !important;
+}
+.menu-user-header-card {
+    background: #192333;
+    border: 1px solid #28374d;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 16px;
+}
+.u-mail { font-size: 14px; font-weight: 800; color: #fff; }
+.u-id { font-size: 11px; color: #8fa0b5; margin: 2px 0 6px; }
+.u-standard { font-size: 11px; color: #00b074; font-weight: 700; }
+.btn-quick-trading {
+    width: 100%;
+    background: #00b074;
+    color: #fff;
+    border: none;
+    padding: 11px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    margin-top: 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.menu-action-list {
+    display: flex;
+    flex-direction: column;
+}
+.menu-row-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 4px;
+    border-bottom: 1px solid #1c2637;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.menu-row-item:hover { color: #0070f3; }
+.menu-row-item .item-left { display: flex; align-items: center; gap: 12px; }
+.m-icon { font-size: 18px; }
+.m-arr { color: #6e829c; font-size: 13px; }
+.logout-row { color: #eb5757 !important; border-bottom: none; }
+
+/* -------------------------------------------------------------
+   স্ক্রিনশট ৮৮৮: সেটিংস পেজ স্টাইল
+------------------------------------------------------------- */
+.sec-title { font-size: 15px; font-weight: 800; margin: 12px 0 14px; color: var(--text-main); }
+.form-field-box { margin-bottom: 16px; }
+.form-field-box label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; font-weight: 700; }
+.settings-select {
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    color: var(--text-main);
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    outline: none;
+}
+.theme-choice-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+.theme-card-btn {
+    background: var(--bg-card);
+    border: 2px solid var(--bg-card-border);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    transition: 0.2s;
+}
+.theme-card-btn.active { border-color: #0070f3; background: rgba(0, 112, 243, 0.1); }
+.theme-preview { width: 100%; height: 42px; border-radius: 4px; margin-bottom: 8px; border: 1px solid rgba(0,0,0,0.1); }
+.theme-preview.dark-p { background: #121824; }
+.theme-preview.light-p { background: #f0f2f5; }
+
+/* লাইফটাইম ট্রেডস ও পেমেন্টস কার্ড */
+.hist-card {
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+.hist-row-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; }
+.hist-row-sub { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-sub); margin-top: 4px; }
+.hist-badge-win { color: #00e676; }
+.hist-badge-loss { color: #eb5757; }
+
+/* মোডাল বেস */
 .full-screen-modal {
     display: none;
     position: fixed;
@@ -447,87 +572,52 @@ input:checked + .slider:before { transform: translateX(14px); }
     align-items: flex-end;
 }
 .modal-inner {
-    background: #171d28;
+    background: var(--bg-main);
     width: 100%;
     max-height: 85vh;
     border-radius: 16px 16px 0 0;
     padding: 16px;
     overflow-y: auto;
+    border-top: 1px solid var(--bg-card-border);
 }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
 .x-close { font-size: 20px; cursor: pointer; }
 
+/* ডিপোজিট ও অন্যান্য ফর্ম */
 .dep-methods { display: flex; gap: 8px; margin-bottom: 14px; }
 .dep-pill {
-    flex: 1;
-    background: #202b3d;
-    border: 1px solid #2d3d56;
-    padding: 8px 4px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 700;
-    text-align: center;
-    cursor: pointer;
+    flex: 1; background: var(--bg-card); border: 1px solid var(--bg-card-border);
+    padding: 8px 4px; border-radius: 6px; font-size: 12px; font-weight: 700; text-align: center; cursor: pointer;
 }
 .dep-pill.active { background: #0070f3; border-color: #0070f3; color: #fff; }
 .dep-info-box {
-    background: #131924;
-    border: 1px solid #253347;
-    border-left: 3px solid #00e676;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 12px;
-    margin-bottom: 12px;
+    background: var(--bg-card); border: 1px solid var(--bg-card-border); border-left: 3px solid #00e676;
+    padding: 10px; border-radius: 6px; font-size: 12px; margin-bottom: 12px;
 }
 .dep-info-box b { display: block; color: #00e676; font-size: 14px; margin-top: 2px; }
 .form-row { margin-bottom: 10px; }
 .form-row input {
-    width: 100%;
-    background: #121824;
-    border: 1px solid #253347;
-    color: #fff;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    outline: none;
+    width: 100%; background: var(--bg-card); border: 1px solid var(--bg-card-border);
+    color: var(--text-main); padding: 10px; border-radius: 6px; font-size: 13px; outline: none;
 }
 .btn-confirm-dep {
-    width: 100%;
-    background: #00b074;
-    color: #fff;
-    border: none;
-    padding: 12px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    margin-top: 4px;
+    width: 100%; background: #00b074; color: #fff; border: none; padding: 12px;
+    border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 4px;
 }
 
 .asset-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #202738;
-    cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px; border-bottom: 1px solid var(--bg-card-border); cursor: pointer;
 }
 .coin-meta-left { display: flex; align-items: center; gap: 10px; }
-.coin-meta-left small { display: block; color: #6e829c; font-size: 10px; }
+.coin-meta-left small { display: block; color: var(--text-sub); font-size: 10px; }
 .coin-meta-right { text-align: right; }
 .green-pct { color: #00e676; font-size: 13px; }
-.coin-live-p { display: block; font-size: 11px; color: #8fa0b5; font-family: monospace; }
+.coin-live-p { display: block; font-size: 11px; color: var(--text-muted); font-family: monospace; }
 
 .c-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    font-weight: 900;
-    color: #fff;
+    width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; font-size: 16px; font-weight: 900; color: #fff;
 }
 .btc-logo { background: #f7931a; }
 .eth-logo { background: #627eea; }
@@ -538,322 +628,45 @@ input:checked + .slider:before { transform: translateX(14px); }
 .ton-logo { background: #0088cc; font-size: 14px; }
 .ada-logo { background: #0033ad; }
 
-.acc-modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-}
+.acc-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; }
 .acc-dropdown-card {
-    position: absolute;
-    top: 52px;
-    left: 12px;
-    width: 300px;
-    background: #171f2c;
-    border: 1px solid #28374d;
-    border-radius: 10px;
-    padding: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    position: absolute; top: 52px; left: 12px; width: 300px;
+    background: var(--bg-dock); border: 1px solid var(--bg-card-border); border-radius: 10px;
+    padding: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
 }
-.acc-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #222e40; }
+.acc-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--bg-card-border); }
 .std-badge { font-size: 11px; color: #00b074; }
 .user-email-id { margin-top: 10px; }
-.u-mail { font-size: 13px; font-weight: 700; color: #fff; }
-.u-id { font-size: 11px; color: #6e829c; margin-top: 2px; }
-
-.currency-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 11px;
-    margin: 12px 0 10px;
-    color: #8fa0b5;
-}
-.currency-row b { color: #fff; }
+.currency-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin: 12px 0 10px; color: var(--text-muted); }
 .btn-change { background: #0070f3; color: #fff; border: none; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 4px; }
 
 .acc-option {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    background: #1c2738;
-    border: 1px solid #253347;
-    margin-top: 10px;
-    transition: 0.2s;
+    display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 8px;
+    cursor: pointer; background: var(--bg-card); border: 1px solid var(--bg-card-border); margin-top: 10px; transition: 0.2s;
 }
-.acc-option.active { border-color: #0070f3; background: #1e2c42; }
-
+.acc-option.active { border-color: #0070f3; }
 .acc-radio-circle {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 2px solid #5a6e87;
-    margin-top: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 16px; height: 16px; border-radius: 50%; border: 2px solid #5a6e87; margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
 }
 .acc-radio-circle.active { border-color: #0070f3; }
-.acc-radio-circle.active:after {
-    content: "";
-    width: 8px;
-    height: 8px;
-    background: #0070f3;
-    border-radius: 50%;
-}
-
+.acc-radio-circle.active:after { content: ""; width: 8px; height: 8px; background: #0070f3; border-radius: 50%; }
 .acc-opt-info { flex: 1; }
-.opt-title { font-size: 12px; color: #8fa0b5; font-weight: 600; }
+.opt-title { font-size: 12px; color: var(--text-muted); font-weight: 600; }
 .opt-bal-row { display: flex; align-items: center; justify-content: space-between; margin: 2px 0; }
-.opt-bal { font-size: 15px; font-weight: 800; color: #fff; }
+.opt-bal { font-size: 15px; font-weight: 800; color: var(--text-main); }
 .reset-demo-btn { font-size: 14px; cursor: pointer; opacity: 0.75; }
-.reset-demo-btn:hover { opacity: 1; transform: rotate(45deg); }
-.opt-sub { font-size: 10px; color: #5a6e87; }
-.blue-link { color: #0070f3; font-weight: 700; margin-left: 4px; }
+.opt-sub { font-size: 10px; color: var(--text-sub); }
 
-/* টাইম ও টাইমার পপআপ ডায়ালগ */
 .time-popup-dialog {
-    display: none;
-    position: fixed;
-    bottom: 90px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 260px;
-    background: #1f2737;
-    border: 1px solid #2b374d;
-    border-radius: 8px;
-    padding: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    z-index: 100;
+    display: none; position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    width: 260px; background: var(--bg-dock); border: 1px solid var(--bg-card-border);
+    border-radius: 8px; padding: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100;
 }
-.time-tabs { display: flex; background: #171d28; border-radius: 6px; padding: 2px; margin-bottom: 10px; }
-.t-tab { flex: 1; background: none; border: none; color: #798b9f; font-size: 11px; font-weight: 800; padding: 6px; border-radius: 4px; cursor: pointer; }
+.time-tabs { display: flex; background: var(--bg-main); border-radius: 6px; padding: 2px; margin-bottom: 10px; }
+.t-tab { flex: 1; background: none; border: none; color: var(--text-sub); font-size: 11px; font-weight: 800; padding: 6px; border-radius: 4px; cursor: pointer; }
 .t-tab.active { background: #0070f3; color: #ffffff; }
 .time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.time-grid button { background: #273246; border: 1px solid #324059; color: #ffffff; padding: 8px 4px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; }
-.time-grid button.selected { background: #0070f3; border-color: #0070f3; }
+.time-grid button { background: var(--bg-card); border: 1px solid var(--bg-card-border); color: var(--text-main); padding: 8px 4px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; }
+.time-grid button.selected { background: #0070f3; border-color: #0070f3; color: #fff; }
 .set-manually-btn { width: 100%; background: #0070f3; border: none; color: #ffffff; padding: 8px; border-radius: 5px; font-size: 11px; font-weight: 700; margin-top: 10px; cursor: pointer; }
-
-/* -------------------------------------------------------------
-   বোনাস ও টুর্নামেন্ট অফার কার্ডস
-------------------------------------------------------------- */
-.bonus-modal-subhead {
-    font-size: 12px;
-    color: #8fa0b5;
-    margin-bottom: 16px;
-    line-height: 1.5;
-}
-
-.bonus-offer-card {
-    background: #182230;
-    border: 1px solid #28374d;
-    border-left: 4px solid #00e676;
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-
-.b-card-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-}
-
-.b-type-pill {
-    background: #253347;
-    color: #f5a623;
-    font-size: 10px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-    text-transform: uppercase;
-}
-
-.b-title {
-    font-size: 14px;
-    font-weight: 800;
-    color: #ffffff;
-    margin-top: 4px;
-}
-
-.b-reward {
-    font-size: 18px;
-    font-weight: 900;
-    color: #00e676;
-}
-
-.b-desc {
-    font-size: 12px;
-    color: #cbd5e1;
-    margin: 8px 0 12px;
-    line-height: 1.4;
-}
-
-.b-card-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #202c3e;
-    padding-top: 10px;
-}
-
-.b-timer-tag {
-    font-size: 11px;
-    color: #f5a623;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.btn-claim-bonus {
-    background: #0070f3;
-    color: #ffffff;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.btn-claim-bonus:hover {
-    background: #005ecb;
-}
-
-.btn-claim-bonus.claimed {
-    background: #202b3d;
-    color: #00e676;
-    cursor: default;
-    border: 1px solid #00e676;
-}
-
-/* -------------------------------------------------------------
-   কাস্টমার সাপোর্ট ও হেল্পডেস্ক স্টাইল
-------------------------------------------------------------- */
-.support-tabs {
-    display: flex;
-    background: #101621;
-    border-radius: 6px;
-    padding: 3px;
-    margin-bottom: 14px;
-}
-.sup-tab {
-    flex: 1;
-    background: none;
-    border: none;
-    color: #8fa0b5;
-    font-size: 12px;
-    font-weight: 700;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-.sup-tab.active {
-    background: #0070f3;
-    color: #ffffff;
-}
-
-.form-lbl {
-    display: block;
-    font-size: 11px;
-    color: #8fa0b5;
-    margin-bottom: 4px;
-    font-weight: 600;
-}
-.sup-input, .sup-textarea {
-    width: 100%;
-    background: #141c28;
-    border: 1px solid #233145;
-    color: #fff;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 13px;
-    outline: none;
-    font-family: inherit;
-}
-.sup-input:focus, .sup-textarea:focus {
-    border-color: #0070f3;
-}
-
-.upload-box {
-    background: #141c28;
-    border: 1px dashed #2e415a;
-    border-radius: 6px;
-    padding: 14px;
-    text-align: center;
-    cursor: pointer;
-    font-size: 12px;
-    color: #8fa0b5;
-}
-.upload-box:hover {
-    border-color: #0070f3;
-    color: #fff;
-}
-.screenshot-preview-thumb {
-    width: 100%;
-    max-height: 140px;
-    object-fit: cover;
-    border-radius: 6px;
-    margin-top: 8px;
-    border: 1px solid #233145;
-}
-
-/* টিকিট হিস্ট্রি কার্ড */
-.support-ticket-card {
-    background: #16202e;
-    border: 1px solid #233145;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 12px;
-}
-.tkt-top-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #202b3d;
-    padding-bottom: 6px;
-    margin-bottom: 6px;
-}
-.tkt-id-txt { font-size: 13px; font-weight: 800; color: #fff; }
-.tkt-status-badge {
-    font-size: 10px;
-    font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-    text-transform: uppercase;
-}
-.tkt-status-badge.pending { background: #2a2512; color: #f5a623; border: 1px solid #f5a623; }
-.tkt-status-badge.solved { background: #12281e; color: #00e676; border: 1px solid #00e676; }
-
-.tkt-subject-txt { font-size: 13px; font-weight: 700; color: #dce6f2; }
-.tkt-msg-txt { font-size: 12px; color: #8fa0b5; margin-top: 4px; line-height: 1.4; }
-.tkt-time-txt { font-size: 10px; color: #5a6e87; margin-top: 6px; }
-
-/* অ্যাডমিনের রিপ্লাই বক্স */
-.admin-reply-box {
-    background: #13251e;
-    border: 1px solid #00e676;
-    border-radius: 6px;
-    padding: 10px;
-    margin-top: 10px;
-}
-.admin-reply-head {
-    font-size: 11px;
-    font-weight: 800;
-    color: #00e676;
-    display: flex;
-    justify-content: space-between;
-}
-.admin-reply-text {
-    font-size: 12px;
-    color: #e2f9ee;
-    margin-top: 4px;
-    line-height: 1.4;
-}
