@@ -29,72 +29,14 @@ let selectedTimeValue = '';
 let currentInvestAmount = 1;
 let selectedDepMethod = 'Bkash';
 let activeSellTrade = null;
-let attachedScreenshotBase64 = "";
 
-const I18N = {
-    en: {
-        demo: "DEMO", live: "LIVE", deposit: "Deposit", withdrawal: "Withdrawal", payments: "Payments",
-        trades: "Trades", settings: "Settings", logout: "Logout", quickTrading: "Quick trading",
-        timer: "Timer", investment: "Investment", payout: "Payout", up: "Up", down: "Down",
-        pendingTrade: "PENDING TRADE", beginningOfTrade: "Beginning of trade", endOfTrade: "End of trade",
-        sellTrade: "Sell the trade", activeTrades: "Active Trades", liveAccount: "Live Account",
-        demoAccount: "Demo Account", interface: "Interface:", language: "Language", timezone: "Timezone",
-        theme: "Theme", darkTheme: "Dark Theme", lightTheme: "White Theme"
-    },
-    bn: {
-        demo: "ডেমো", live: "লাইভ", deposit: "ডিপোজিট", withdrawal: "উইথড্র", payments: "পেমেন্টস",
-        trades: "ট্রেডস", settings: "সেটিংস", logout: "লগআউট", quickTrading: "কুইক ট্রেডিং",
-        timer: "টাইমার", investment: "ইনভেস্টমেন্ট", payout: "পেআউট", up: "আপ (Up)", down: "ডাউন (Down)",
-        pendingTrade: "পেন্ডিং ট্রেড", beginningOfTrade: "ট্রেড শুরু", endOfTrade: "ট্রেড সমাপ্তি",
-        sellTrade: "আর্লি সেল করুন", activeTrades: "সক্রিয় ট্রেড", liveAccount: "লাইভ একাউন্ট",
-        demoAccount: "ডেমো একাউন্ট", interface: "ইন্টারফেস:", language: "ভাষা", timezone: "টাইমজোন",
-        theme: "থিম", darkTheme: "ডার্ক থিম", lightTheme: "হোয়াইট থিম"
-    }
+let lastTickTime = Date.now();
+let ws = null;
+
+const ASSET_DECIMALS = {
+    'BTC': 2, 'ETH': 2, 'SOL': 2, 'BNB': 2,
+    'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4
 };
-
-let currentLang = localStorage.getItem('app_lang') || 'en';
-let currentTimezoneOffset = parseFloat(localStorage.getItem('app_tz') || '6');
-let currentTheme = localStorage.getItem('app_theme') || 'dark';
-
-function applyLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem('app_lang', lang);
-    let dict = I18N[lang] || I18N.en;
-
-    document.querySelectorAll('[data-i18n]').forEach(el => {
-        let key = el.getAttribute('data-i18n');
-        if (dict[key]) el.innerText = dict[key];
-    });
-
-    let sel = document.getElementById('langSelect');
-    if (sel) sel.value = lang;
-}
-
-function changeLanguage(lang) { applyLanguage(lang); }
-
-function changeTimezone(offset) {
-    currentTimezoneOffset = parseFloat(offset);
-    localStorage.setItem('app_tz', offset);
-    syncClock();
-}
-
-function setAppTheme(theme) {
-    currentTheme = theme;
-    localStorage.setItem('app_theme', theme);
-
-    let btnDark = document.getElementById('btnThemeDark');
-    let btnLight = document.getElementById('btnThemeLight');
-
-    if (theme === 'light') {
-        document.body.classList.add('theme-light');
-        if (btnLight) btnLight.classList.add('active');
-        if (btnDark) btnDark.classList.remove('active');
-    } else {
-        document.body.classList.remove('theme-light');
-        if (btnDark) btnDark.classList.add('active');
-        if (btnLight) btnLight.classList.remove('active');
-    }
-}
 
 function fitCanvas() {
     if (!canvas) return;
@@ -109,16 +51,116 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
+// লোডার যাতে কখনোই আটকে না থাকে (Failsafe Auto-hide)
 function showChartLoader() {
     let el = document.getElementById('chartLoader');
     if (el) el.classList.add('active');
+    setTimeout(hideChartLoader, 1200);
 }
 function hideChartLoader() {
     let el = document.getElementById('chartLoader');
     if (el) el.classList.remove('active');
 }
 
-// টাচ প্যান ও জুম
+// -------------------------------------------------------------
+// 🔄 ব্যাকগ্রাউন্ড থেকে ফিরে আসলে স্বয়ংক্রিয় সিঙ্ক (Self-Healing Auto-Sync)
+// -------------------------------------------------------------
+function fullAutoSync() {
+    hideChartLoader();
+    lastTickTime = Date.now();
+
+    // ১. সার্ভার থেকে লেটেস্ট ২৪ ঘণ্টার ক্যান্ডেল রিফেচ
+    fetch(`/api/history/${activeAssetKey}`)
+    .then(r => r.json())
+    .then(data => {
+        if (data.success && data.meta.ticker === activeAssetKey) {
+            candles = data.history.map(c => ({ ...c }));
+            activeDecimals = data.meta.decimals;
+            currentPayout = data.meta.payout;
+
+            let lastP = candles[candles.length - 1].close;
+            targetLivePrice = lastP;
+            renderLivePrice = lastP;
+        }
+    }).catch(() => {});
+
+    // ২. ব্যাকগ্রাউন্ডে থাকাকালীন যে ট্রেডগুলোর সময় শেষ হয়েছে, সেগুলো তাৎক্ষণিক সেটেল
+    let nowSec = Math.floor(Date.now() / 1000);
+    for (let i = activeTrades.length - 1; i >= 0; i--) {
+        let trade = activeTrades[i];
+        if (nowSec >= trade.expireTime) {
+            settleTrade(trade);
+            activeTrades.splice(i, 1);
+        }
+    }
+    updateTradeBadges();
+
+    // ৩. ওয়েব-সকেট যদি স্লিপ হয়ে থাকে, রিকানেক্ট করা
+    connectWebSocket();
+}
+
+// ফোন লক বা মিনিমাইজ করে ফিরে আসার ইভেন্টস
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') fullAutoSync();
+});
+window.addEventListener('focus', fullAutoSync);
+window.addEventListener('pageshow', fullAutoSync);
+
+// ওয়াচডগ: কোনো কারণে ৩ সেকেন্ডের বেশি টিক মিস হলে অটো-সিঙ্ক
+setInterval(() => {
+    if (Date.now() - lastTickTime > 4000) {
+        fullAutoSync();
+    }
+}, 3000);
+
+// -------------------------------------------------------------
+// ওয়েব-সকেট রিকানেকশন ইঞ্জিন
+// -------------------------------------------------------------
+function connectWebSocket() {
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
+    try {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+        ws.onopen = () => {
+            lastTickTime = Date.now();
+        };
+
+        ws.onmessage = (event) => {
+            lastTickTime = Date.now();
+            let msg = JSON.parse(event.data);
+            if (msg.type === 'TICK') {
+                for (let k in msg.assets) {
+                    let el = document.getElementById(`price-tag-${k}`);
+                    if (el) el.innerText = msg.assets[k].price;
+                }
+
+                if (!isLoadingAsset && candles.length > 0 && msg.assets[activeAssetKey]) {
+                    let item = msg.assets[activeAssetKey];
+                    targetLivePrice = parseFloat(item.price);
+
+                    let last = candles[candles.length - 1];
+                    if (last.time === item.candle.time) {
+                        last.high = Math.max(last.high, item.candle.high);
+                        last.low = Math.min(last.low, item.candle.low);
+                    } else {
+                        candles.push({ ...item.candle });
+                        if (candles.length > 1440) candles.shift();
+                    }
+                }
+            }
+        };
+
+        ws.onclose = () => {
+            setTimeout(connectWebSocket, 2000);
+        };
+    } catch (e) {}
+}
+connectWebSocket();
+
+// টাচ স্ক্রোল ও পিঞ্চ জুম
 let startX = 0;
 let isPanning = false;
 
@@ -133,7 +175,6 @@ if (canvas) {
         } else if (e.touches.length === 1) {
             isPanning = true;
             startX = e.touches[0].clientX;
-            checkTradeClick(e.touches[0].clientX, e.touches[0].clientY);
         }
     }, { passive: true });
 
@@ -164,60 +205,6 @@ if (canvas) {
         isPanning = false;
         initialPinchDistance = null;
     });
-}
-
-function checkTradeClick(touchX, touchY) {
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    let x = touchX - rect.left;
-    let y = touchY - rect.top;
-
-    let match = activeTrades.find(t => t.asset === activeAssetKey);
-    if (match) {
-        activeSellTrade = match;
-        let card = document.getElementById('sellTradeCard');
-        if (card) {
-            card.style.display = 'flex';
-            card.style.left = Math.min(x, rect.width - 150) + 'px';
-            card.style.top = Math.max(20, y - 45) + 'px';
-            let refVal = document.getElementById('sellRefundVal');
-            if (refVal) refVal.innerText = `${(match.amount * 0.25).toFixed(2)} $`;
-        }
-    }
-}
-
-function confirmSellTrade() {
-    if (!activeSellTrade) return;
-    fetch('/api/sell-trade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            username: 'demo_user',
-            amount: activeSellTrade.amount,
-            accountType: currentAccount
-        })
-    })
-    .then(r => r.json())
-    .then(d => {
-        activeTrades = activeTrades.filter(t => t.id !== activeSellTrade.id);
-        updateBalanceUI(d.balance);
-        let card = document.getElementById('sellTradeCard');
-        if (card) card.style.display = 'none';
-        updateTradeBadges();
-    });
-}
-
-function updateTradeBadges() {
-    let count = activeTrades.length;
-    let b1 = document.getElementById('openTradesBadge');
-    let b2 = document.getElementById('drawerCount');
-    if (b1) b1.innerText = count;
-    if (b2) b2.innerText = count;
-}
-
-function toggleBottomTrades() {
-    let el = document.getElementById('bottomTradesDrawer');
-    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
 function stepAmt(delta) {
@@ -265,7 +252,7 @@ function switchAccount(type) {
     let radioDemo = document.getElementById('radioDemoCircle');
 
     if (type === 'live') {
-        if (lbl) { lbl.innerText = I18N[currentLang]?.live || "LIVE"; lbl.className = "acc-label live"; }
+        if (lbl) { lbl.innerText = "LIVE"; lbl.className = "acc-label live"; }
         if (iconWrap) iconWrap.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#00b074"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>`;
         updateBalanceUI(liveBalance);
 
@@ -276,7 +263,7 @@ function switchAccount(type) {
 
         if (watermark) watermark.style.display = 'none';
     } else {
-        if (lbl) { lbl.innerText = I18N[currentLang]?.demo || "DEMO"; lbl.className = "acc-label demo"; }
+        if (lbl) { lbl.innerText = "DEMO"; lbl.className = "acc-label demo"; }
         if (iconWrap) iconWrap.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="#f5a623"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>`;
         updateBalanceUI(demoBalance);
 
@@ -323,312 +310,17 @@ function updateBalanceUI(val) {
     }
 }
 
-// -------------------------------------------------------------
-// মোডাল হ্যান্ডলারস
-// -------------------------------------------------------------
-function openMainMenuModal() {
-    let m = document.getElementById('mainMenuModal');
-    if (m) m.style.display = 'flex';
-}
-function closeMainMenuModal() {
-    let m = document.getElementById('mainMenuModal');
-    if (m) m.style.display = 'none';
+function updateTradeBadges() {
+    let count = activeTrades.length;
+    let b1 = document.getElementById('openTradesBadge');
+    let b2 = document.getElementById('drawerCount');
+    if (b1) b1.innerText = count;
+    if (b2) b2.innerText = count;
 }
 
-function openHelpModal() {
-    let m = document.getElementById('helpModal');
-    if (m) m.style.display = 'flex';
-}
-function closeHelpModal() {
-    let m = document.getElementById('helpModal');
-    if (m) m.style.display = 'none';
-}
-
-function openTournamentsModal() {
-    let m = document.getElementById('tournamentsModal');
-    if (m) m.style.display = 'flex';
-    loadTournamentsData();
-}
-function closeTournamentsModal() {
-    let m = document.getElementById('tournamentsModal');
-    if (m) m.style.display = 'none';
-}
-
-function loadTournamentsData() {
-    fetch('/api/tournaments')
-    .then(r => r.json())
-    .then(d => {
-        let box = document.getElementById('tournamentsListContainer');
-        if (!box) return;
-        let html = '';
-        d.tournaments.forEach(t => {
-            html += `
-                <div class="tournament-card-item">
-                    <span class="tour-pill-badge">${t.status}</span>
-                    <div class="tour-content-row">
-                        <span class="tour-name">${t.title}</span>
-                        <div class="tour-prize-block">
-                            <div style="font-size:10px; color:#7e92aa; font-weight:700;">PRIZE POOL</div>
-                            <div class="tour-prize-val">${t.prizePool}</div>
-                        </div>
-                    </div>
-                    <div class="tour-specs-row">
-                        <div class="tour-spec-item"><b>${t.entryFee}</b><span>Entry fee</span></div>
-                        <div class="tour-spec-item"><b>${t.duration}</b><span>Duration</span></div>
-                    </div>
-                    <button class="btn-tour-details" onclick="alert('Joining ${t.title}...')">Details</button>
-                </div>
-            `;
-        });
-        box.innerHTML = html;
-    });
-}
-
-function openSupportTicketForm() {
-    closeHelpModal();
-    let m = document.getElementById('supportModal');
-    if (m) m.style.display = 'flex';
-    switchSupportTab('new');
-}
-function closeSupportModal() {
-    let m = document.getElementById('supportModal');
-    if (m) m.style.display = 'none';
-}
-
-function switchSupportTab(tab) {
-    let btn1 = document.getElementById('tabMyTicketsBtn');
-    let btn2 = document.getElementById('tabNewTicketBtn');
-    let v1 = document.getElementById('viewUserTickets');
-    let v2 = document.getElementById('viewNewTicketForm');
-
-    if (tab === 'tickets') {
-        if (btn1) btn1.classList.add('active');
-        if (btn2) btn2.classList.remove('active');
-        if (v1) v1.style.display = 'block';
-        if (v2) v2.style.display = 'none';
-        loadUserTickets();
-    } else {
-        if (btn2) btn2.classList.add('active');
-        if (btn1) btn1.classList.remove('active');
-        if (v2) v2.style.display = 'block';
-        if (v1) v1.style.display = 'none';
-    }
-}
-
-function previewUserScreenshot(e) {
-    let file = e.target.files[0];
-    if (!file) return;
-    let reader = new FileReader();
-    reader.onload = function(evt) {
-        attachedScreenshotBase64 = evt.target.result;
-        let img = document.getElementById('previewImgElem');
-        let box = document.getElementById('screenshotPreviewBox');
-        if (img) img.src = attachedScreenshotBase64;
-        if (box) box.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-}
-
-function removeAttachedImage() {
-    attachedScreenshotBase64 = "";
-    let inp = document.getElementById('ticketScreenshot');
-    let box = document.getElementById('screenshotPreviewBox');
-    if (inp) inp.value = "";
-    if (box) box.style.display = 'none';
-}
-
-function submitSupportTicket() {
-    let catElem = document.getElementById('ticketCategory');
-    let msgElem = document.getElementById('ticketMessage');
-    let category = catElem ? catElem.value : "General";
-    let message = msgElem ? msgElem.value.trim() : "";
-
-    if (!message) return alert("Please explain your problem!");
-
-    fetch('/api/support/create-ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            username: "demo_user",
-            category,
-            message,
-            screenshot: attachedScreenshotBase64
-        })
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d.success) {
-            alert(d.message);
-            if (msgElem) msgElem.value = "";
-            removeAttachedImage();
-            switchSupportTab('tickets');
-        } else {
-            alert(d.message);
-        }
-    });
-}
-
-function loadUserTickets() {
-    fetch('/api/support/tickets?username=demo_user')
-    .then(r => r.json())
-    .then(d => {
-        let container = document.getElementById('userTicketListContainer');
-        if (!container) return;
-
-        if (!d.tickets || d.tickets.length === 0) {
-            container.innerHTML = `<p style="color:#6e829c; font-size:13px; text-align:center; padding:25px;">No support tickets created yet.</p>`;
-            return;
-        }
-
-        let html = '';
-        d.tickets.forEach(tk => {
-            let statusCls = tk.status.toLowerCase();
-            let shotHtml = tk.screenshot ? `<img src="${tk.screenshot}" class="tk-shot-thumb" onclick="window.open('${tk.screenshot}')" title="Click to view">` : '';
-
-            let repliesHtml = '';
-            if (tk.replies && tk.replies.length > 0) {
-                tk.replies.forEach(rp => {
-                    repliesHtml += `
-                        <div class="tk-reply-box">
-                            <div style="font-size:11px; font-weight:800; color:#0070f3; display:flex; justify-content:space-between;">
-                                <span>${rp.sender}</span>
-                                <span>${rp.time}</span>
-                            </div>
-                            <div style="font-size:13px; color:#ffffff; margin-top:4px;">${rp.message}</div>
-                        </div>
-                    `;
-                });
-            } else {
-                repliesHtml = `<div style="font-size:11px; color:#f5a623; margin-top:8px;">Under review by support.</div>`;
-            }
-
-            html += `
-                <div class="ticket-card-item">
-                    <div class="tk-header">
-                        <span class="tk-id">${tk.id} - ${tk.category}</span>
-                        <span class="tk-status ${statusCls}">${tk.status}</span>
-                    </div>
-                    <div class="tk-msg">${tk.message}</div>
-                    ${shotHtml}
-                    ${repliesHtml}
-                </div>
-            `;
-        });
-        container.innerHTML = html;
-    });
-}
-
-function openSettingsModal() {
-    closeMainMenuModal();
-    let m = document.getElementById('settingsModal');
-    if (m) m.style.display = 'flex';
-    let l = document.getElementById('langSelect');
-    let tz = document.getElementById('tzSelect');
-    if (l) l.value = currentLang;
-    if (tz) tz.value = currentTimezoneOffset;
-    setAppTheme(currentTheme);
-}
-function closeSettingsModal() {
-    let m = document.getElementById('settingsModal');
-    if (m) m.style.display = 'none';
-}
-
-function openTradesHistoryModal() {
-    closeMainMenuModal();
-    let m = document.getElementById('tradesModal');
-    if (m) m.style.display = 'flex';
-    loadLifetimeTrades();
-}
-function closeTradesHistoryModal() {
-    let m = document.getElementById('tradesModal');
-    if (m) m.style.display = 'none';
-}
-
-function loadLifetimeTrades() {
-    fetch('/api/user/trades')
-    .then(r => r.json())
-    .then(d => {
-        let box = document.getElementById('lifetimeTradesContainer');
-        if (!box) return;
-        if (!d.trades || d.trades.length === 0) {
-            box.innerHTML = `<p style="text-align:center; padding:30px; color:#8fa0b5;">No trades recorded yet.</p>`;
-            return;
-        }
-
-        let html = '';
-        d.trades.forEach(t => {
-            html += `
-                <div class="hist-card">
-                    <div class="hist-row-top">
-                        <span>${t.asset} ${t.direction === 'UP' ? 'UP' : 'DOWN'}</span>
-                        <span class="${t.isWin ? 'hist-badge-win' : 'hist-badge-loss'}">${t.isWin ? `+$${t.profit.toFixed(2)}` : `-$${t.amount.toFixed(2)}`}</span>
-                    </div>
-                    <div class="hist-row-sub">
-                        <span>Invest: $${t.amount.toFixed(2)}</span>
-                        <span>${t.time}</span>
-                    </div>
-                </div>
-            `;
-        });
-        box.innerHTML = html;
-    });
-}
-
-function openPaymentsModal() {
-    closeMainMenuModal();
-    let m = document.getElementById('paymentsModal');
-    if (m) m.style.display = 'flex';
-    loadLifetimePayments();
-}
-function closePaymentsModal() {
-    let m = document.getElementById('paymentsModal');
-    if (m) m.style.display = 'none';
-}
-
-function loadLifetimePayments() {
-    fetch('/api/payments')
-    .then(r => r.json())
-    .then(d => {
-        let box = document.getElementById('lifetimePaymentsContainer');
-        if (!box) return;
-        let html = '';
-        if (d.deposits && d.deposits.length > 0) {
-            html += `<div style="font-size:13px; font-weight:800; margin:10px 0 6px; color:#00e676;">Deposits:</div>`;
-            d.deposits.forEach(p => {
-                html += `
-                    <div class="hist-card">
-                        <div class="hist-row-top">
-                            <span>#${p.id} (${p.method})</span>
-                            <span class="hist-badge-win">+$${parseFloat(p.amount).toFixed(2)}</span>
-                        </div>
-                        <div class="hist-row-sub"><span>${p.status}</span><span>${p.date}</span></div>
-                    </div>
-                `;
-            });
-        }
-        if (d.withdrawals && d.withdrawals.length > 0) {
-            html += `<div style="font-size:13px; font-weight:800; margin:14px 0 6px; color:#f5a623;">Withdrawals:</div>`;
-            d.withdrawals.forEach(w => {
-                html += `
-                    <div class="hist-card">
-                        <div class="hist-row-top">
-                            <span>#${w.id} (${w.method})</span>
-                            <span style="color:#f5a623;">-$${parseFloat(w.amount).toFixed(2)}</span>
-                        </div>
-                        <div class="hist-row-sub"><span>${w.status}</span><span>${w.date}</span></div>
-                    </div>
-                `;
-            });
-        }
-        box.innerHTML = html || `<p style="text-align:center; padding:30px; color:#8fa0b5;">No records found.</p>`;
-    });
-}
-
-function handleLogout() {
-    if (confirm("Are you sure you want to log out?")) {
-        localStorage.clear();
-        window.location.reload();
-    }
+function toggleBottomTrades() {
+    let el = document.getElementById('bottomTradesDrawer');
+    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
 function openDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'flex'; }
@@ -690,14 +382,14 @@ function switchPopupTab(tab) {
         if (b1) b1.classList.remove('active');
         if (g2) g2.style.display = 'grid';
         if (g1) g1.style.display = 'none';
-        if (lbl) lbl.innerText = I18N[currentLang]?.time || 'Time';
+        if (lbl) lbl.innerText = 'Time';
         if (val) val.innerText = selectedTimeValue || '00:01';
     } else {
         if (b1) b1.classList.add('active');
         if (b2) b2.classList.remove('active');
         if (g1) g1.style.display = 'grid';
         if (g2) g2.style.display = 'none';
-        if (lbl) lbl.innerText = I18N[currentLang]?.timer || 'Timer';
+        if (lbl) lbl.innerText = 'Timer';
         if (val) val.innerText = selectedTimerDisplay;
     }
 }
@@ -715,16 +407,12 @@ function selectTimer(sec, display) {
 
 function syncClock() {
     let now = new Date();
-    let utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-    let targetTime = new Date(utcMs + (3600000 * currentTimezoneOffset));
-
-    let hh = String(targetTime.getHours()).padStart(2, '0');
-    let mm = String(targetTime.getMinutes()).padStart(2, '0');
-    let ss = String(targetTime.getSeconds()).padStart(2, '0');
-    let sign = currentTimezoneOffset >= 0 ? '+' : '';
+    let hh = String(now.getHours()).padStart(2, '0');
+    let mm = String(now.getMinutes()).padStart(2, '0');
+    let ss = String(now.getSeconds()).padStart(2, '0');
     let clock = document.getElementById('liveUtcClock');
     if (clock) {
-        clock.innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC${sign}${currentTimezoneOffset}`;
+        clock.innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC+6`;
     }
 
     let sec = Math.floor(now.getTime() / 1000);
@@ -732,7 +420,7 @@ function syncClock() {
 
     let endText = document.getElementById('endTradeTimeText');
     if (endText) {
-        let expDate = new Date(targetTime.getTime() + selectedTimerSeconds * 1000);
+        let expDate = new Date(now.getTime() + selectedTimerSeconds * 1000);
         endText.innerText = `${String(expDate.getHours()).padStart(2,'0')}:${String(expDate.getMinutes()).padStart(2,'0')}`;
     }
 
@@ -792,7 +480,7 @@ function selectAsset(key) {
     closeAssetModal();
 
     activeAssetKey = key;
-    activeDecimals = (key === 'XRP' || key === 'DOGE' || key === 'ADA') ? 4 : (key === 'TON' ? 3 : 2);
+    activeDecimals = ASSET_DECIMALS[key] || 2;
     let cur = document.getElementById('curName');
     if (cur) cur.innerText = `${key}/USD (OTC)`;
 
@@ -800,7 +488,7 @@ function selectAsset(key) {
     .then(r => r.json())
     .then(data => {
         if (data.success && data.meta.ticker === activeAssetKey) {
-            candles = data.history.map(c => ({...c}));
+            candles = data.history.map(c => ({ ...c }));
             activeDecimals = data.meta.decimals;
             currentPayout = data.meta.payout;
             let pOut = document.getElementById('curPayout');
@@ -820,7 +508,7 @@ function selectAsset(key) {
 }
 
 // -------------------------------------------------------------
-// ক্যানভাস রেন্ডার লুপ
+// ক্যানভাস রেন্ডার লুপ (মাখনের মতো স্মুথ)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -987,33 +675,6 @@ function render() {
     });
 }
 
-const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-const ws = new WebSocket(`${protocol}//${window.location.host}`);
-
-ws.onmessage = (event) => {
-    let msg = JSON.parse(event.data);
-    if (msg.type === 'TICK') {
-        for (let k in msg.assets) {
-            let el = document.getElementById(`price-tag-${k}`);
-            if (el) el.innerText = msg.assets[k].price;
-        }
-
-        if (!isLoadingAsset && candles.length > 0 && msg.assets[activeAssetKey]) {
-            let item = msg.assets[activeAssetKey];
-            targetLivePrice = parseFloat(item.price);
-
-            let last = candles[candles.length - 1];
-            if (last.time === item.candle.time) {
-                last.high = Math.max(last.high, item.candle.high);
-                last.low = Math.min(last.low, item.candle.low);
-            } else {
-                candles.push({ ...item.candle });
-                if (candles.length > 800) candles.shift();
-            }
-        }
-    }
-};
-
 function placeOrder(direction) {
     let amount = currentInvestAmount;
     let nowSec = Math.floor(Date.now() / 1000);
@@ -1075,9 +736,7 @@ function toggleToolsMenu() {}
 
 // বুটস্ট্র্যাপ
 fitCanvas();
-applyLanguage(currentLang);
-setAppTheme(currentTheme);
 selectAsset('BTC');
 switchAccount('demo');
 requestAnimationFrame(render);
-setTimeout(hideChartLoader, 600); // নিশ্চিন্ত আনলক
+setTimeout(hideChartLoader, 700);
