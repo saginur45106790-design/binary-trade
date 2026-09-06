@@ -12,28 +12,28 @@ app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 let users = {
-  "demo_user": { id: "85857047", liveBalance: 10.00, demoBalance: 11070.12, control: "normal" }
+  "demo_user": { id: "85857047", liveBalance: 10.00, demoBalance: 11068.77, control: "normal" }
 };
 
+// স্বাভাবিক ও স্পষ্ট ক্যান্ডেল তৈরি করার জন্য রিয়েল মার্কেট ভোলাটিলিটি
 let ASSETS = {
-  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68520.50, basePrice: 68520.50, decimals: 2, payout: 92, vol: 2.2 },
-  'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, payout: 90, vol: 0.5 },
-  'SOL':  { name: 'Solana', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, payout: 88, vol: 0.10 },
-  'BNB':  { name: 'BNB', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, payout: 88, vol: 0.18 },
-  'XRP':  { name: 'XRP', ticker: 'XRP', price: 0.6250, basePrice: 0.6250, decimals: 4, payout: 85, vol: 0.0003 },
-  'DOGE': { name: 'Dogecoin', ticker: 'DOGE', price: 0.1425, basePrice: 0.1425, decimals: 4, payout: 82, vol: 0.00015 },
-  'TON':  { name: 'Toncoin', ticker: 'TON', price: 5.850, basePrice: 5.850, decimals: 3, payout: 86, vol: 0.003 },
-  'ADA':  { name: 'Cardano', ticker: 'ADA', price: 0.4850, basePrice: 0.4850, decimals: 4, payout: 84, vol: 0.0003 }
+  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68525.50, basePrice: 68525.50, decimals: 2, payout: 92, vol: 4.8 },
+  'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, payout: 90, vol: 1.4 },
+  'SOL':  { name: 'Solana', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, payout: 88, vol: 0.40 },
+  'BNB':  { name: 'BNB', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, payout: 88, vol: 0.60 },
+  'XRP':  { name: 'XRP', ticker: 'XRP', price: 0.6250, basePrice: 0.6250, decimals: 4, payout: 85, vol: 0.0008 },
+  'DOGE': { name: 'Dogecoin', ticker: 'DOGE', price: 0.1425, basePrice: 0.1425, decimals: 4, payout: 82, vol: 0.0003 },
+  'TON':  { name: 'Toncoin', ticker: 'TON', price: 5.850, basePrice: 5.850, decimals: 3, payout: 86, vol: 0.007 },
+  'ADA':  { name: 'Cardano', ticker: 'ADA', price: 0.4850, basePrice: 0.4850, decimals: 4, payout: 84, vol: 0.0007 }
 };
 
-// সার্ভারে স্থায়ী রানিং ট্রেড ও রেজাল্ট বাফার
 let activeServerTrades = [];
 let recentTradeResults = [];
 
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// ২৪ ঘণ্টার ১,৪৪০টি ক্যান্ডেল মেমোরিতে জেনারেট
+// ২৪ ঘণ্টার স্বাভাবিক আকৃতির ১,৪৪০ ক্যান্ডেল তৈরি
 function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
   currentCandleMinute = Math.floor(nowSec / 60) * 60;
@@ -45,12 +45,12 @@ function init24HourMarket() {
 
     for (let i = 1440; i > 0; i--) {
       let t = currentCandleMinute - (i * 60);
-      let drift = -(cur - meta.basePrice) * 0.001;
-      let delta = (Math.random() - 0.5) * (meta.vol * 0.35) + drift;
+      let drift = -(cur - meta.basePrice) * 0.002;
+      let delta = (Math.random() - 0.495) * meta.vol * 0.75 + drift;
       let o = cur;
       let c = parseFloat((o + delta).toFixed(meta.decimals));
-      let h = parseFloat((Math.max(o, c) + Math.random() * (meta.vol * 0.15)).toFixed(meta.decimals));
-      let l = parseFloat((Math.min(o, c) - Math.random() * (meta.vol * 0.15)).toFixed(meta.decimals));
+      let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol * 0.35 + 0.03 * meta.vol).toFixed(meta.decimals));
+      let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol * 0.35 - 0.03 * meta.vol).toFixed(meta.decimals));
       list.push({ time: t, open: o, high: h, low: l, close: c });
       cur = c;
     }
@@ -62,7 +62,6 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
-// প্রতি সেকেন্ডে সার্ভার টিক ও অটোমেটিক ট্রেড সেটেলমেন্ট
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -73,8 +72,8 @@ setInterval(() => {
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
-    let drift = -(meta.price - meta.basePrice) * 0.0008;
-    let delta = (Math.random() - 0.5) * (meta.vol * 0.25) + drift;
+    let drift = -(meta.price - meta.basePrice) * 0.0012;
+    let delta = (Math.random() - 0.495) * (meta.vol * 0.4) + drift;
     meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
 
     let list = candleHistories[key];
@@ -92,7 +91,7 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // সার্ভার সাইড ট্রেড অটো-সেটেলমেন্ট (ফোন বন্ধ থাকলেও ব্যালেন্স আপডেট হবে)
+  // ট্রেড অটো-সেটেলমেন্ট
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
@@ -125,10 +124,8 @@ setInterval(() => {
 
       recentTradeResults.unshift(resObj);
       if (recentTradeResults.length > 50) recentTradeResults.pop();
-
       activeServerTrades.splice(i, 1);
 
-      // ক্লায়েন্টে রিয়েল-টাইম সেটেল ব্রডকাস্ট
       let settleMsg = JSON.stringify({ type: 'TRADE_SETTLED', result: resObj });
       wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN) client.send(settleMsg);
@@ -136,7 +133,6 @@ setInterval(() => {
     }
   }
 
-  // লাইভ টিক ব্রডকাস্ট
   let tickPayload = { type: 'TICK', countdown: remainingSec, serverTime: now, assets: {} };
   for (let key in ASSETS) {
     tickPayload.assets[key] = {
@@ -203,21 +199,6 @@ app.post('/api/trade', (req, res) => {
   });
 });
 
-app.post('/api/sell-trade', (req, res) => {
-  const { tradeId, username, accountType } = req.body;
-  let idx = activeServerTrades.findIndex(t => t.id === tradeId);
-  if (idx !== -1) {
-    let tr = activeServerTrades[idx];
-    let user = users[username] || users["demo_user"];
-    let refund = parseFloat((tr.amount * 0.25).toFixed(2));
-    if (accountType === 'live') user.liveBalance += refund;
-    else user.demoBalance += refund;
-    activeServerTrades.splice(idx, 1);
-    return res.json({ success: true, refund, balance: (accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2) });
-  }
-  res.json({ success: false, message: "Trade already expired!" });
-});
-
 app.post('/api/switch-account', (req, res) => {
   let user = users["demo_user"];
   res.json({ success: true, activeAccount: req.body.type, balance: req.body.type === 'live' ? user.liveBalance : user.demoBalance });
@@ -225,7 +206,7 @@ app.post('/api/switch-account', (req, res) => {
 
 app.post('/api/reset-demo', (req, res) => {
   let user = users["demo_user"];
-  user.demoBalance = 11070.12;
+  user.demoBalance = 11068.77;
   res.json({ success: true, balance: user.demoBalance.toFixed(2) });
 });
 
@@ -256,4 +237,4 @@ app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(
 app.get('/api/admin/data', (req, res) => res.json({ users, assets: ASSETS }));
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Rock-solid Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Engine running on port ${PORT}`));

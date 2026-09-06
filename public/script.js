@@ -4,7 +4,7 @@ const ctx = canvas.getContext('2d');
 let candles = [];
 let activeTrades = [];
 let currentAccount = 'demo';
-let demoBalance = 11070.12;
+let demoBalance = 11068.77;
 let liveBalance = 10.00;
 let panOffset = 0;
 let remainingCountdown = 60;
@@ -14,12 +14,12 @@ let activeDecimals = 2;
 let currentPayout = 92;
 let isLoadingAsset = false;
 
-let renderLivePrice = 68520.50;
-let targetLivePrice = 68520.50;
+let renderLivePrice = 68525.50;
+let targetLivePrice = 68525.50;
 
-// মিডিয়াম ক্যান্ডেল সাইজ (স্ক্রিনশট ৮৮০ অনুযায়ী নিখুঁত)
-let candleWidth = 11;
-let candleSpacing = 4;
+// স্বাভাবিক মিডিয়াম ও সুস্পষ্ট ক্যান্ডেল সাইজ
+let candleWidth = 13;
+let candleSpacing = 5;
 let initialPinchDistance = null;
 
 let currentMode = 'timer';
@@ -29,16 +29,12 @@ let selectedTimeValue = '';
 
 let currentInvestAmount = 1;
 let selectedDepMethod = 'Bkash';
-let activeSellTrade = null;
-
-let currentTimezoneOffset = 6; // UTC+6 ঢাকা
+let currentTimezoneOffset = 6;
 
 const ASSET_DECIMALS = { 'BTC': 2, 'ETH': 2, 'SOL': 2, 'BNB': 2, 'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4 };
-const ASSET_BASE_PRICES = { 'BTC': 68520.50, 'ETH': 3422.00, 'SOL': 177.50, 'BNB': 591.20, 'XRP': 0.6250, 'DOGE': 0.1425, 'TON': 5.850, 'ADA': 0.4850 };
+const ASSET_BASE_PRICES = { 'BTC': 68525.50, 'ETH': 3422.00, 'SOL': 177.50, 'BNB': 591.20, 'XRP': 0.6250, 'DOGE': 0.1425, 'TON': 5.850, 'ADA': 0.4850 };
 
-// -------------------------------------------------------------
-// ১. ঘড়ি ও টাইমার (কখনোই আটকাবে না - শতভাগ সুরক্ষিত)
-// -------------------------------------------------------------
+// ১. অবিচল ঘড়ি ও টাইমার
 function syncClock() {
     try {
         let now = new Date();
@@ -62,13 +58,9 @@ function syncClock() {
             let expDate = new Date(targetTime.getTime() + selectedTimerSeconds * 1000);
             endText.innerText = `${String(expDate.getHours()).padStart(2,'0')}:${String(expDate.getMinutes()).padStart(2,'0')}`;
         }
-
-        updateSellCardValues();
-    } catch (e) {
-        console.error("Clock sync error:", e);
-    }
+    } catch (e) {}
 }
-syncClock(); // তাৎক্ষণিক স্টার্ট
+syncClock();
 setInterval(syncClock, 1000);
 
 function fitCanvas() {
@@ -94,9 +86,7 @@ function hideChartLoader() {
     if (el) el.classList.remove('active');
 }
 
-// -------------------------------------------------------------
-// ২. ব্যাকগ্রাউন্ড থেকে ফিরলে অটোমেটিক ফুল রিকভারি সিঙ্ক
-// -------------------------------------------------------------
+// ২. অটো-রিকভারি সিঙ্ক
 function fullSyncFromServer() {
     fetch(`/api/history/${activeAssetKey}`)
     .then(r => r.json())
@@ -111,7 +101,6 @@ function fullSyncFromServer() {
         }
     }).catch(() => {});
 
-    // সার্ভার থেকে একটিভ ট্রেডস রিফেচ
     fetch('/api/active-trades')
     .then(r => r.json())
     .then(d => {
@@ -127,70 +116,50 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('focus', fullSyncFromServer);
 
-// -------------------------------------------------------------
-// ৩. "Sell the trade" কার্ড কন্ট্রোল
-// -------------------------------------------------------------
-function checkTradeClick(touchX, touchY) {
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    let x = touchX - rect.left;
-    let y = touchY - rect.top;
+// ৩. টাচ প্যান ও জুম (কোনো সেল ট্রেড পপআপ ওপেন হবে না)
+let startX = 0;
+let isPanning = false;
 
-    let match = activeTrades.find(t => t.asset === activeAssetKey);
-    if (match) {
-        activeSellTrade = match;
-        let card = document.getElementById('sellTradeCard');
-        if (card) {
-            card.style.display = 'flex';
-            card.style.left = Math.min(x, rect.width - 150) + 'px';
-            card.style.top = Math.max(20, y - 45) + 'px';
-            updateSellCardValues();
+if (canvas) {
+    canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+            isPanning = false;
+            initialPinchDistance = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+        } else if (e.touches.length === 1) {
+            isPanning = true;
+            startX = e.touches[0].clientX;
         }
-    }
-}
+    }, { passive: true });
 
-function updateSellCardValues() {
-    if (!activeSellTrade) return;
-    let card = document.getElementById('sellTradeCard');
-    let nowSec = Math.floor(Date.now() / 1000);
-    let diffSec = activeSellTrade.expireTime - nowSec;
-
-    if (diffSec <= 0) {
-        if (card) card.style.display = 'none';
-        activeSellTrade = null;
-        return;
-    }
-
-    let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
-    let remS = String(diffSec % 60).padStart(2, '0');
-    let timerEl = document.getElementById('sellTimeRem');
-    let refundEl = document.getElementById('sellRefundVal');
-
-    if (timerEl) timerEl.innerText = `${remM}:${remS}`;
-    if (refundEl) refundEl.innerText = `${(activeSellTrade.amount * 0.25).toFixed(2)} $`;
-}
-
-function confirmSellTrade() {
-    if (!activeSellTrade) return;
-    fetch('/api/sell-trade', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            tradeId: activeSellTrade.id,
-            username: 'demo_user',
-            accountType: currentAccount
-        })
-    })
-    .then(r => r.json())
-    .then(d => {
-        if (d.success) {
-            activeTrades = activeTrades.filter(t => t.id !== activeSellTrade.id);
-            updateBalanceUI(d.balance);
-            let card = document.getElementById('sellTradeCard');
-            if (card) card.style.display = 'none';
-            activeSellTrade = null;
-            updateTradeBadges();
+    canvas.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && initialPinchDistance) {
+            let currentDist = Math.hypot(
+                e.touches[0].clientX - e.touches[1].clientX,
+                e.touches[0].clientY - e.touches[1].clientY
+            );
+            let factor = currentDist / initialPinchDistance;
+            if (factor > 1.04 && candleWidth < 26) {
+                candleWidth = Math.min(26, candleWidth + 0.3);
+                candleSpacing = Math.min(10, candleSpacing + 0.15);
+            } else if (factor < 0.96 && candleWidth > 7) {
+                candleWidth = Math.max(7, candleWidth - 0.3);
+                candleSpacing = Math.max(2, candleSpacing - 0.15);
+            }
+            initialPinchDistance = currentDist;
+        } else if (e.touches.length === 1 && isPanning) {
+            panOffset += (e.touches[0].clientX - startX) * 0.95;
+            let maxPan = (candles.length * (candleWidth + candleSpacing)) - 80;
+            panOffset = Math.max(-60, Math.min(maxPan, panOffset));
+            startX = e.touches[0].clientX;
         }
+    }, { passive: true });
+
+    canvas.addEventListener('touchend', () => {
+        isPanning = false;
+        initialPinchDistance = null;
     });
 }
 
@@ -302,9 +271,7 @@ function updateBalanceUI(val) {
     }
 }
 
-// -------------------------------------------------------------
-// ৪. ট্রেড প্লেসিং ও গ্যারান্টিযুক্ত রেজাল্ট হ্যান্ডলিং
-// -------------------------------------------------------------
+// ৪. ট্রেড প্লেস
 function placeOrder(direction) {
     let amount = currentInvestAmount;
     let totalSec = (currentMode === 'timer') ? selectedTimerSeconds : 60;
@@ -344,7 +311,6 @@ function placeOrder(direction) {
     });
 }
 
-// নিশ্চিত রেজাল্ট বাবল দেখানো (উইন হলে সবুজ, লস হলে লাল)
 function showResultBubble(res) {
     updateBalanceUI(res.balance);
     let bubble = document.getElementById('resultBubble');
@@ -360,7 +326,7 @@ function showResultBubble(res) {
 }
 
 // -------------------------------------------------------------
-// ৫. ক্যানভাস রেন্ডার লুপ (মিডিয়াম ক্যান্ডেল ও স্ক্রিনশট ৮৭৪ মার্কার)
+// ৫. ক্যানভাস রেন্ডার লুপ (মিডিয়াম প্রাকৃতিক ক্যান্ডেল ও টাইম-বক্স মুক্ত ট্রেড মার্কার)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -372,7 +338,8 @@ function render() {
 
     if (candles.length === 0 || isLoadingAsset) return;
 
-    // স্মুথ লার্প
+    let isLightTheme = document.body.classList.contains('theme-light');
+
     renderLivePrice += (targetLivePrice - renderLivePrice) * 0.18;
     candles[candles.length - 1].close = parseFloat(renderLivePrice.toFixed(activeDecimals));
     candles[candles.length - 1].high = Math.max(candles[candles.length - 1].high, candles[candles.length - 1].close);
@@ -405,33 +372,23 @@ function render() {
     let rawMaxP = Math.max(...prices);
     let rawRange = rawMaxP - rawMinP;
 
-    // প্রাকৃতিক ব্যালেন্সড স্কেলিং বাফার
-    let basePrice = ASSET_BASE_PRICES[activeAssetKey] || 100.0;
-    let minSensibleRange = basePrice * 0.0007;
+    // প্রাকৃতিক নিখুঁত স্কেলিং (স্ক্রিনশট ৮৮০ ও ৮৯৬ অনুযায়ী ক্যান্ডেল মাঝারি ও সুস্পষ্ট উচ্চতার হবে)
+    let activeVol = (ASSET_BASE_PRICES[activeAssetKey] ? (ASSET_BASE_PRICES[activeAssetKey] * 0.00015) : 1.0);
+    let pad = Math.max(rawRange * 0.16, activeVol);
 
-    let minP = rawMinP;
-    let maxP = rawMaxP;
-
-    if (rawRange < minSensibleRange) {
-        let mid = (rawMaxP + rawMinP) / 2.0;
-        minP = mid - minSensibleRange / 2.0;
-        maxP = mid + minSensibleRange / 2.0;
-    } else {
-        let pad = rawRange * 0.14;
-        minP -= pad;
-        maxP += pad;
-    }
+    let minP = rawMinP - pad;
+    let maxP = rawMaxP + pad;
     let range = (maxP - minP) || 0.01;
-    let padY = 35;
+    let padY = 32;
 
     function getY(p) {
         return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
     // গ্রিড
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
-    ctx.fillStyle = '#7a8ba1';
+    ctx.fillStyle = isLightTheme ? '#57606a' : '#7a8ba1';
     ctx.font = '11px -apple-system, sans-serif';
 
     for (let i = 1; i <= 6; i++) {
@@ -472,7 +429,7 @@ function render() {
     let liveY = getY(last.close);
 
     ctx.setLineDash([3, 3]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.strokeStyle = isLightTheme ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.85)';
     ctx.beginPath();
     ctx.moveTo(0, liveY);
     ctx.lineTo(width - 55, liveY);
@@ -490,7 +447,7 @@ function render() {
 
     let expX = baseRightX + (candleWidth + candleSpacing);
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.strokeStyle = isLightTheme ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.45)';
     ctx.beginPath();
     ctx.moveTo(expX, 0);
     ctx.lineTo(expX, height - 20);
@@ -518,7 +475,7 @@ function render() {
     ctx.fillText(candleTimerStr, pillX + 10, pillY + 14);
 
     // -------------------------------------------------------------
-    // স্ক্রিনশট ৮৭৪ অনুযায়ী লকড ট্রেড মার্কার (টাইমস্ট্যাম্প সিঙ্কড)
+    // ট্রেড মার্কার (কোনো শেষ সময় বক্স থাকবে না - শুধু অ্যারো ও লাইন)
     // -------------------------------------------------------------
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let candle = candles.find(c => c.time === tr.candleTime);
@@ -536,11 +493,11 @@ function render() {
         ctx.lineWidth = 1.3;
         ctx.beginPath();
         ctx.moveTo(entryX, entryY);
-        ctx.lineTo(expX + 65, entryY);
+        ctx.lineTo(expX, entryY);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // ১. সার্কেল + অ্যারো
+        // ১. সার্কেল + অ্যারো আইকন
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(entryX, entryY, 7.5, 0, Math.PI * 2);
@@ -550,7 +507,7 @@ function render() {
         ctx.font = 'bold 9px sans-serif';
         ctx.fillText(isUp ? '↑' : '↓', entryX - 2.8, entryY + 3.2);
 
-        // ২. সাথে সংযুক্ত সাদা সার্কেল ডট
+        // ২. সাথে সংযুক্ত ছোট সাদা ডট
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(entryX + 9, entryY, 5.5, 0, Math.PI * 2);
@@ -559,24 +516,15 @@ function render() {
         ctx.lineWidth = 1.2;
         ctx.stroke();
 
-        // ৩. এক্সপায়ারেশন সময় পিল (12:36:25)
-        let trExp = new Date(tr.expireTime * 1000);
-        let trTime = `${String(trExp.getHours()).padStart(2,'0')}:${String(trExp.getMinutes()).padStart(2,'0')}:${String(trExp.getSeconds()).padStart(2,'0')}`;
-
-        ctx.fillStyle = '#1c2638';
+        // ৩. শেষ প্রান্তে ছোট ডট (কোনো টাইম বক্স নেই)
+        ctx.fillStyle = tradeColor;
         ctx.beginPath();
-        ctx.roundRect(expX + 6, entryY - 10, 62, 20, 4);
+        ctx.arc(expX, entryY, 4, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 10px monospace';
-        ctx.fillText(trTime, expX + 10, entryY + 4);
     });
 }
 
-// -------------------------------------------------------------
-// ৬. WebSocket ইঞ্জিন ও লাইভ রিসিভার
-// -------------------------------------------------------------
+// ৬. WebSocket ইঞ্জিন
 function connectWS() {
     try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -609,7 +557,6 @@ function connectWS() {
                     }
                 }
             } else if (msg.type === 'TRADE_SETTLED') {
-                // সার্ভার থেকে ট্রেড সেটেলড হলে সাথে সাথে রেজাল্ট বাবল দেখানো
                 activeTrades = activeTrades.filter(t => t.id !== msg.result.tradeId);
                 updateTradeBadges();
                 showResultBubble(msg.result);
@@ -658,55 +605,7 @@ function selectAsset(key) {
     });
 }
 
-// টাচ প্যান ও জুম
-let startX = 0;
-let isPanning = false;
-
-if (canvas) {
-    canvas.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-            isPanning = false;
-            initialPinchDistance = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-        } else if (e.touches.length === 1) {
-            isPanning = true;
-            startX = e.touches[0].clientX;
-            checkTradeClick(e.touches[0].clientX, e.touches[0].clientY);
-        }
-    }, { passive: true });
-
-    canvas.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2 && initialPinchDistance) {
-            let currentDist = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-            let factor = currentDist / initialPinchDistance;
-            if (factor > 1.04 && candleWidth < 26) {
-                candleWidth = Math.min(26, candleWidth + 0.3);
-                candleSpacing = Math.min(10, candleSpacing + 0.15);
-            } else if (factor < 0.96 && candleWidth > 7) {
-                candleWidth = Math.max(7, candleWidth - 0.3);
-                candleSpacing = Math.max(2, candleSpacing - 0.15);
-            }
-            initialPinchDistance = currentDist;
-        } else if (e.touches.length === 1 && isPanning) {
-            panOffset += (e.touches[0].clientX - startX) * 0.95;
-            let maxPan = (candles.length * (candleWidth + candleSpacing)) - 80;
-            panOffset = Math.max(-60, Math.min(maxPan, panOffset));
-            startX = e.touches[0].clientX;
-        }
-    }, { passive: true });
-
-    canvas.addEventListener('touchend', () => {
-        isPanning = false;
-        initialPinchDistance = null;
-    });
-}
-
-// মোডাল ও হেল্পার ফাংশনসমূহ
+// মোডাল হ্যান্ডলারস
 function openMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'flex'; }
 function closeMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'none'; }
 function openHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'flex'; }
@@ -730,9 +629,7 @@ function closeResult() { let r = document.getElementById('resultBubble'); if (r)
 function closeToast() { let t = document.getElementById('tradeOpenToast'); if (t) t.style.display = 'none'; }
 function closeAllDrawers() {
     let d1 = document.getElementById('bottomTradesDrawer');
-    let d2 = document.getElementById('sellTradeCard');
     if (d1) d1.style.display = 'none';
-    if (d2) d2.style.display = 'none';
 }
 function toggleTimePopup() { let p = document.getElementById('timeSelectPopup'); if (p) p.style.display = (p.style.display !== 'block') ? 'block' : 'none'; }
 function selectTimer(sec, display) {
