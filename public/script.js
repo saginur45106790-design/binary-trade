@@ -765,3 +765,110 @@ fitCanvas();
 selectAsset('BTC');
 switchAccount('demo');
 requestAnimationFrame(render);
+
+// -------------------------------------------------------------
+// 🏆 ট্রফি আইকন: ২৪ ঘণ্টার বোনাস ও অফার হ্যান্ডলার
+// -------------------------------------------------------------
+let loadedBonuses = [];
+
+function openTournamentsBonusModal() {
+    document.getElementById('bonusTournamentsModal').style.display = 'flex';
+    fetchBonuses();
+}
+
+function closeTournamentsBonusModal() {
+    document.getElementById('bonusTournamentsModal').style.display = 'none';
+}
+
+function fetchBonuses() {
+    fetch('/api/bonuses')
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            loadedBonuses = d.bonuses || [];
+            updateTrophyBadge();
+            renderBonusCards();
+        }
+    });
+}
+
+function updateTrophyBadge() {
+    let uncalimedCount = loadedBonuses.filter(b => !b.claimedBy || !b.claimedBy.includes("demo_user")).length;
+    let badge = document.getElementById('trophyBadge');
+    if (badge) {
+        badge.innerText = uncalimedCount;
+        badge.style.display = uncalimedCount > 0 ? 'flex' : 'none';
+    }
+}
+
+function renderBonusCards() {
+    let container = document.getElementById('activeBonusCardsContainer');
+    if (!container) return;
+
+    if (loadedBonuses.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px; color:#6e829c; font-size:13px;">No active 24h bonus right now. Check back soon!</div>`;
+        return;
+    }
+
+    let now = Date.now();
+    let html = '';
+
+    loadedBonuses.forEach(b => {
+        let msLeft = Math.max(0, (24 * 60 * 60 * 1000) - (now - b.createdAt));
+        let hrs = Math.floor(msLeft / (1000 * 60 * 60));
+        let mins = Math.floor((msLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+        let isClaimed = (b.claimedBy && b.claimedBy.includes("demo_user"));
+
+        html += `
+            <div class="bonus-offer-card">
+                <div class="b-card-top">
+                    <div>
+                        <span class="b-type-pill">${b.type}</span>
+                        <div class="b-title">${b.title}</div>
+                    </div>
+                    <div class="b-reward">+$${parseFloat(b.amount).toFixed(2)}</div>
+                </div>
+                <div class="b-desc">${b.description}</div>
+                <div class="b-card-bottom">
+                    <div class="b-timer-tag">⏳ ${hrs}h ${mins}m left</div>
+                    <button class="btn-claim-bonus ${isClaimed ? 'claimed' : ''}" 
+                            onclick="${isClaimed ? '' : `claimBonusReward('${b.id}')`}">
+                        ${isClaimed ? 'Claimed ✔' : 'Join & Claim'}
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function claimBonusReward(bonusId) {
+    fetch('/api/bonuses/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            bonusId: bonusId,
+            username: "demo_user",
+            accountType: currentAccount
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            updateBalanceUI(d.newBalance);
+            let toast = document.getElementById('tradeOpenToast');
+            document.getElementById('toastMsg').innerText = d.message;
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 4000);
+            fetchBonuses();
+        } else {
+            alert(d.message);
+        }
+    });
+}
+
+// প্রতি ২ মিনিটে ব্যাকগ্রাউন্ডে বোনাস রিফ্রেশ
+setInterval(fetchBonuses, 120000);
+fetchBonuses();
