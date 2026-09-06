@@ -90,9 +90,7 @@ body, html {
     touch-action: none;
 }
 
-/* -------------------------------------------------------------
-   স্ক্রিনশট ৮৭১ অনুযায়ী প্রিমিয়াম রাউন্ডেড লোডিং অ্যানিমেশন
-------------------------------------------------------------- */
+/* লোডিং অ্যানিমেশন */
 .chart-loading-overlay {
     position: absolute;
     inset: 0;
@@ -105,46 +103,19 @@ body, html {
     pointer-events: none;
     transition: opacity 0.25s ease;
 }
-
-.chart-loading-overlay.active {
-    opacity: 1;
-    pointer-events: auto;
-}
-
+.chart-loading-overlay.active { opacity: 1; pointer-events: auto; }
 .pocket-spinner-badge {
-    position: relative;
-    width: 82px;
-    height: 82px;
-    background: #ffffff;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative; width: 80px; height: 80px; background: #ffffff;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
 }
-
 .spinner-ring {
-    position: absolute;
-    inset: -4px;
-    border-radius: 50%;
-    border: 3px solid transparent;
-    border-top-color: #2a66e4;
-    border-right-color: #2a66e4;
-    animation: pocketSpin 0.9s linear infinite;
+    position: absolute; inset: -4px; border-radius: 50%; border: 3px solid transparent;
+    border-top-color: #2a66e4; border-right-color: #2a66e4; animation: pocketSpin 0.9s linear infinite;
 }
+@keyframes pocketSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.pocket-logo-icon { display: flex; align-items: center; justify-content: center; }
 
-@keyframes pocketSpin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.pocket-logo-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* চার্ট ওয়াটারমার্ক */
 .watermark-text {
     position: absolute;
     top: 50%;
@@ -158,6 +129,7 @@ body, html {
     display: block;
 }
 
+/* চার্ট শীর্ষ মেটা বার */
 .chart-meta-tags {
     position: absolute;
     top: 8px;
@@ -165,13 +137,13 @@ body, html {
     right: 10px;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     pointer-events: none;
     font-size: 11px;
     color: #6a7c94;
     z-index: 5;
 }
-.sub-menu-btn {
+.sub-menu-btn, .briefcase-btn {
     background: #1c2638;
     padding: 4px 8px;
     border-radius: 4px;
@@ -180,6 +152,18 @@ body, html {
     font-size: 11px;
     cursor: pointer;
 }
+.sub-badge {
+    background: #2a66e4;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 4px;
+    border-radius: 4px;
+    margin-left: 2px;
+}
+.meta-tag-item { font-size: 10px; color: #6a7c94; }
+.meta-tag-item.end-tag { margin-left: auto; text-align: right; line-height: 1.2; }
+.meta-tag-item.end-tag b { color: #2a66e4; }
 
 .live-dot {
     display: inline-block;
@@ -210,6 +194,32 @@ body, html {
     z-index: 10;
 }
 
+/* "Sell the trade" কার্ড (রেফারেন্সের ইমেজ ১১৮) */
+.sell-trade-card {
+    display: none;
+    position: absolute;
+    background: #1c2638;
+    border: 1px solid #2b374d;
+    border-radius: 6px;
+    padding: 6px 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6);
+    z-index: 30;
+    flex-direction: column;
+    gap: 4px;
+}
+.st-head { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: #8fa0b5; font-weight: 600; }
+.st-timer { color: #fff; font-family: monospace; }
+.st-val-btn {
+    background: #243044;
+    border: 1px solid #33435c;
+    border-radius: 4px;
+    padding: 4px 8px;
+    text-align: center;
+    cursor: pointer;
+}
+.st-val-btn span { color: #fff; font-size: 13px; font-weight: 800; }
+
+/* রেজাল্ট বাবল (রেফারেন্সের ইমেজ ৮০ ও ১৫৩) */
 .result-popup-bubble {
     display: none;
     position: absolute;
@@ -225,6 +235,7 @@ body, html {
 .res-val { font-size: 15px; font-weight: 800; margin-top: 2px; }
 .res-x { cursor: pointer; }
 
+/* ওপেন ট্রেড টোস্ট (রেফারেন্সের ইমেজ ২৯) */
 .open-trade-toast {
     display: none;
     position: absolute;
@@ -243,6 +254,29 @@ body, html {
     max-width: 90%;
 }
 .toast-close { cursor: pointer; font-size: 12px; margin-left: 6px; }
+
+/* সক্রিয় ট্রেড ড্রয়ার */
+.trades-drawer {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #1b2230;
+    border-top: 1px solid #283348;
+    max-height: 180px;
+    overflow-y: auto;
+    z-index: 25;
+}
+.drawer-head {
+    background: #222b3d;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-between;
+    cursor: pointer;
+}
 
 /* বটম প্যানেল */
 .dock-panel {
@@ -373,7 +407,6 @@ input:checked + .slider:before { transform: translateX(14px); }
     background: #171f2c;
     border-top: 1px solid #202b3d;
 }
-
 .f-icon {
     display: flex;
     align-items: center;
@@ -385,10 +418,8 @@ input:checked + .slider:before { transform: translateX(14px); }
     position: relative;
     transition: color 0.2s ease;
 }
-
 .f-icon.active { color: #ffffff; }
 .f-icon svg { display: block; width: 22px; height: 22px; fill: currentColor; }
-
 .f-badge {
     position: absolute;
     top: 5px;
@@ -584,6 +615,7 @@ input:checked + .slider:before { transform: translateX(14px); }
 .opt-sub { font-size: 10px; color: #5a6e87; }
 .blue-link { color: #0070f3; font-weight: 700; margin-left: 4px; }
 
+/* টাইম ও টাইমার পপআপ ডায়ালগ */
 .time-popup-dialog {
     display: none;
     position: fixed;

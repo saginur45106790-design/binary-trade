@@ -12,9 +12,9 @@ let remainingCountdown = 60;
 let activeAssetKey = 'BTC';
 let activeDecimals = 2;
 let currentPayout = 92;
-let isSwitchingAsset = false;
+let isLoadingAsset = false;
 
-// স্মুথ লার্প (Interpolation) ভেরিয়েবল
+// স্মুথ লার্প ইন্টারপোলেশন
 let renderLivePrice = 68520.50;
 let targetLivePrice = 68520.50;
 
@@ -30,6 +30,7 @@ let targetExpiryEpoch = 0;
 
 let currentInvestAmount = 1;
 let selectedDepMethod = 'Bkash';
+let activeSellTrade = null;
 
 const ASSET_DECIMALS = {
     'BTC': 2, 'ETH': 2, 'SOL': 2, 'BNB': 2,
@@ -59,19 +60,16 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// স্ক্রিনশট ৮৭১ লোডার হ্যান্ডলার
 function showChartLoader() {
     let el = document.getElementById('chartLoader');
     if (el) el.classList.add('active');
 }
 function hideChartLoader() {
     let el = document.getElementById('chartLoader');
-    if (el) {
-        setTimeout(() => { el.classList.remove('active'); }, 400);
-    }
+    if (el) setTimeout(() => { el.classList.remove('active'); }, 300);
 }
 
-// টাচ স্ক্রোল ও জুম
+// টাচ স্ক্রোল ও পিঞ্চ জুম
 let startX = 0;
 let isPanning = false;
 
@@ -85,6 +83,7 @@ canvas.addEventListener('touchstart', (e) => {
     } else if (e.touches.length === 1) {
         isPanning = true;
         startX = e.touches[0].clientX;
+        checkTradeClick(e.touches[0].clientX, e.touches[0].clientY);
     }
 }, { passive: true });
 
@@ -115,6 +114,71 @@ canvas.addEventListener('touchend', () => {
     isPanning = false;
     initialPinchDistance = null;
 });
+
+// "Sell the trade" কার্ড পপআপ হ্যান্ডলার (রেফারেন্সের ইমেজ ১১৮ অনুযায়ী)
+function checkTradeClick(touchX, touchY) {
+    const rect = canvas.getBoundingClientRect();
+    let x = touchX - rect.left;
+    let y = touchY - rect.top;
+
+    let match = activeTrades.find(t => t.asset === activeAssetKey);
+    if (match) {
+        activeSellTrade = match;
+        let card = document.getElementById('sellTradeCard');
+        card.style.display = 'flex';
+        card.style.left = Math.min(x, rect.width - 150) + 'px';
+        card.style.top = Math.max(20, y - 45) + 'px';
+        document.getElementById('sellRefundVal').innerText = `${(match.amount * 0.25).toFixed(2)} $`;
+    }
+}
+
+function confirmSellTrade() {
+    if (!activeSellTrade) return;
+    fetch('/api/sell-trade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            username: 'demo_user',
+            amount: activeSellTrade.amount,
+            accountType: currentAccount
+        })
+    })
+    .then(r => r.json())
+    .then(d => {
+        activeTrades = activeTrades.filter(t => t.id !== activeSellTrade.id);
+        updateBalanceUI(d.balance);
+        document.getElementById('sellTradeCard').style.display = 'none';
+        updateTradeBadges();
+    });
+}
+
+function updateTradeBadges() {
+    let count = activeTrades.length;
+    document.getElementById('openTradesBadge').innerText = count;
+    document.getElementById('drawerCount').innerText = count;
+    updateTradesDrawerList();
+}
+
+function updateTradesDrawerList() {
+    let box = document.getElementById('activeTradesList');
+    if (activeTrades.length === 0) {
+        box.innerHTML = `<p style="padding:15px; color:#6e829c; font-size:12px; text-align:center;">No active trades</p>`;
+        return;
+    }
+    let html = '';
+    activeTrades.forEach(t => {
+        html += `<div style="padding:10px 14px; border-bottom:1px solid #283348; display:flex; justify-content:space-between; align-items:center;">
+            <span>${t.asset} ${t.direction === 'UP' ? '🟢 UP' : '🔴 DOWN'}</span>
+            <b>$${t.amount}</b>
+        </div>`;
+    });
+    box.innerHTML = html;
+}
+
+function toggleBottomTrades() {
+    let el = document.getElementById('bottomTradesDrawer');
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
 
 function stepAmt(delta) {
     currentInvestAmount = Math.max(1, currentInvestAmount + delta);
@@ -169,7 +233,6 @@ function switchAccount(type) {
         radioDemo.classList.remove('active');
 
         watermark.style.display = 'none';
-        watermark.innerText = '';
     } else {
         lbl.innerText = "DEMO";
         lbl.className = "acc-label demo";
@@ -325,19 +388,37 @@ function syncClock() {
     let ss = String(now.getSeconds()).padStart(2, '0');
     document.getElementById('liveUtcClock').innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC+6`;
 
+    // End of trade টেক্সট আপডেট
+    if (currentMode === 'time' && selectedTimeValue) {
+        document.getElementById('endTradeTimeText').innerText = selectedTimeValue;
+    } else {
+        let expDate = new Date(now.getTime() + selectedTimerSeconds * 1000);
+        document.getElementById('endTradeTimeText').innerText = `${String(expDate.getHours()).padStart(2,'0')}:${String(expDate.getMinutes()).padStart(2,'0')}`;
+    }
+
     let curSec = Math.floor(now.getTime() / 1000);
     for (let i = activeTrades.length - 1; i >= 0; i--) {
         let trade = activeTrades[i];
         if (curSec >= trade.expireTime) {
             settleTrade(trade);
             activeTrades.splice(i, 1);
+            updateTradeBadges();
         }
+    }
+
+    if (activeSellTrade) {
+        let diffSec = Math.max(0, activeSellTrade.expireTime - curSec);
+        let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
+        let remS = String(diffSec % 60).padStart(2, '0');
+        document.getElementById('sellTimeRem').innerText = `${remM}:${remS}`;
     }
 }
 setInterval(syncClock, 1000);
 
 function settleTrade(trade) {
     let exitP = candles.length > 0 ? candles[candles.length - 1].close : trade.entryPrice;
+    document.getElementById('sellTradeCard').style.display = 'none';
+
     fetch('/api/settle-trade', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -364,39 +445,46 @@ function settleTrade(trade) {
     });
 }
 
-// কয়েন পরিবর্তন ও লোডার ট্রিগার
+// কয়েন স্যুইচিং (ক্রস-অ্যাসেট গ্লিচ জিরো করা হয়েছে)
 function selectAsset(key) {
-    isSwitchingAsset = true;
+    if (activeAssetKey === key && candles.length > 0) {
+        closeAssetModal();
+        return;
+    }
+    isLoadingAsset = true;
+    candles = []; // তাৎক্ষণিক ক্লিয়ার
     showChartLoader();
+    closeAssetModal();
+
     activeAssetKey = key;
     activeDecimals = ASSET_DECIMALS[key] || 2;
-    document.getElementById('activeCoinIcon').innerHTML = COIN_ICONS[key];
+    document.getElementById('activeCoinIcon').innerHTML = COIN_ICONS[key] || '';
     document.getElementById('curName').innerText = `${key}/USD (OTC)`;
 
     fetch(`/api/history/${key}`)
     .then(r => r.json())
     .then(data => {
         if (data.success && data.meta.ticker === activeAssetKey) {
-            candles = data.history;
+            candles = data.history.map(c => ({...c}));
             activeDecimals = data.meta.decimals;
             currentPayout = data.meta.payout;
             document.getElementById('curPayout').innerText = `${currentPayout}% ▼`;
             updatePayoutCalc();
-            closeAssetModal();
-            isSwitchingAsset = false;
+
             let lastP = candles[candles.length - 1].close;
             targetLivePrice = lastP;
             renderLivePrice = lastP;
+            isLoadingAsset = false;
             hideChartLoader();
         }
     }).catch(() => {
+        isLoadingAsset = false;
         hideChartLoader();
-        isSwitchingAsset = false;
     });
 }
 
 // -------------------------------------------------------------
-// ক্যানভাস রেন্ডার লুপ (স্মুথ ৬০ এফপিএস ও স্ক্রিনশট ৮৭৩, ৮৭৪ স্টাইল)
+// ক্যানভাস রেন্ডার লুপ (রেফারেন্সের হুবহু আর্কিটেকচার)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -405,14 +493,14 @@ function render() {
     const height = parseFloat(canvas.style.height) || canvas.height;
     ctx.clearRect(0, 0, width, height);
 
-    if (candles.length === 0 || isSwitchingAsset) return;
+    if (candles.length === 0 || isLoadingAsset) return;
 
-    // স্মুথ লার্প ইন্টারপোলেশন (মাখনের মতো মসৃণ ক্যান্ডেল মুভমেন্ট)
-    renderLivePrice += (targetLivePrice - renderLivePrice) * 0.15;
+    // স্মুথ লার্প ইন্টারপোলেশন
+    renderLivePrice += (targetLivePrice - renderLivePrice) * 0.18;
     candles[candles.length - 1].close = parseFloat(renderLivePrice.toFixed(activeDecimals));
 
     let totalUnit = candleWidth + candleSpacing;
-    let baseRightX = width - 80 + panOffset;
+    let baseRightX = width - 85 + panOffset;
     let N = candles.length;
 
     function getX(i) {
@@ -460,7 +548,7 @@ function render() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // ক্যান্ডেলস্টিক রেন্ডার
+    // ক্যান্ডেল আঁকা
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -486,15 +574,16 @@ function render() {
     let last = candles[candles.length - 1];
     let liveY = getY(last.close);
 
-    // লাইভ অনুভূমিক ড্যাশ লাইন
+    // অনুভূমিক সাদা ড্যাশ লাইন
     ctx.setLineDash([3, 3]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
     ctx.beginPath();
     ctx.moveTo(0, liveY);
     ctx.lineTo(width - 55, liveY);
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // ডানপাশের নীল সলিড প্রাইস ব্যাজ
     ctx.fillStyle = '#0070f3';
     ctx.beginPath();
     ctx.roundRect(width - 56, liveY - 10, 54, 20, 4);
@@ -504,104 +593,72 @@ function render() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
-    // উলম্ব এক্সপায়ারেশন ড্যাশ লাইন
+    // উলম্ব এক্সপায়ারেশন ড্যাশ লাইন (End of trade)
     let expX = baseRightX + (candleWidth + candleSpacing);
     ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.beginPath();
     ctx.moveTo(expX, 0);
     ctx.lineTo(expX, height - 20);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // -------------------------------------------------------------
-    // স্ক্রিনশট ৮৭৩ স্টাইল: সাইড টাইম বক্স (অনুভূমিক লাইনে একটু ডানে)
-    // -------------------------------------------------------------
-    let now = new Date();
-    let expDate = new Date(now.getTime() + remainingCountdown * 1000);
-    let hhStr = String(expDate.getHours()).padStart(2, '0');
-    let mmStr = String(expDate.getMinutes()).padStart(2, '0');
-    let ssStr = String(expDate.getSeconds()).padStart(2, '0');
-    let exactTimeStr = `${hhStr}:${mmStr}:${ssStr}`;
+    // কাউন্টডাউন ব্যাজ (- 00:29)
+    let cdM = Math.floor(remainingCountdown / 60);
+    let cdS = remainingCountdown % 60;
+    let cdStr = `${String(cdM).padStart(2,'0')}:${String(cdS).padStart(2,'0')}`;
 
-    let activeCoinTrades = activeTrades.filter(t => t.asset === activeAssetKey);
+    ctx.fillStyle = 'rgba(23, 29, 42, 0.9)';
+    ctx.fillRect(expX - 25, liveY - 9, 50, 18);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText(`- ${cdStr}`, expX - 23, liveY + 4);
 
-    // যদি কোনো ট্রেড না থাকে: স্ক্রিনশট ৮৭৩ এর হুবহু টাইম বক্স
-    if (activeCoinTrades.length === 0) {
-        let boxW = 68;
-        let boxH = 20;
-        let boxX = expX + 16;
-        let boxY = liveY - (boxH / 2);
-
-        ctx.fillStyle = '#222d3d';
-        ctx.beginPath();
-        ctx.roundRect(boxX, boxY, boxW, boxH, 4);
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 10px monospace';
-        ctx.fillText(exactTimeStr, boxX + 8, boxY + 14);
-    }
+    // বটম টাইম স্কেল
+    ctx.fillStyle = '#6e829c';
+    ctx.font = '10px sans-serif';
+    visibleCandles.forEach(v => {
+        if (v.index % 8 === 0) {
+            let d = new Date(v.time * 1000);
+            let lbl = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            ctx.fillText(lbl, Math.floor(v.x - 12), height - 6);
+        }
+    });
 
     // -------------------------------------------------------------
-    // স্ক্রিনশট ৮৭৪ স্টাইল: ডাবল সার্কেল + অ্যারো ও সংযুক্ত হোয়াইট ডট
+    // রেফারেন্সের অরিজিনাল ট্রেড মার্কার (ইমেজ ১১০, ১১৮, ১৪৯)
     // -------------------------------------------------------------
-    activeCoinTrades.forEach(tr => {
+    activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let entryX = getX(tr.startCandleIdx);
         let entryY = getY(tr.entryPrice);
         let isUp = (tr.direction === 'UP');
         let tradeColor = isUp ? '#00e676' : '#eb5757';
 
-        // অনুভূমিক ড্যাশ লাইন
-        ctx.setLineDash([4, 4]);
+        // অনুভূমিক ড্যাশ লাইন (ট্রেডের শেষ পর্যন্ত)
+        ctx.setLineDash([3, 3]);
         ctx.strokeStyle = tradeColor;
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 1.3;
         ctx.beginPath();
         ctx.moveTo(entryX, entryY);
-        ctx.lineTo(expX + 70, entryY);
+        ctx.lineTo(expX, entryY);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // ১. অ্যারো সহ প্রথম সার্কেল (রেড/গ্রিন)
-        let r1 = 8;
+        // ১. ক্যান্ডেলের এন্ট্রি পয়েন্টে সলিড সার্কেল + অ্যারো
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
-        ctx.arc(entryX, entryY, r1, 0, Math.PI * 2);
+        ctx.arc(entryX, entryY, 7.5, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 9px sans-serif';
-        ctx.fillText(isUp ? '↑' : '↓', entryX - 2.5, entryY + 3.5);
+        ctx.fillText(isUp ? '↑' : '↓', entryX - 2.8, entryY + 3.2);
 
-        // ২. ঠিক সাথে সংযুক্ত ওভারল্যাপিং হোয়াইট সার্কেল ডট
-        let r2 = 6;
-        let c2X = entryX + 11;
-        ctx.fillStyle = '#ffffff';
+        // ২. শেষ প্রান্তে ছোট এক্সপায়ারেশন ডট
+        ctx.fillStyle = tradeColor;
         ctx.beginPath();
-        ctx.arc(c2X, entryY, r2, 0, Math.PI * 2);
+        ctx.arc(expX, entryY, 4, 0, Math.PI * 2);
         ctx.fill();
-
-        ctx.strokeStyle = tradeColor;
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-
-        // ৩. স্ক্রিনশট ৮৭৪ অনুযায়ী নির্দিষ্ট এক্সপায়ারেশন টাইম বক্স (12:36:25)
-        let trExpDate = new Date(tr.expireTime * 1000);
-        let trTimeStr = `${String(trExpDate.getHours()).padStart(2,'0')}:${String(trExpDate.getMinutes()).padStart(2,'0')}:${String(trExpDate.getSeconds()).padStart(2,'0')}`;
-
-        let pillW = 68;
-        let pillH = 20;
-        let pillX = expX + 16;
-        let pillY = entryY - (pillH / 2);
-
-        ctx.fillStyle = '#222d3d';
-        ctx.beginPath();
-        ctx.roundRect(pillX, pillY, pillW, pillH, 4);
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 10px monospace';
-        ctx.fillText(trTimeStr, pillX + 8, pillY + 14);
     });
 }
 
@@ -619,19 +676,17 @@ ws.onmessage = (event) => {
             if (el) el.innerText = msg.assets[k].price;
         }
 
-        if (!isSwitchingAsset && msg.assets[activeAssetKey]) {
+        if (!isLoadingAsset && candles.length > 0 && msg.assets[activeAssetKey]) {
             let item = msg.assets[activeAssetKey];
             targetLivePrice = parseFloat(item.price);
 
-            if (candles.length > 0) {
-                let last = candles[candles.length - 1];
-                if (last.time === item.candle.time) {
-                    last.high = Math.max(last.high, item.candle.high);
-                    last.low = Math.min(last.low, item.candle.low);
-                } else {
-                    candles.push(item.candle);
-                    if (candles.length > 1000) candles.shift();
-                }
+            let last = candles[candles.length - 1];
+            if (last.time === item.candle.time) {
+                last.high = Math.max(last.high, item.candle.high);
+                last.low = Math.min(last.low, item.candle.low);
+            } else {
+                candles.push({ ...item.candle });
+                if (candles.length > 800) candles.shift();
             }
         }
     }
@@ -671,8 +726,10 @@ function placeOrder(direction) {
             startCandleIdx: candles.length - 1
         });
 
+        updateTradeBadges();
+
         let toast = document.getElementById('tradeOpenToast');
-        document.getElementById('toastMsg').innerText = `Trade opened: $${amount} on ${activeAssetKey}`;
+        document.getElementById('toastMsg').innerText = `Trade opened with price: ${data.entryPrice} ${activeAssetKey}/USD (OTC)`;
         toast.style.display = 'flex';
         setTimeout(() => { toast.style.display = 'none'; }, 3000);
     });
@@ -683,11 +740,13 @@ function openAssetModal() { document.getElementById('assetModal').style.display 
 function closeAssetModal() { document.getElementById('assetModal').style.display = 'none'; }
 function closeResult() { document.getElementById('resultBubble').style.display = 'none'; }
 function closeToast() { document.getElementById('tradeOpenToast').style.display = 'none'; }
-function openDrawer(page) {}
-function closeAllDrawers() {}
+function closeAllDrawers() {
+    document.getElementById('bottomTradesDrawer').style.display = 'none';
+    document.getElementById('sellTradeCard').style.display = 'none';
+}
 function toggleToolsMenu() {}
 
-// শুরু করা
+// প্রাথমিক ইনিশিয়ালাইজেশন
 fitCanvas();
 selectAsset('BTC');
 switchAccount('demo');

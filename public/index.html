@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option Terminal</title>
-    <link rel="stylesheet" href="style.css?v=15.0">
+    <link rel="stylesheet" href="style.css?v=16.0">
 </head>
 <body>
     <div class="app-root">
@@ -19,7 +19,7 @@
             </div>
 
             <div class="top-bar-right">
-                <div class="notification-btn" onclick="openDrawer('trades')">
+                <div class="notification-btn" onclick="toggleBottomTrades()">
                     <svg viewBox="0 0 24 24" width="18" height="18" fill="#f5a623"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
                     <span class="badge-num">13</span>
                 </div>
@@ -44,9 +44,14 @@
 
             <div class="chart-meta-tags">
                 <div class="sub-menu-btn" onclick="toggleToolsMenu()">•••</div>
+                <div class="briefcase-btn" onclick="toggleBottomTrades()">
+                    💼 <span class="sub-badge" id="openTradesBadge">0</span>
+                </div>
                 <div class="utc-clock" id="liveUtcClock">
                     <span class="live-dot"></span> 00:00:00 UTC+6
                 </div>
+                <div class="meta-tag-item">ℹ️ Beginning of trade</div>
+                <div class="meta-tag-item end-tag" id="endTradeMeta">End of trade<br><b id="endTradeTimeText">--:--</b></div>
             </div>
 
             <canvas id="tradeCanvas"></canvas>
@@ -59,9 +64,29 @@
                 <span class="toast-close" onclick="closeToast()">✕</span>
             </div>
 
+            <div id="sellTradeCard" class="sell-trade-card">
+                <div class="st-head">
+                    <span>Sell the trade</span>
+                    <span class="st-timer" id="sellTimeRem">00:37</span>
+                </div>
+                <div class="st-val-btn" onclick="confirmSellTrade()">
+                    <span id="sellRefundVal">0.25 $</span>
+                </div>
+            </div>
+
             <div id="resultBubble" class="result-popup-bubble">
                 <div class="res-head">RESULT (P/L) <span class="res-x" onclick="closeResult()">✕</span></div>
-                <div class="res-val" id="resProfitVal">+1.92 $</div>
+                <div class="res-val" id="resProfitVal">+1.84 $</div>
+            </div>
+
+            <div id="bottomTradesDrawer" class="trades-drawer">
+                <div class="drawer-head" onclick="toggleBottomTrades()">
+                    <span>Active Trades (<b id="drawerCount">0</b>)</span>
+                    <span>▼</span>
+                </div>
+                <div class="drawer-list" id="activeTradesList">
+                    <p style="padding:15px; color:#6e829c; font-size:12px; text-align:center;">No active trades</p>
+                </div>
             </div>
         </div>
 
@@ -121,17 +146,17 @@
                 <div class="f-icon active" onclick="closeAllDrawers()">
                     <svg viewBox="0 0 24 24"><path d="M5 3C3.9 3 3 3.9 3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5zm0 2h14v9.6l-3.3-3.3c-.4-.4-1-.4-1.4 0L10 15.6l-2.3-2.3c-.4-.4-1-.4-1.4 0L5 14.6V5z"/></svg>
                 </div>
-                <div class="f-icon" onclick="openDrawer('faq')">
+                <div class="f-icon" onclick="alert('Support: support@pocketoption.com')">
                     <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6 2 11c0 2.9 1.5 5.4 3.9 7.1L5 22l4.5-1.5c.8.3 1.7.5 2.5.5 5.5 0 10-4 10-9s-4.5-9-10-9zm.1 15c-.6 0-1.1-.5-1.1-1.1 0-.6.5-1.1 1.1-1.1.6 0 1.1.5 1.1 1.1 0 .6-.5 1.1-1.1 1.1zm1.8-6c-.5.4-.9.8-1 1.5h-1.6c.1-1.1.6-1.8 1.3-2.3.5-.4 1-.8 1-1.5 0-.8-.7-1.4-1.6-1.4-1 0-1.6.6-1.6 1.5H8.6c.1-1.7 1.4-2.9 3.3-2.9 1.8 0 3.2 1.1 3.2 2.8 0 1-.6 1.7-1.2 2.3z"/></svg>
                 </div>
                 <div class="f-icon" onclick="window.location.href='/profile.html'">
                     <svg viewBox="0 0 24 24"><path d="M12 2C9.2 2 7 4.2 7 7s2.2 5 5 5 5-2.2 5-5-2.2-5-5-5zm0 12c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5z"/></svg>
                 </div>
-                <div class="f-icon" onclick="openDrawer('tournaments')">
+                <div class="f-icon" onclick="window.location.href='/profile.html'">
                     <svg viewBox="0 0 24 24"><path d="M19 4h-2V3a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v1a4 4 0 0 0 4 4h.3A6 6 0 0 0 11 14.9V18H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1h-2v-3.1A6 6 0 0 0 18.7 12H19a4 4 0 0 0 4-4V7a3 3 0 0 0-3-3zM4 8V7a1 1 0 0 1 1-1h2v4.2A2 2 0 0 1 4 8zm16 0a2 2 0 0 1-3 2V6h2a1 1 0 0 1 1 1v1z"/></svg>
                     <span class="f-badge">4</span>
                 </div>
-                <div class="f-icon" onclick="openDrawer('menu')">
+                <div class="f-icon" onclick="window.location.href='/profile.html'">
                     <svg viewBox="0 0 24 24"><path d="M19 3H5a3 3 0 0 0-3 3v11a3 3 0 0 0 3 3h11l4.2 3.2c.5.4 1.3 0 1.3-.7V6a3 3 0 0 0-2.5-3zM7.5 13a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm4.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/></svg>
                     <span class="f-badge">4</span>
                 </div>
@@ -272,6 +297,6 @@
         <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
     </div>
 
-    <script src="script.js?v=15.0"></script>
+    <script src="script.js?v=16.0"></script>
 </body>
 </html>
