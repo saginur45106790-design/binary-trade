@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Dashboard | Management Console</title>
+    <title>Admin Dashboard | User Directory & Group Control</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: #0c1017; color: #e2e8f0; padding: 12px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 16px; border-bottom: 1px solid #1e293b; margin-bottom: 16px; }
-        .header h1 { font-size: 18px; font-weight: 800; color: #fff; }
+        .header h1 { font-size: 17px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
         .badge-live { background: #00b074; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
 
         .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -19,94 +19,152 @@
         .stat-val.green { color: #00e676; }
 
         .tabs { display: flex; gap: 6px; background: #131b26; padding: 4px; border-radius: 8px; margin-bottom: 14px; overflow-x: auto; }
-        .tab-btn { flex: 1; min-width: 80px; background: none; border: none; color: #8fa0b5; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; }
+        .tab-btn { flex: 1; min-width: 85px; background: none; border: none; color: #8fa0b5; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; white-space: nowrap; }
         .tab-btn.active { background: #0070f3; color: #fff; }
 
         .section-box { display: none; background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
         .section-box.active { display: block; }
-        .sec-head { font-size: 14px; font-weight: 800; margin-bottom: 12px; color: #fff; }
+        .sec-head { font-size: 14px; font-weight: 800; margin-bottom: 12px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
 
+        /* সার্চ ও ফিল্টার বার */
+        .search-wrap { display: flex; gap: 8px; margin-bottom: 14px; }
+        .search-input { flex: 1; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; outline: none; }
+        .search-input:focus { border-color: #0070f3; }
+        .filter-select { background: #0c1017; border: 1px solid #233348; color: #fff; padding: 0 10px; border-radius: 6px; font-size: 12px; outline: none; }
+
+        /* ইউজার কার্ড */
+        .user-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .u-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+        .u-name { font-size: 14px; font-weight: 800; color: #fff; }
+        .u-id-badge { background: #1e293b; color: #38bdf8; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
+        .group-pill { background: rgba(0, 112, 243, 0.15); color: #38bdf8; border: 1px solid #0070f3; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
+        .group-pill.vip { background: rgba(245, 166, 35, 0.15); color: #f5a623; border-color: #f5a623; }
+        .group-pill.premium { background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: #a855f7; }
+
+        .u-meta { font-size: 12px; color: #8fa0b5; line-height: 1.6; margin-bottom: 8px; }
+        .u-bal-row { display: flex; justify-content: space-between; background: #131b26; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+        .u-actions { display: flex; gap: 8px; }
+        .btn-sm-action { flex: 1; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; }
+        .btn-sm-action:hover { background: #0070f3; color: #fff; border-color: #0070f3; }
+
+        /* গ্রুপ ফর্ম */
         .form-row { margin-bottom: 12px; }
         .form-row label { display: block; font-size: 11px; color: #8fa0b5; margin-bottom: 4px; font-weight: 600; }
-        .form-input, .form-select { width: 100%; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
+        .form-input, .form-select, .form-textarea { width: 100%; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
         .btn-primary { width: 100%; background: #0070f3; color: #fff; border: none; padding: 11px; border-radius: 6px; font-size: 13px; font-weight: 800; cursor: pointer; }
+        .btn-primary:active { background: #005ecb; }
 
-        .user-card, .tx-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
-        .card-row-top { display: flex; justify-content: space-between; font-weight: 700; color: #fff; }
-        .card-row-sub { display: flex; justify-content: space-between; color: #8fa0b5; font-size: 11px; margin-top: 4px; }
-        .btn-action-group { display: flex; gap: 6px; margin-top: 8px; }
-        .btn-sm-green { flex: 1; background: #00b074; color: #fff; border: none; padding: 6px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-        .btn-sm-red { flex: 1; background: #eb5757; color: #fff; border: none; padding: 6px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+        .group-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .chip { background: #1e293b; color: #cbd5e1; padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 700; border: 1px solid #334155; }
 
         .toast-msg { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00b074; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>📊 Control Console <span class="badge-live">ONLINE</span></h1>
-        <button onclick="loadOverview()" style="background:#233348; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:700;">🔄 Refresh</button>
+        <h1>👥 User Directory & Control <span class="badge-live">LIVE</span></h1>
+        <button onclick="loadOverview()" style="background:#233348; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">🔄 Refresh</button>
     </div>
 
     <div class="stat-grid">
         <div class="stat-card">
-            <div class="stat-lbl">Total Users</div>
+            <div class="stat-lbl">Total Registered Users</div>
             <div class="stat-val" id="totalUsersVal">0</div>
         </div>
         <div class="stat-card">
-            <div class="stat-lbl">Total Deposits</div>
+            <div class="stat-lbl">Active User Groups</div>
+            <div class="stat-val" id="totalGroupsVal">4</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-lbl">Total Approved Deposits</div>
             <div class="stat-val green" id="totalDepVal">$0.00</div>
         </div>
         <div class="stat-card">
-            <div class="stat-lbl">Pending Deposits</div>
-            <div class="stat-val" id="pendingDepVal">0</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-lbl">Pending Withdrawals</div>
-            <div class="stat-val" id="pendingWithVal">0</div>
+            <div class="stat-lbl">Platform Volume</div>
+            <div class="stat-val" id="totalVolVal">$135.50</div>
         </div>
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('users')">Users</button>
-        <button class="tab-btn" onclick="switchTab('balance')">Balance</button>
-        <button class="tab-btn" onclick="switchTab('deposits')">Deposits</button>
-        <button class="tab-btn" onclick="switchTab('payout')">Payouts</button>
+        <button class="tab-btn active" onclick="switchTab('users')">Users List</button>
+        <button class="tab-btn" onclick="switchTab('groups')">Group Manager</button>
+        <button class="tab-btn" onclick="switchTab('balance')">Balance Credit</button>
+        <button class="tab-btn" onclick="switchTab('payout')">Market Payout</button>
     </div>
 
     <div class="section-box active" id="sec-users">
-        <div class="sec-head">👥 User Accounts & Balances</div>
+        <div class="sec-head">
+            <span>User Accounts & Search</span>
+            <span style="font-size:11px; color:#8fa0b5;" id="userCountLabel">Showing all users</span>
+        </div>
+
+        <div class="search-wrap">
+            <input type="text" id="userSearchInput" class="search-input" placeholder="🔍 Search by User ID, Name, or Email..." oninput="filterUserList()">
+            <select id="groupFilterSelect" class="filter-select" onchange="filterUserList()">
+                <option value="ALL">All Groups</option>
+            </select>
+        </div>
+
         <div id="userListContainer">লোড হচ্ছে...</div>
+    </div>
+
+    <div class="section-box" id="sec-groups">
+        <div class="sec-head">🏷️ Manage User Groups & Tiers</div>
+        
+        <div class="form-row">
+            <label>Current Active Groups:</label>
+            <div class="group-chips" id="activeGroupChips"></div>
+        </div>
+
+        <div class="form-row" style="margin-top:14px;">
+            <label>Create New Group Name:</label>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="newGroupNameInput" class="form-input" placeholder="e.g. Diamond Traders">
+                <button onclick="createNewGroup()" style="background:#00b074; color:#fff; border:none; padding:0 14px; border-radius:6px; font-weight:700; cursor:pointer;">Create</button>
+            </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid #1e2d40; margin:16px 0;">
+
+        <div class="sec-head" style="font-size:13px;">👥 Group Assigning by User IDs:</div>
+        <div class="form-row">
+            <label>Enter User IDs (One ID or comma-separated for multiple IDs):</label>
+            <textarea id="groupUserIdsInput" class="form-textarea" rows="2" placeholder="e.g. 85857047, 85857048, 85857049"></textarea>
+            <small style="color:#8fa0b5; font-size:10px; display:block; margin-top:3px;">২ জন, ৫ জন, ২০ জন বা ৫০ জনের আইডি কমা দিয়ে লিখে একসাথে গ্রুপে নেওয়া যাবে।</small>
+        </div>
+
+        <div class="form-row">
+            <label>Select Target Group:</label>
+            <select id="targetGroupSelect" class="form-select"></select>
+        </div>
+
+        <button class="btn-primary" onclick="submitGroupAssign()">Assign Selected Users to Group</button>
     </div>
 
     <div class="section-box" id="sec-balance">
         <div class="sec-head">💰 Adjust User Live Balance</div>
         <div class="form-row">
-            <label>Select User</label>
+            <label>Select User:</label>
             <select id="balUserSelect" class="form-select"></select>
         </div>
         <div class="form-row">
-            <label>Action Type</label>
+            <label>Action:</label>
             <select id="balActionType" class="form-select">
-                <option value="add">Add Balance (+) Credit</option>
-                <option value="deduct">Deduct Balance (-) Debit</option>
+                <option value="add">Credit Live Balance (+)</option>
+                <option value="deduct">Debit Live Balance (-)</option>
             </select>
         </div>
         <div class="form-row">
-            <label>Amount (USD $)</label>
+            <label>Amount (USD $):</label>
             <input type="number" id="balAmountInput" class="form-input" placeholder="e.g. 50" min="1">
         </div>
-        <button class="btn-primary" onclick="submitBalanceAdjust()">Update Balance</button>
-    </div>
-
-    <div class="section-box" id="sec-deposits">
-        <div class="sec-head">📥 Deposit Requests</div>
-        <div id="depositListContainer">কোনো রিকোয়েস্ট নেই</div>
+        <button class="btn-primary" onclick="submitBalanceAdjust()">Update User Balance</button>
     </div>
 
     <div class="section-box" id="sec-payout">
         <div class="sec-head">⚡ Configure Asset Payout (%)</div>
         <div class="form-row">
-            <label>Select Asset</label>
+            <label>Select Asset:</label>
             <select id="payoutAssetSelect" class="form-select">
                 <option value="BTC">BTC/USD (OTC)</option>
                 <option value="ETH">ETH/USD (OTC)</option>
@@ -115,7 +173,7 @@
             </select>
         </div>
         <div class="form-row">
-            <label>Payout Percentage (%)</label>
+            <label>Payout Percentage (%):</label>
             <input type="number" id="payoutValueInput" class="form-input" placeholder="e.g. 92" min="10" max="98">
         </div>
         <button class="btn-primary" onclick="submitPayoutUpdate()">Save Payout</button>
@@ -124,6 +182,9 @@
     <div id="toast" class="toast-msg"></div>
 
     <script>
+        let allUsersData = {};
+        let allGroupsList = [];
+
         function showToast(msg) {
             let t = document.getElementById('toast');
             t.innerText = msg;
@@ -142,65 +203,136 @@
             fetch('/api/admin/overview')
             .then(r => r.json())
             .then(d => {
+                allUsersData = d.users || {};
+                allGroupsList = d.groups || [];
+
                 document.getElementById('totalUsersVal').innerText = d.totalUsers;
                 document.getElementById('totalDepVal').innerText = '$' + d.totalDeposits.toFixed(2);
-                document.getElementById('pendingDepVal').innerText = d.pendingDeposits;
-                document.getElementById('pendingWithVal').innerText = d.pendingWithdrawals;
+                document.getElementById('totalGroupsVal').innerText = allGroupsList.length;
 
-                // ইউজার লিস্ট
-                let uHtml = '';
-                let selectOptions = '';
-                for (let k in d.users) {
-                    let u = d.users[k];
-                    uHtml += `
+                // গ্রুপ সিলেক্ট অপশনস
+                let gOptions = '<option value="ALL">All Groups</option>';
+                let targetGOptions = '';
+                let chipsHtml = '';
+                allGroupsList.forEach(g => {
+                    gOptions += `<option value="${g}">${g}</option>`;
+                    targetGOptions += `<option value="${g}">${g}</option>`;
+                    chipsHtml += `<span class="chip">${g}</span>`;
+                });
+                document.getElementById('groupFilterSelect').innerHTML = gOptions;
+                document.getElementById('targetGroupSelect').innerHTML = targetGOptions;
+                document.getElementById('activeGroupChips').innerHTML = chipsHtml;
+
+                // ব্যালেন্স ড্রপডাউন
+                let uSelectHtml = '';
+                for (let k in allUsersData) {
+                    let u = allUsersData[k];
+                    uSelectHtml += `<option value="${u.id}">${u.name} (ID: ${u.id}) - Live: $${u.liveBalance.toFixed(2)}</option>`;
+                }
+                document.getElementById('balUserSelect').innerHTML = uSelectHtml;
+
+                filterUserList();
+            });
+        }
+
+        function filterUserList() {
+            let searchQ = document.getElementById('userSearchInput').value.trim().toLowerCase();
+            let selectedGroup = document.getElementById('groupFilterSelect').value;
+            let container = document.getElementById('userListContainer');
+
+            let html = '';
+            let count = 0;
+
+            for (let k in allUsersData) {
+                let u = allUsersData[k];
+                let matchesSearch = (
+                    u.id.toLowerCase().includes(searchQ) ||
+                    u.name.toLowerCase().includes(searchQ) ||
+                    u.email.toLowerCase().includes(searchQ) ||
+                    u.phone.toLowerCase().includes(searchQ)
+                );
+
+                let matchesGroup = (selectedGroup === 'ALL' || u.group === selectedGroup);
+
+                if (matchesSearch && matchesGroup) {
+                    count++;
+                    let groupClass = u.group.toLowerCase().replace(' ', '-');
+                    html += `
                         <div class="user-card">
-                            <div class="card-row-top">
-                                <span>${u.email}</span>
-                                <span style="color:#00e676;">$${u.liveBalance.toFixed(2)}</span>
+                            <div class="u-top">
+                                <div>
+                                    <span class="u-name">${u.name}</span>
+                                    <span class="u-id-badge">ID: ${u.id}</span>
+                                </div>
+                                <span class="group-pill ${groupClass}">${u.group}</span>
                             </div>
-                            <div class="card-row-sub">
-                                <span>ID: ${u.id || k}</span>
-                                <span>Demo: $${u.demoBalance.toFixed(2)}</span>
+                            <div class="u-meta">
+                                <div>📧 <b>Email:</b> ${u.email}</div>
+                                <div>📱 <b>Phone:</b> ${u.phone}</div>
+                                <div>📅 <b>Registered:</b> ${u.registeredAt || 'Active'}</div>
+                            </div>
+                            <div class="u-bal-row">
+                                <span style="color:#00e676;">Live: $${u.liveBalance.toFixed(2)}</span>
+                                <span style="color:#f5a623;">Demo: $${u.demoBalance.toFixed(2)}</span>
+                                <span style="color:#38bdf8;">Status: ${u.status}</span>
+                            </div>
+                            <div class="u-actions">
+                                <button class="btn-sm-action" onclick="quickCreditPrompt('${u.id}', '${u.name}')">+ Quick Balance</button>
+                                <button class="btn-sm-action" onclick="quickGroupPrompt('${u.id}')">Change Group</button>
                             </div>
                         </div>
                     `;
-                    selectOptions += `<option value="${k}">${u.email} ($${u.liveBalance.toFixed(2)})</option>`;
                 }
-                document.getElementById('userListContainer').innerHTML = uHtml;
-                document.getElementById('balUserSelect').innerHTML = selectOptions;
+            }
 
-                // ডিপোজিট লিস্ট
-                let dHtml = '';
-                if (d.deposits && d.deposits.length > 0) {
-                    d.deposits.forEach(item => {
-                        dHtml += `
-                            <div class="tx-card">
-                                <div class="card-row-top">
-                                    <span>${item.method} - $${item.amount}</span>
-                                    <span style="color:${item.status === 'Approved' ? '#00e676' : '#f5a623'}">${item.status}</span>
-                                </div>
-                                <div class="card-row-sub">
-                                    <span>TrxID: ${item.trxId || item.id}</span>
-                                    <span>${item.date}</span>
-                                </div>
-                                ${item.status === 'Pending' ? `
-                                    <div class="btn-action-group">
-                                        <button class="btn-sm-green" onclick="handleDeposit('${item.id}', 'approve')">Approve</button>
-                                        <button class="btn-sm-red" onclick="handleDeposit('${item.id}', 'reject')">Reject</button>
-                                    </div>
-                                ` : ''}
-                            </div>
-                        `;
-                    });
-                } else {
-                    dHtml = '<p style="color:#8fa0b5; font-size:12px;">কোনো ডিপোজিট রেকর্ড নেই</p>';
+            container.innerHTML = html || `<p style="color:#8fa0b5; text-align:center; padding:20px; font-size:12px;">কোনো ব্যবহারকারী খুঁজে পাওয়া যায়নি।</p>`;
+            document.getElementById('userCountLabel').innerText = `Showing ${count} user(s)`;
+        }
+
+        function createNewGroup() {
+            let name = document.getElementById('newGroupNameInput').value.trim();
+            if (!name) return alert("গ্রুপের নাম লিখুন!");
+
+            fetch('/api/admin/create-group', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            })
+            .then(r => r.json())
+            .then(d => {
+                showToast(d.message);
+                if (d.success) {
+                    document.getElementById('newGroupNameInput').value = '';
+                    loadOverview();
                 }
-                document.getElementById('depositListContainer').innerHTML = dHtml;
+            });
+        }
+
+        function submitGroupAssign() {
+            let rawIds = document.getElementById('groupUserIdsInput').value.trim();
+            let targetGroup = document.getElementById('targetGroupSelect').value;
+
+            if (!rawIds) return alert("কমপক্ষে একটি ইউজার আইডি প্রদান করুন!");
+
+            let idArray = rawIds.split(',').map(s => s.trim()).filter(s => s.length > 0);
+
+            fetch('/api/admin/assign-group', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userIds: idArray, groupName: targetGroup })
+            })
+            .then(r => r.json())
+            .then(d => {
+                showToast(d.message);
+                if (d.success) {
+                    document.getElementById('groupUserIdsInput').value = '';
+                    loadOverview();
+                }
             });
         }
 
         function submitBalanceAdjust() {
-            let username = document.getElementById('balUserSelect').value;
+            let userId = document.getElementById('balUserSelect').value;
             let type = document.getElementById('balActionType').value;
             let amount = document.getElementById('balAmountInput').value;
 
@@ -209,7 +341,7 @@
             fetch('/api/admin/adjust-balance', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, type, amount })
+                body: JSON.stringify({ userId, type, amount })
             })
             .then(r => r.json())
             .then(res => {
@@ -219,17 +351,26 @@
             });
         }
 
-        function handleDeposit(id, action) {
-            fetch('/api/admin/deposit-action', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, action })
-            })
-            .then(r => r.json())
-            .then(res => {
-                showToast(res.message);
-                loadOverview();
-            });
+        function quickCreditPrompt(id, name) {
+            let amt = prompt(`${name} (ID: ${id}) এর অ্যাকাউন্টে কত ডলার যোগ করতে চান?`, "10");
+            if (amt && Number(amt) > 0) {
+                fetch('/api/admin/adjust-balance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: id, type: 'add', amount: amt })
+                }).then(r => r.json()).then(res => { showToast(res.message); loadOverview(); });
+            }
+        }
+
+        function quickGroupPrompt(id) {
+            let group = prompt(`ইউজার ID ${id} এর জন্য নতুন গ্রুপ লিখুন (Standard, VIP, Premium ইত্যাদি):`, "VIP");
+            if (group) {
+                fetch('/api/admin/assign-group', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userIds: [id], groupName: group })
+                }).then(r => r.json()).then(res => { showToast(res.message); loadOverview(); });
+            }
         }
 
         function submitPayoutUpdate() {
