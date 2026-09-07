@@ -3,180 +3,544 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Control Console</title>
+  <title>Admin Master Dashboard</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: #0c121c; color: #e2e8f0; padding: 12px; }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e2a3c; padding-bottom: 10px; margin-bottom: 12px; }
-    .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; }
-    .t-btn { flex: 1; min-width: 80px; background: #172233; color: #8fa0b5; border: none; padding: 8px 6px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; }
-    .t-btn.active { background: #0070f3; color: #fff; }
-    .panel { display: none; background: #172233; border: 1px solid #233348; border-radius: 8px; padding: 12px; }
-    .panel.active { display: block; }
-    .input-row { margin-bottom: 10px; }
-    .input-row label { display: block; font-size: 11px; color: #8fa0b5; margin-bottom: 3px; }
-    .input-row input { width: 100%; background: #0c121c; border: 1px solid #233348; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
-    .btn { background: #0070f3; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-    .card-item { background: #0c121c; border: 1px solid #233348; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
+    :root {
+      --bg-dark: #070c14;
+      --bg-card: #0f1726;
+      --border-card: #1c2b42;
+      --accent-gold: #f5a623;
+      --accent-blue: #0070f3;
+      --accent-green: #00e676;
+      --accent-red: #eb5757;
+      --text-main: #e2e8f0;
+      --text-muted: #8ca2ba;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg-dark); color: var(--text-main); padding: 14px; -webkit-tap-highlight-color: transparent; }
+
+    /* হেডার: স্ক্রিনশট ১০১৩ অনুযায়ী */
+    .admin-top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .brand-title {
+      font-size: 19px;
+      font-weight: 900;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .brand-title span { color: var(--accent-gold); }
+
+    .btn-user-site {
+      background: #131d2e;
+      border: 1px solid #233550;
+      color: #38bdf8;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* স্ক্রিনশট ১০১৩ অনুযায়ী ২ কলামের প্রিমিয়াম গ্রিড কার্ডস */
+    .dashboard-cards-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .admin-feature-card {
+      background: linear-gradient(145deg, #111b2b, #0b1320);
+      border: 1px solid var(--border-card);
+      border-radius: 18px;
+      padding: 22px 14px 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .admin-feature-card:active {
+      transform: scale(0.97);
+      border-color: var(--accent-blue);
+    }
+
+    .card-svg-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      color: #cbd5e1;
+    }
+    .card-svg-icon svg { width: 36px; height: 36px; fill: currentColor; }
+
+    .card-action-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .card-status-badge {
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 12px;
+      border-radius: 14px;
+      border: 1px solid;
+    }
+    .badge-gold {
+      background: rgba(245, 166, 35, 0.12);
+      color: var(--accent-gold);
+      border-color: rgba(245, 166, 35, 0.4);
+    }
+    .badge-blue {
+      background: rgba(0, 112, 243, 0.15);
+      color: #38bdf8;
+      border-color: rgba(0, 112, 243, 0.4);
+    }
+    .badge-green {
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--accent-green);
+      border-color: rgba(0, 230, 118, 0.4);
+    }
+
+    /* স্ক্রিনশট ১০১৩ অনুযায়ী গ্লোবাল নোটিশ ব্যানার কার্ড (গোল্ডেন বর্ডার) */
+    .global-announcement-card {
+      background: #0d1522;
+      border: 2px solid var(--accent-gold);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 0 20px rgba(245, 166, 35, 0.15);
+    }
+    .announcement-head {
+      font-size: 14px;
+      font-weight: 800;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .announcement-input-box {
+      background: #080d14;
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      width: 100%;
+      outline: none;
+      margin-bottom: 12px;
+    }
+    .btn-update-announcement {
+      width: 100%;
+      height: 46px;
+      background: linear-gradient(135deg, #f5a623, #d98200);
+      color: #0c121e;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    /* বটম-শীট রিভিউ মোডাল (স্ক্রিনশট ১০১৩ কার্ডে ক্লিক করলে ওপেন হবে) */
+    .admin-detail-sheet {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .sheet-inner {
+      background: #0d1522;
+      border-top: 1px solid var(--border-card);
+      border-radius: 20px 20px 0 0;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: sheetPop 0.2s ease-out;
+    }
+    @keyframes sheetPop { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+    .sheet-title-bar {
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-card);
+      flex-shrink: 0;
+    }
+    .sheet-title-bar h3 { font-size: 15px; font-weight: 800; color: #fff; }
+    .btn-sheet-close { cursor: pointer; color: var(--text-muted); font-size: 20px; font-weight: 900; }
+
+    .sheet-body-scroll {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .review-record-card {
+      background: #080e18;
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 12px;
+    }
+    .review-top { display: flex; justify-content: space-between; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .btn-action-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-action { flex: 1; border: none; padding: 9px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; }
+    .btn-approve { background: var(--accent-green); }
+    .btn-reject { background: var(--accent-red); }
+
+    .thumb-document-img { width: 85px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-card); cursor: pointer; margin-top: 6px; }
+
+    /* চ্যাট উইন্ডো */
+    .admin-chat-stream { height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
+    .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 12px; line-height: 1.4; }
+    .chat-bubble.user { background: #172437; color: #cbd5e1; align-self: flex-start; }
+    .chat-bubble.admin { background: var(--accent-blue); color: #fff; align-self: flex-end; }
+
+    .admin-toast {
+      display: none;
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent-green);
+      color: #0c121e;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 900;
+      z-index: 2000;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h3>Admin Master Console</h3>
-    <button onclick="loadAdmin()" class="btn" style="padding:4px 8px; font-size:11px;">🔄 Refresh</button>
+
+  <div class="admin-top-header">
+    <div class="brand-title">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Admin Master <span>Dashboard</span>
+    </div>
+    <a href="/" class="btn-user-site">
+      User Site ➔
+    </a>
   </div>
 
-  <div class="tabs">
-    <button class="t-btn active" onclick="showTab('trend')">Smooth Trend</button>
-    <button class="t-btn" onclick="showTab('kyc')">KYC Review</button>
-    <button class="t-btn" onclick="showTab('wallet')">Deposits/Withdraws</button>
-    <button class="t-btn" onclick="showTab('chat')">Support Chat</button>
-    <button class="t-btn" onclick="showTab('settings')">Settings & Rates</button>
-  </div>
-
-  <div id="tab-trend" class="panel active">
-    <h4 style="margin-bottom:8px;">OTC Smooth Trend (No Spikes)</h4>
-    <div class="input-row">
-      <label>Select Asset</label>
-      <select id="trendAsset" style="width:100%; background:#0c121c; border:1px solid #233348; color:#fff; padding:8px; border-radius:6px;">
-        <option value="EUR_USD">EUR/USD (OTC)</option>
-        <option value="BTC">Bitcoin (OTC)</option>
-        <option value="ETH">Ethereum (OTC)</option>
-        <option value="GOLD">Gold (OTC)</option>
-      </select>
+  <div class="dashboard-cards-grid">
+    <div class="admin-feature-card" onclick="openAdminSheet('kycSheet')">
+      <div class="card-svg-icon" style="color:#60a5fa;">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58v.23z"/></svg>
+      </div>
+      <div class="card-action-title">KYC / NID Review</div>
+      <div class="card-status-badge badge-gold" id="badgeKycCount">0 Pending</div>
     </div>
-    <div class="input-row">
-      <label>Direction</label>
-      <select id="trendDir" style="width:100%; background:#0c121c; border:1px solid #233348; color:#fff; padding:8px; border-radius:6px;">
-        <option value="UP">▲ Smooth UP</option>
-        <option value="DOWN">▼ Smooth DOWN</option>
-        <option value="NORMAL">⚪ Normal</option>
-      </select>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('trendSheet')">
+      <div class="card-svg-icon" style="color:#00e676;">
+        <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+      </div>
+      <div class="card-action-title">OTC Smooth Trend</div>
+      <div class="card-status-badge badge-green">5m No Spike</div>
     </div>
-    <div class="input-row">
-      <label>Duration (Minutes)</label>
-      <input type="number" id="trendMinutes" value="5">
+
+    <div class="admin-feature-card" onclick="openAdminSheet('depositSheet')">
+      <div class="card-svg-icon" style="color:#f5a623;">
+        <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+      </div>
+      <div class="card-action-title">Deposit Review</div>
+      <div class="card-status-badge badge-gold" id="badgeDepositCount">0 Pending</div>
     </div>
-    <button class="btn" onclick="applyTrend()">Apply Smooth Trend</button>
-  </div>
 
-  <div id="tab-kyc" class="panel">
-    <h4 style="margin-bottom:8px;">KYC / NID Verification Requests</h4>
-    <div id="kycContainer"></div>
-  </div>
+    <div class="admin-feature-card" onclick="openAdminSheet('withdrawSheet')">
+      <div class="card-svg-icon" style="color:#4ade80;">
+        <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+      </div>
+      <div class="card-action-title">Withdraw Review</div>
+      <div class="card-status-badge badge-gold" id="badgeWithdrawCount">0 Pending</div>
+    </div>
 
-  <div id="tab-wallet" class="panel">
-    <h4 style="margin-bottom:8px;">Pending Deposits & Withdrawals</h4>
-    <div id="walletContainer"></div>
-  </div>
+    <div class="admin-feature-card" onclick="openAdminSheet('chatSheet')">
+      <div class="card-svg-icon" style="color:#a78bfa;">
+        <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
+      </div>
+      <div class="card-action-title">Support Messages</div>
+      <div class="card-status-badge badge-blue" id="badgeChatCount">0 Messages</div>
+    </div>
 
-  <div id="tab-chat" class="panel">
-    <h4 style="margin-bottom:8px;">User Messages</h4>
-    <div id="adminChatBox" style="max-height:250px; overflow-y:auto; margin-bottom:8px;"></div>
-    <div style="display:flex; gap:6px;">
-      <input type="text" id="adminReplyText" placeholder="Reply as Admin..." style="flex:1; background:#0c121c; border:1px solid #233348; color:#fff; padding:8px; border-radius:6px;">
-      <button class="btn" onclick="sendAdminReply()">Reply</button>
+    <div class="admin-feature-card" onclick="openAdminSheet('usersSheet')">
+      <div class="card-svg-icon" style="color:#38bdf8;">
+        <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      </div>
+      <div class="card-action-title">User Database</div>
+      <div class="card-status-badge badge-blue" id="badgeUserCount">1 User</div>
     </div>
   </div>
 
-  <div id="tab-settings" class="panel">
-    <h4 style="margin-bottom:8px;">Platform Exchange Rate & Links</h4>
-    <div class="input-row">
-      <label>1 USD = (BDT)</label>
-      <input type="number" id="admDollarRate">
+  <div class="global-announcement-card">
+    <div class="announcement-head">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="#f5a623"><path d="M20 2v3h-2V4h-1.5c-.83 0-1.5.67-1.5 1.5v1.2L9.62 9H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h5.62l5.38 2.3v1.2c0 .83.67 1.5 1.5 1.5H18v-1h2v3h2V2h-2zm-7 12.35L8.7 12H4v-2h4.7L13 7.65v6.7z"/></svg>
+      Global Notice & Announcement Banner
     </div>
-    <div class="input-row">
-      <label>Telegram Partner Channel Link</label>
-      <input type="text" id="admTeleLink">
-    </div>
-    <div class="input-row">
-      <label>bKash Personal Number</label>
-      <input type="text" id="admBkash">
-    </div>
-    <div class="input-row">
-      <label>Nagad Personal Number</label>
-      <input type="text" id="admNagad">
-    </div>
-    <button class="btn" onclick="saveAdminSettings()">Save Platform Config</button>
+    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:6px; font-weight:700;">Top Announcement Notice Text</label>
+    <input type="text" id="announcementNoticeInput" class="announcement-input-box" value="📢 স্বাগতম Tredlo V11.0 এ! প্রথম ডিপোজিটে ৫০% বোনাস উপভোগ করুন।">
+    <button class="btn-update-announcement" onclick="updateGlobalNotice()">Update Announcement Banner</button>
   </div>
+
+  <div class="global-announcement-card" style="border-color:var(--border-card);">
+    <div class="announcement-head" style="color:#fff;">
+      ⚙️ Gateway Settings & Exchange Rates
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px; color:var(--text-muted);">1 USD = (BDT)</label>
+        <input type="number" id="cfgDollarRate" class="announcement-input-box" style="margin-top:4px;">
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-muted);">Telegram Partner Link</label>
+        <input type="text" id="cfgTeleLink" class="announcement-input-box" style="margin-top:4px;">
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-muted);">bKash Personal</label>
+        <input type="text" id="cfgBkash" class="announcement-input-box" style="margin-top:4px;">
+      </div>
+      <div>
+        <label style="font-size:11px; color:var(--text-muted);">Nagad Personal</label>
+        <input type="text" id="cfgNagad" class="announcement-input-box" style="margin-top:4px;">
+      </div>
+    </div>
+    <button class="btn-update-announcement" style="background:var(--accent-blue);" onclick="saveGatewayConfig()">Save Gateway Settings</button>
+  </div>
+
+  <div id="kycSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>KYC / NID Review</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('kycSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="kycListContent"></div>
+    </div>
+  </div>
+
+  <div id="depositSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Deposit Review & Credit Balance</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('depositSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="depositListContent"></div>
+    </div>
+  </div>
+
+  <div id="withdrawSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Withdrawal Review & Payout</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('withdrawSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="withdrawListContent"></div>
+    </div>
+  </div>
+
+  <div id="chatSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Support Messenger (24h History)</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('chatSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <div class="admin-chat-stream" id="adminChatStream"></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <input type="text" id="adminReplyMsgInput" class="announcement-input-box" placeholder="Reply to user as Admin..." style="margin-bottom:0;">
+          <button class="btn-update-announcement" style="width:auto; padding:0 16px; background:var(--accent-blue);" onclick="sendAdminReply()">Reply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="usersSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>User Directory & Control</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('usersSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <input type="text" id="userSearchTerm" class="announcement-input-box" placeholder="🔍 Search by User ID, Name, or Email..." oninput="renderUsersList()">
+        <div id="usersListContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="trendSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Smooth OTC Trend (5m No Spike)</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('trendSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <label style="font-size:11px; color:var(--text-muted);">Select OTC Pair</label>
+        <select id="trendAssetChoice" class="announcement-input-box" style="margin-top:4px;"></select>
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Direction</label>
+        <select id="trendDirChoice" class="announcement-input-box" style="margin-top:4px;">
+          <option value="UP">▲ Smooth UP (৫ মিনিটে ৫টি স্বাভাবিক ক্যান্ডেলে ওপরে)</option>
+          <option value="DOWN">▼ Smooth DOWN (৫ মিনিটে ৫টি স্বাভাবিক ক্যান্ডেলে নিচে)</option>
+          <option value="NORMAL">⚪ Normal Trend</option>
+        </select>
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Duration (Minutes)</label>
+        <input type="number" id="trendMinutesChoice" class="announcement-input-box" value="5" min="1" max="120" style="margin-top:4px;">
+
+        <button class="btn-update-announcement" style="background:#00b074; margin-top:6px;" onclick="applySmoothTrend()">Apply Smooth Trend</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="zoomModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center;" onclick="this.style.display='none'">
+    <img id="zoomedImgSrc" src="" style="max-width:92%; max-height:85vh; border-radius:8px; border:2px solid #fff;">
+  </div>
+
+  <div id="adminToast" class="admin-toast">Saved!</div>
 
   <script>
-    function showTab(t) {
-      document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-      event.target.classList.add('active');
-      document.getElementById('tab-' + t).classList.add('active');
+    let adminState = { config: {}, users: {}, deposits: [], withdrawals: [], assets: {}, counts: {} };
+
+    function showToast(msg) {
+      let t = document.getElementById('adminToast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    function loadAdmin() {
-      fetch('/api/admin/overview').then(r => r.json()).then(d => {
-        document.getElementById('admDollarRate').value = d.config.dollarRate;
-        document.getElementById('admTeleLink').value = d.config.telegramLink;
-        document.getElementById('admBkash').value = d.config.bkashNumber;
-        document.getElementById('admNagad').value = d.config.nagadNumber;
-
-        // KYC
-        let kycHtml = '';
-        for (let id in d.users) {
-          let u = d.users[id];
-          if (u.verificationStatus === 'Pending') {
-            kycHtml += `
-              <div class="card-item">
-                <b>${u.name} (ID: ${u.id})</b>
-                <p>Status: ${u.verificationStatus}</p>
-                <button class="btn" style="background:#00e676; padding:3px 8px; margin-top:4px;" onclick="actionKyc('${u.id}', 'approve')">Approve</button>
-                <button class="btn" style="background:#eb5757; padding:3px 8px; margin-top:4px;" onclick="actionKyc('${u.id}', 'reject')">Reject</button>
-              </div>
-            `;
-          }
-        }
-        document.getElementById('kycContainer').innerHTML = kycHtml || '<p style="color:#8fa0b5;">No pending KYC.</p>';
-
-        // ওয়ালেট
-        let wHtml = '';
-        d.deposits.filter(x => x.status === 'Pending').forEach(dep => {
-          wHtml += `
-            <div class="card-item">
-              <b>Deposit: $${dep.amount} (${dep.method})</b>
-              <p>TrxID: ${dep.trxId} | User: ${dep.userId}</p>
-              <button class="btn" style="background:#00e676; padding:3px 8px;" onclick="actionDep('${dep.id}', 'approve')">Approve</button>
-              <button class="btn" style="background:#eb5757; padding:3px 8px;" onclick="actionDep('${dep.id}', 'reject')">Reject</button>
-            </div>
-          `;
-        });
-        d.withdrawals.filter(x => x.status === 'Pending').forEach(w => {
-          wHtml += `
-            <div class="card-item">
-              <b>Withdrawal: $${w.amount} (${w.method})</b>
-              <p>Details: ${w.accountDetails} | User: ${w.userId}</p>
-              <button class="btn" style="background:#00e676; padding:3px 8px;" onclick="actionWith('${w.id}', 'approve')">Approve</button>
-              <button class="btn" style="background:#eb5757; padding:3px 8px;" onclick="actionWith('${w.id}', 'reject')">Reject</button>
-            </div>
-          `;
-        });
-        document.getElementById('walletContainer').innerHTML = wHtml || '<p style="color:#8fa0b5;">No pending transactions.</p>';
-      });
-
-      // চ্যাট
-      fetch('/api/support/messages').then(r => r.json()).then(d => {
-        let h = '';
-        d.messages.forEach(m => {
-          h += `<div style="font-size:11px; margin-bottom:4px;"><b>${m.sender}:</b> ${m.text}</div>`;
-        });
-        document.getElementById('adminChatBox').innerHTML = h;
-      });
+    function openAdminSheet(id) {
+      document.querySelectorAll('.admin-detail-sheet').forEach(s => s.style.display = 'none');
+      let el = document.getElementById(id);
+      if (el) el.style.display = 'flex';
+      if (id === 'kycSheet') renderKYC();
+      if (id === 'depositSheet') renderDeposits();
+      if (id === 'withdrawSheet') renderWithdrawals();
+      if (id === 'chatSheet') renderChatMessages();
+      if (id === 'usersSheet') renderUsersList();
+      if (id === 'trendSheet') renderTrendAssets();
     }
 
-    function applyTrend() {
-      fetch('/api/admin/set-trend', {
+    function closeAdminSheet(id) {
+      let el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+
+    function zoomPhoto(src) {
+      if (!src) return;
+      document.getElementById('zoomedImgSrc').src = src;
+      document.getElementById('zoomModal').style.display = 'flex';
+    }
+
+    function fetchAdminOverview() {
+      fetch('/api/admin/overview')
+      .then(r => r.json())
+      .then(d => {
+        adminState = d;
+        // ব্যাজ কাউন্টস আপডেট (স্ক্রিনশট ১০১৩)
+        document.getElementById('badgeKycCount').innerText = `${d.counts.pendingKyc} Pending`;
+        document.getElementById('badgeDepositCount').innerText = `${d.counts.pendingDeposits} Pending`;
+        document.getElementById('badgeWithdrawCount').innerText = `${d.counts.pendingWithdrawals} Pending`;
+        document.getElementById('badgeChatCount').innerText = `${d.counts.supportMessages} Messages`;
+        document.getElementById('badgeUserCount').innerText = `${d.counts.totalUsers} Users`;
+
+        document.getElementById('announcementNoticeInput').value = d.config.announcementNotice || '';
+        document.getElementById('cfgDollarRate').value = d.config.dollarRate || 125;
+        document.getElementById('cfgTeleLink').value = d.config.telegramLink || '';
+        document.getElementById('cfgBkash').value = d.config.bkashNumber || '';
+        document.getElementById('cfgNagad').value = d.config.nagadNumber || '';
+      });
+
+      fetch('/api/support/messages').then(r => r.json()).then(cd => renderChatMessages(cd.messages || []));
+    }
+    setInterval(fetchAdminOverview, 4000);
+
+    // ১. গ্লোবাল নোটিশ ব্যানার আপডেট
+    function updateGlobalNotice() {
+      let text = document.getElementById('announcementNoticeInput').value.trim();
+      if (!text) return alert("Enter announcement text!");
+      fetch('/api/admin/update-announcement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noticeText: text })
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    // ২. গেটওয়ে কনফিগারেশন
+    function saveGatewayConfig() {
+      fetch('/api/admin/config-update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          asset: document.getElementById('trendAsset').value,
-          direction: document.getElementById('trendDir').value,
-          minutes: document.getElementById('trendMinutes').value
+          dollarRate: document.getElementById('cfgDollarRate').value,
+          telegramLink: document.getElementById('cfgTeleLink').value,
+          bkashNumber: document.getElementById('cfgBkash').value,
+          nagadNumber: document.getElementById('cfgNagad').value
         })
-      }).then(r => r.json()).then(d => alert(d.message));
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    // ৩. KYC রিভিউ
+    function renderKYC() {
+      let box = document.getElementById('kycListContent');
+      let html = '';
+      for (let id in adminState.users) {
+        let u = adminState.users[id];
+        if (u.verificationStatus === 'Pending') {
+          html += `
+            <div class="review-record-card">
+              <div class="review-top">
+                <span>${u.name} (ID: ${u.id})</span>
+                <span style="color:var(--accent-gold);">Pending Review</span>
+              </div>
+              <p style="color:var(--text-muted); font-size:11px;">Email: ${u.email} | Phone: ${u.phone}</p>
+              <div style="display:flex; gap:8px; margin:6px 0;">
+                ${u.nidFront ? `<img src="${u.nidFront}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Front Side">` : ''}
+                ${u.nidBack ? `<img src="${u.nidBack}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Back Side">` : ''}
+              </div>
+              <div class="btn-action-row">
+                <button class="btn-action btn-approve" onclick="actionKyc('${u.id}', 'approve')">Approve (Verified)</button>
+                <button class="btn-action btn-reject" onclick="actionKyc('${u.id}', 'reject')">Reject</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No pending KYC submissions.</p>';
     }
 
     function actionKyc(userId, action) {
@@ -184,7 +548,30 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId, action })
-      }).then(() => loadAdmin());
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderKYC(); });
+    }
+
+    // ৪. ডিপোজিট অনুমোদন
+    function renderDeposits() {
+      let box = document.getElementById('depositListContent');
+      let html = '';
+      adminState.deposits.filter(d => d.status === 'Pending').forEach(dep => {
+        html += `
+          <div class="review-record-card">
+            <div class="review-top">
+              <span>Deposit $${dep.amount} (${dep.method})</span>
+              <span style="color:var(--accent-gold);">${dep.status}</span>
+            </div>
+            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${dep.userId}</b> | TrxID: <b style="color:#38bdf8;">${dep.trxId}</b></p>
+            ${dep.screenshot ? `<img src="${dep.screenshot}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Payment Slip">` : ''}
+            <div class="btn-action-row">
+              <button class="btn-action btn-approve" onclick="actionDep('${dep.id}', 'approve')">Approve & Credit Balance</button>
+              <button class="btn-action btn-reject" onclick="actionDep('${dep.id}', 'reject')">Reject</button>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No pending deposits.</p>';
     }
 
     function actionDep(id, action) {
@@ -192,7 +579,29 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, action })
-      }).then(() => loadAdmin());
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderDeposits(); });
+    }
+
+    // ৫. উইথড্রয়াল অনুমোদন ও রিফান্ড
+    function renderWithdrawals() {
+      let box = document.getElementById('withdrawListContent');
+      let html = '';
+      adminState.withdrawals.filter(w => w.status === 'Pending').forEach(w => {
+        html += `
+          <div class="review-record-card">
+            <div class="review-top">
+              <span>Withdrawal $${w.amount} (${w.method})</span>
+              <span style="color:var(--accent-gold);">${w.status}</span>
+            </div>
+            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${w.userId}</b> | Target: <b style="color:#38bdf8;">${w.accountDetails}</b></p>
+            <div class="btn-action-row">
+              <button class="btn-action btn-approve" onclick="actionWith('${w.id}', 'approve')">Approve Payout</button>
+              <button class="btn-action btn-reject" onclick="actionWith('${w.id}', 'reject')">Reject & Refund Balance</button>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No pending withdrawals.</p>';
     }
 
     function actionWith(id, action) {
@@ -200,36 +609,124 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, action })
-      }).then(() => loadAdmin());
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderWithdrawals(); });
+    }
+
+    // ৬. সাপোর্ট মেসেঞ্জার
+    function renderChatMessages(messages) {
+      let box = document.getElementById('adminChatStream');
+      if (!box) return;
+      let msgs = messages || [];
+      let html = '';
+      msgs.forEach(m => {
+        let isAdm = m.sender === 'Admin';
+        html += `
+          <div class="chat-bubble ${isAdm ? 'admin' : 'user'}">
+            <b>${m.sender} (ID: ${m.userId || 'Guest'}):</b>
+            <div>${m.text}</div>
+            ${m.image ? `<img src="${m.image}" class="thumb-document-img" onclick="zoomPhoto(this.src)">` : ''}
+            <small style="opacity:0.7; font-size:9px; display:block; text-align:right;">${m.timeStr}</small>
+          </div>
+        `;
+      });
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No chat history.</p>';
+      box.scrollTop = box.scrollHeight;
     }
 
     function sendAdminReply() {
-      let txt = document.getElementById('adminReplyText').value;
+      let txt = document.getElementById('adminReplyMsgInput').value.trim();
       if (!txt) return;
       fetch('/api/support/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sender: 'Admin', text: txt })
       }).then(() => {
-        document.getElementById('adminReplyText').value = '';
-        loadAdmin();
+        document.getElementById('adminReplyMsgInput').value = '';
+        fetch('/api/support/messages').then(r => r.json()).then(cd => renderChatMessages(cd.messages || []));
       });
     }
 
-    function saveAdminSettings() {
-      fetch('/api/admin/config-update', {
+    // ৭. ইউজার ডিরেক্টরি, ব্যালেন্স ক্রেডিট ও অ্যাকাউন্ট ব্যান/সাসপেন্ড
+    function renderUsersList() {
+      let q = (document.getElementById('userSearchTerm')?.value || '').trim().toLowerCase();
+      let box = document.getElementById('usersListContent');
+      let html = '';
+
+      for (let id in adminState.users) {
+        let u = adminState.users[id];
+        if (u.id.includes(q) || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) {
+          let isBanned = u.accountStatus === 'Banned';
+          let isSuspended = u.accountStatus === 'Suspended';
+          html += `
+            <div class="review-record-card">
+              <div class="review-top">
+                <span>${u.name} (ID: ${u.id})</span>
+                <span style="color:${u.accountStatus === 'Active' ? 'var(--accent-green)' : 'var(--accent-red)'};">${u.accountStatus || 'Active'}</span>
+              </div>
+              <p style="color:var(--text-muted); font-size:11px;">📧 ${u.email} | 📱 ${u.phone}</p>
+              <div style="margin:6px 0; font-size:12px; font-weight:800;">
+                Live Bal: <b style="color:var(--accent-green);">$${u.liveBalance.toFixed(2)}</b> | Bonus: $${u.bonusBalance.toFixed(2)}
+              </div>
+              
+              <div style="display:flex; gap:6px; margin:6px 0;">
+                <input type="number" id="bal_amt_${u.id}" placeholder="Amount" style="width:70px; background:#000; border:1px solid var(--border-card); color:#fff; padding:4px; font-size:11px; border-radius:4px;">
+                <button onclick="creditUserBal('${u.id}', 'add')" style="background:var(--accent-green); border:none; color:#000; padding:4px 8px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">+ Add $</button>
+                <button onclick="creditUserBal('${u.id}', 'deduct')" style="background:var(--accent-red); border:none; color:#fff; padding:4px 8px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">- Cut $</button>
+              </div>
+
+              <div style="display:flex; gap:6px; margin-top:8px;">
+                <button onclick="changeUserStatus('${u.id}', 'Active')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#fff; padding:6px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">Set Active</button>
+                <button onclick="changeUserStatus('${u.id}', 'Suspended')" style="flex:1; background:${isSuspended ? '#f5a623' : '#1e293b'}; border:1px solid #334155; color:#fff; padding:6px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">Suspend</button>
+                <button onclick="changeUserStatus('${u.id}', 'Banned')" style="flex:1; background:${isBanned ? '#eb5757' : '#1e293b'}; border:1px solid #334155; color:#fff; padding:6px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">Ban User</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No users found.</p>';
+    }
+
+    function creditUserBal(userId, actionType) {
+      let amt = document.getElementById(`bal_amt_${userId}`).value;
+      if (!amt || amt <= 0) return alert("Enter amount!");
+      fetch('/api/admin/adjust-balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, amount: amt, actionType })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    function changeUserStatus(userId, status) {
+      fetch('/api/admin/user-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    // ৮. ট্রেন্ড
+    function renderTrendAssets() {
+      let sel = document.getElementById('trendAssetChoice');
+      if (sel.options.length === 0) {
+        let h = '';
+        for (let k in adminState.assets) h += `<option value="${k}">${adminState.assets[k].name}</option>`;
+        sel.innerHTML = h;
+      }
+    }
+
+    function applySmoothTrend() {
+      fetch('/api/admin/set-trend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          dollarRate: document.getElementById('admDollarRate').value,
-          telegramLink: document.getElementById('admTeleLink').value,
-          bkashNumber: document.getElementById('admBkash').value,
-          nagadNumber: document.getElementById('admNagad').value
+          asset: document.getElementById('trendAssetChoice').value,
+          direction: document.getElementById('trendDirChoice').value,
+          minutes: document.getElementById('trendMinutesChoice').value
         })
-      }).then(r => r.json()).then(d => alert(d.message));
+      }).then(r => r.json()).then(d => { showToast(d.message); closeAdminSheet('trendSheet'); });
     }
 
-    loadAdmin();
+    fetchAdminOverview();
   </script>
 </body>
 </html>
