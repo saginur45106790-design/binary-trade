@@ -17,8 +17,8 @@ let isLoadingAsset = false;
 let renderLivePrice = 68525.50;
 let targetLivePrice = 68525.50;
 
-// স্বাভাবিক মিডিয়াম ও সুস্পষ্ট ক্যান্ডেল সাইজ
-let candleWidth = 13;
+// প্রাকৃতিক মিডিয়াম ক্যান্ডেল সাইজ
+let candleWidth = 12;
 let candleSpacing = 5;
 let initialPinchDistance = null;
 
@@ -34,7 +34,7 @@ let currentTimezoneOffset = 6;
 const ASSET_DECIMALS = { 'BTC': 2, 'ETH': 2, 'SOL': 2, 'BNB': 2, 'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4 };
 const ASSET_BASE_PRICES = { 'BTC': 68525.50, 'ETH': 3422.00, 'SOL': 177.50, 'BNB': 591.20, 'XRP': 0.6250, 'DOGE': 0.1425, 'TON': 5.850, 'ADA': 0.4850 };
 
-// ১. অবিচল ঘড়ি ও টাইমার
+// ১. অবিরাম সুরক্ষিত ঘড়ি
 function syncClock() {
     try {
         let now = new Date();
@@ -116,7 +116,7 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('focus', fullSyncFromServer);
 
-// ৩. টাচ প্যান ও জুম (কোনো সেল ট্রেড পপআপ ওপেন হবে না)
+// ৩. টাচ প্যান ও জুম (কোনো পপআপ ছাড়াই পিওর ড্র্যাগ)
 let startX = 0;
 let isPanning = false;
 
@@ -166,14 +166,7 @@ if (canvas) {
 function updateTradeBadges() {
     let count = activeTrades.length;
     let b1 = document.getElementById('openTradesBadge');
-    let b2 = document.getElementById('drawerCount');
     if (b1) b1.innerText = count;
-    if (b2) b2.innerText = count;
-}
-
-function toggleBottomTrades() {
-    let el = document.getElementById('bottomTradesDrawer');
-    if (el) el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
 function stepAmt(delta) {
@@ -271,7 +264,7 @@ function updateBalanceUI(val) {
     }
 }
 
-// ৪. ট্রেড প্লেস
+// ৪. ট্রেড প্লেসিং
 function placeOrder(direction) {
     let amount = currentInvestAmount;
     let totalSec = (currentMode === 'timer') ? selectedTimerSeconds : 60;
@@ -326,7 +319,7 @@ function showResultBubble(res) {
 }
 
 // -------------------------------------------------------------
-// ৫. ক্যানভাস রেন্ডার লুপ (মিডিয়াম প্রাকৃতিক ক্যান্ডেল ও টাইম-বক্স মুক্ত ট্রেড মার্কার)
+// ৫. ক্যানভাস রেন্ডার (মিডিয়াম ক্যান্ডেল ও টাইম-বক্স ছাড়া স্ক্রিনশট ৮৭৪ মার্কার)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -372,9 +365,9 @@ function render() {
     let rawMaxP = Math.max(...prices);
     let rawRange = rawMaxP - rawMinP;
 
-    // প্রাকৃতিক নিখুঁত স্কেলিং (স্ক্রিনশট ৮৮০ ও ৮৯৬ অনুযায়ী ক্যান্ডেল মাঝারি ও সুস্পষ্ট উচ্চতার হবে)
+    // প্রাকৃতিক ব্যালেন্সড স্কেলিং বাফার
     let activeVol = (ASSET_BASE_PRICES[activeAssetKey] ? (ASSET_BASE_PRICES[activeAssetKey] * 0.00015) : 1.0);
-    let pad = Math.max(rawRange * 0.16, activeVol);
+    let pad = Math.max(rawRange * 0.18, activeVol);
 
     let minP = rawMinP - pad;
     let maxP = rawMaxP + pad;
@@ -462,15 +455,15 @@ function render() {
     let pillX = expX + 6;
     let pillY = liveY - (pillH / 2);
 
-    ctx.fillStyle = '#1c2638';
-    ctx.strokeStyle = '#2d3e56';
+    ctx.fillStyle = isLightTheme ? '#ffffff' : '#1c2638';
+    ctx.strokeStyle = isLightTheme ? '#d0d7de' : '#2d3e56';
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.roundRect(pillX, pillY, pillW, pillH, 4);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = isLightTheme ? '#0f172a' : '#ffffff';
     ctx.font = 'bold 10px monospace';
     ctx.fillText(candleTimerStr, pillX + 10, pillY + 14);
 
@@ -610,16 +603,161 @@ function openMainMenuModal() { let m = document.getElementById('mainMenuModal');
 function closeMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'none'; }
 function openHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'flex'; }
 function closeHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'none'; }
-function openTournamentsModal() { let m = document.getElementById('tournamentsModal'); if (m) m.style.display = 'flex'; }
-function closeTournamentsModal() { let m = document.getElementById('tournamentsModal'); if (m) m.style.display = 'none'; }
-function openSupportTicketForm() { closeHelpModal(); let m = document.getElementById('supportModal'); if (m) m.style.display = 'flex'; }
-function closeSupportModal() { let m = document.getElementById('supportModal'); if (m) m.style.display = 'none'; }
-function openSettingsModal() { closeMainMenuModal(); let m = document.getElementById('settingsModal'); if (m) m.style.display = 'flex'; }
-function closeSettingsModal() { let m = document.getElementById('settingsModal'); if (m) m.style.display = 'none'; }
-function openTradesHistoryModal() { closeMainMenuModal(); let m = document.getElementById('tradesModal'); if (m) m.style.display = 'flex'; }
-function closeTradesHistoryModal() { let m = document.getElementById('tradesModal'); if (m) m.style.display = 'none'; }
-function openPaymentsModal() { closeMainMenuModal(); let m = document.getElementById('paymentsModal'); if (m) m.style.display = 'flex'; }
-function closePaymentsModal() { let m = document.getElementById('paymentsModal'); if (m) m.style.display = 'none'; }
+function openTournamentsModal() {
+    let m = document.getElementById('tournamentsModal');
+    if (m) m.style.display = 'flex';
+    fetch('/api/tournaments').then(r => r.json()).then(d => {
+        let box = document.getElementById('tournamentsListContainer');
+        if (!box) return;
+        let html = '';
+        d.tournaments.forEach(t => {
+            html += `
+                <div class="tournament-card-item">
+                    <span class="tour-pill-badge">${t.status}</span>
+                    <div class="tour-content-row">
+                        <span class="tour-name">${t.title}</span>
+                        <div class="tour-prize-block"><div style="font-size:10px; color:#7e92aa; font-weight:700;">PRIZE POOL</div><div class="tour-prize-val">${t.prizePool}</div></div>
+                    </div>
+                    <div class="tour-specs-row">
+                        <div class="tour-spec-item"><b>${t.entryFee}</b><span>Entry fee</span></div>
+                        <div class="tour-spec-item"><b>${t.duration}</b><span>Duration</span></div>
+                    </div>
+                    <button class="btn-tour-details" onclick="alert('Joining ${t.title}...')">Details</button>
+                </div>
+            `;
+        });
+        box.innerHTML = html;
+    });
+}
+function closeTournamentsModal() { document.getElementById('tournamentsModal').style.display = 'none'; }
+
+function openSupportTicketForm() { closeHelpModal(); let m = document.getElementById('supportModal'); if (m) m.style.display = 'flex'; switchSupportTab('new'); }
+function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
+
+function switchSupportTab(tab) {
+    let btn1 = document.getElementById('tabMyTicketsBtn');
+    let btn2 = document.getElementById('tabNewTicketBtn');
+    let v1 = document.getElementById('viewUserTickets');
+    let v2 = document.getElementById('viewNewTicketForm');
+
+    if (tab === 'tickets') {
+        if (btn1) btn1.classList.add('active');
+        if (btn2) btn2.classList.remove('active');
+        if (v1) v1.style.display = 'block';
+        if (v2) v2.style.display = 'none';
+        loadUserTickets();
+    } else {
+        if (btn2) btn2.classList.add('active');
+        if (btn1) btn1.classList.remove('active');
+        if (v2) v2.style.display = 'block';
+        if (v1) v1.style.display = 'none';
+    }
+}
+
+function previewUserScreenshot(e) {
+    let file = e.target.files[0];
+    if (!file) return;
+    let reader = new FileReader();
+    reader.onload = function(evt) {
+        document.getElementById('previewImgElem').src = evt.target.result;
+        document.getElementById('screenshotPreviewBox').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeAttachedImage() {
+    document.getElementById('ticketScreenshot').value = "";
+    document.getElementById('screenshotPreviewBox').style.display = 'none';
+}
+
+function submitSupportTicket() {
+    let category = document.getElementById('ticketCategory').value;
+    let message = document.getElementById('ticketMessage').value.trim();
+    if (!message) return alert("Please explain your problem!");
+
+    fetch('/api/support/create-ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: "demo_user", category, message, screenshot: "" })
+    })
+    .then(r => r.json())
+    .then(d => {
+        alert(d.message);
+        document.getElementById('ticketMessage').value = "";
+        removeAttachedImage();
+        switchSupportTab('tickets');
+    });
+}
+
+function loadUserTickets() {
+    fetch('/api/support/tickets?username=demo_user').then(r => r.json()).then(d => {
+        let container = document.getElementById('userTicketListContainer');
+        if (!container) return;
+        if (!d.tickets || d.tickets.length === 0) {
+            container.innerHTML = `<p style="color:#6e829c; font-size:13px; text-align:center; padding:25px;">No support tickets created yet.</p>`;
+            return;
+        }
+        let html = '';
+        d.tickets.forEach(tk => {
+            html += `<div class="ticket-card-item"><div class="tk-header"><span class="tk-id">${tk.id} - ${tk.category}</span><span class="tk-status ${tk.status.toLowerCase()}">${tk.status}</span></div><div class="tk-msg">${tk.message}</div></div>`;
+        });
+        container.innerHTML = html;
+    });
+}
+
+function openSettingsModal() { closeMainMenuModal(); document.getElementById('settingsModal').style.display = 'flex'; }
+function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+function openTradesHistoryModal() {
+    closeMainMenuModal();
+    document.getElementById('tradesModal').style.display = 'flex';
+    fetch('/api/user/trades').then(r => r.json()).then(d => {
+        let box = document.getElementById('lifetimeTradesContainer');
+        if (!box) return;
+        if (!d.trades || d.trades.length === 0) {
+            box.innerHTML = `<p style="text-align:center; padding:30px; color:#8fa0b5;">No trades recorded yet.</p>`;
+            return;
+        }
+        let html = '';
+        d.trades.forEach(t => {
+            html += `
+                <div class="hist-card">
+                    <div class="hist-row-top">
+                        <span>${t.asset} ${t.direction === 'UP' ? 'UP' : 'DOWN'}</span>
+                        <span class="${t.isWin ? 'hist-badge-win' : 'hist-badge-loss'}">${t.isWin ? `+$${t.profit.toFixed(2)}` : `-$${t.amount.toFixed(2)}`}</span>
+                    </div>
+                    <div class="hist-row-sub"><span>Invest: $${t.amount.toFixed(2)}</span><span>${t.time}</span></div>
+                </div>
+            `;
+        });
+        box.innerHTML = html;
+    });
+}
+function closeTradesHistoryModal() { document.getElementById('tradesModal').style.display = 'none'; }
+
+function openPaymentsModal() {
+    closeMainMenuModal();
+    document.getElementById('paymentsModal').style.display = 'flex';
+    fetch('/api/payments').then(r => r.json()).then(d => {
+        let box = document.getElementById('lifetimePaymentsContainer');
+        if (!box) return;
+        let html = '';
+        if (d.deposits && d.deposits.length > 0) {
+            html += `<div style="font-size:13px; font-weight:800; margin:10px 0 6px; color:#00e676;">Deposits:</div>`;
+            d.deposits.forEach(p => {
+                html += `<div class="hist-card"><div class="hist-row-top"><span>#${p.id} (${p.method})</span><span class="hist-badge-win">+$${parseFloat(p.amount).toFixed(2)}</span></div><div class="hist-row-sub"><span>${p.status}</span><span>${p.date}</span></div></div>`;
+            });
+        }
+        if (d.withdrawals && d.withdrawals.length > 0) {
+            html += `<div style="font-size:13px; font-weight:800; margin:14px 0 6px; color:#f5a623;">Withdrawals:</div>`;
+            d.withdrawals.forEach(w => {
+                html += `<div class="hist-card"><div class="hist-row-top"><span>#${w.id} (${w.method})</span><span style="color:#f5a623;">-$${parseFloat(w.amount).toFixed(2)}</span></div><div class="hist-row-sub"><span>${w.status}</span><span>${w.date}</span></div></div>`;
+            });
+        }
+        box.innerHTML = html || `<p style="text-align:center; padding:30px; color:#8fa0b5;">No records found.</p>`;
+    });
+}
+function closePaymentsModal() { document.getElementById('paymentsModal').style.display = 'none'; }
+
 function openDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'flex'; }
 function closeDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'none'; }
 function resetPan() { panOffset = 0; }
@@ -627,11 +765,35 @@ function openAssetModal() { let m = document.getElementById('assetModal'); if (m
 function closeAssetModal() { let m = document.getElementById('assetModal'); if (m) m.style.display = 'none'; }
 function closeResult() { let r = document.getElementById('resultBubble'); if (r) r.style.display = 'none'; }
 function closeToast() { let t = document.getElementById('tradeOpenToast'); if (t) t.style.display = 'none'; }
-function closeAllDrawers() {
-    let d1 = document.getElementById('bottomTradesDrawer');
-    if (d1) d1.style.display = 'none';
-}
+function closeAllDrawers() {}
+
 function toggleTimePopup() { let p = document.getElementById('timeSelectPopup'); if (p) p.style.display = (p.style.display !== 'block') ? 'block' : 'none'; }
+function switchPopupTab(tab) {
+    currentMode = tab;
+    let b1 = document.getElementById('tabTimerBtn');
+    let b2 = document.getElementById('tabTimeBtn');
+    let g1 = document.getElementById('gridTimerMode');
+    let g2 = document.getElementById('gridTimeMode');
+    let lbl = document.getElementById('dockTimeLabel');
+    let val = document.getElementById('dockTimeValue');
+
+    if (tab === 'time') {
+        if (b2) b2.classList.add('active');
+        if (b1) b1.classList.remove('active');
+        if (g2) g2.style.display = 'grid';
+        if (g1) g1.style.display = 'none';
+        if (lbl) lbl.innerText = 'Time';
+        if (val) val.innerText = selectedTimeValue || '00:01';
+    } else {
+        if (b1) b1.classList.add('active');
+        if (b2) b2.classList.remove('active');
+        if (g1) g1.style.display = 'grid';
+        if (g2) g2.style.display = 'none';
+        if (lbl) lbl.innerText = 'Timer';
+        if (val) val.innerText = selectedTimerDisplay;
+    }
+}
+
 function selectTimer(sec, display) {
     selectedTimerSeconds = sec;
     selectedTimerDisplay = display;
@@ -643,11 +805,65 @@ function selectTimer(sec, display) {
     if (p) p.style.display = 'none';
 }
 
+function changeLanguage(lang) { localStorage.setItem('app_lang', lang); }
+function changeTimezone(offset) { currentTimezoneOffset = parseFloat(offset); localStorage.setItem('app_tz', offset); }
+function setAppTheme(theme) {
+    localStorage.setItem('app_theme', theme);
+    let btnDark = document.getElementById('btnThemeDark');
+    let btnLight = document.getElementById('btnThemeLight');
+    if (theme === 'light') {
+        document.body.classList.add('theme-light');
+        if (btnLight) btnLight.classList.add('active');
+        if (btnDark) btnDark.classList.remove('active');
+    } else {
+        document.body.classList.remove('theme-light');
+        if (btnDark) btnDark.classList.add('active');
+        if (btnLight) btnLight.classList.remove('active');
+    }
+}
+
 function handleLogout() {
     if (confirm("Are you sure you want to log out?")) {
         localStorage.clear();
         window.location.reload();
     }
+}
+
+function setDepMethod(method, number, note) {
+    selectedDepMethod = method;
+    document.querySelectorAll('.dep-pill').forEach(p => p.classList.remove('active'));
+    if (event) event.target.classList.add('active');
+    let l = document.getElementById('depMethodLabel');
+    let n = document.getElementById('depTargetNumber');
+    if (l) l.innerText = `${method} ${note}:`;
+    if (n) n.innerText = number;
+}
+
+function submitDepositForm() {
+    let amtElem = document.getElementById('depAmountInput');
+    let sElem = document.getElementById('depSenderInput');
+    let trxElem = document.getElementById('depTrxInput');
+    let amount = amtElem ? amtElem.value : "";
+    let sender = sElem ? sElem.value : "";
+    let trx = trxElem ? trxElem.value : "";
+
+    if (!amount || !trx) return alert("Please enter amount and TrxID!");
+
+    fetch('/api/deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'demo_user', method: selectedDepMethod, amount, senderNumber: sender, trxId: trx })
+    })
+    .then(r => r.json())
+    .then(d => {
+        alert(d.message);
+        if (d.success) {
+            if (amtElem) amtElem.value = '';
+            if (sElem) sElem.value = '';
+            if (trxElem) trxElem.value = '';
+            closeDepositModal();
+        }
+    });
 }
 
 // বুটস্ট্র্যাপ
