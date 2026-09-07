@@ -3,187 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Dashboard | User Directory & Group Control</title>
+    <title>Master Admin | OTC Trend & Payout Controller</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: #0c1017; color: #e2e8f0; padding: 12px; }
         
         .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 16px; border-bottom: 1px solid #1e293b; margin-bottom: 16px; }
-        .header h1 { font-size: 17px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .header h1 { font-size: 17px; font-weight: 800; color: #fff; }
         .badge-live { background: #00b074; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
 
-        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
-        .stat-card { background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; }
-        .stat-lbl { font-size: 11px; color: #8fa0b5; font-weight: 600; }
-        .stat-val { font-size: 18px; font-weight: 800; color: #fff; margin-top: 4px; }
-        .stat-val.green { color: #00e676; }
-
         .tabs { display: flex; gap: 6px; background: #131b26; padding: 4px; border-radius: 8px; margin-bottom: 14px; overflow-x: auto; }
-        .tab-btn { flex: 1; min-width: 85px; background: none; border: none; color: #8fa0b5; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; white-space: nowrap; }
+        .tab-btn { flex: 1; min-width: 90px; background: none; border: none; color: #8fa0b5; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; }
         .tab-btn.active { background: #0070f3; color: #fff; }
 
-        .section-box { display: none; background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
-        .section-box.active { display: block; }
-        .sec-head { font-size: 14px; font-weight: 800; margin-bottom: 12px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .card { background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+        .card-head { font-size: 14px; font-weight: 800; margin-bottom: 12px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
 
-        /* সার্চ ও ফিল্টার বার */
-        .search-wrap { display: flex; gap: 8px; margin-bottom: 14px; }
-        .search-input { flex: 1; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; outline: none; }
-        .search-input:focus { border-color: #0070f3; }
-        .filter-select { background: #0c1017; border: 1px solid #233348; color: #fff; padding: 0 10px; border-radius: 6px; font-size: 12px; outline: none; }
+        /* OTC কার্ডস */
+        .otc-ctrl-card {
+            background: #0c1017;
+            border: 1px solid #1e2d40;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+        .otc-head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .otc-title { font-size: 14px; font-weight: 800; color: #fff; }
+        .otc-trend-status { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; }
+        .otc-trend-status.up { background: rgba(0, 230, 118, 0.15); color: #00e676; border: 1px solid #00e676; }
+        .otc-trend-status.down { background: rgba(235, 87, 87, 0.15); color: #eb5757; border: 1px solid #eb5757; }
+        .otc-trend-status.normal { background: #1e293b; color: #8fa0b5; }
 
-        /* ইউজার কার্ড */
-        .user-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .u-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-        .u-name { font-size: 14px; font-weight: 800; color: #fff; }
-        .u-id-badge { background: #1e293b; color: #38bdf8; font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; margin-left: 6px; }
-        .group-pill { background: rgba(0, 112, 243, 0.15); color: #38bdf8; border: 1px solid #0070f3; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-        .group-pill.vip { background: rgba(245, 166, 35, 0.15); color: #f5a623; border-color: #f5a623; }
-        .group-pill.premium { background: rgba(168, 85, 247, 0.15); color: #c084fc; border-color: #a855f7; }
+        .otc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .form-row { margin-bottom: 8px; }
+        .form-row label { display: block; font-size: 11px; color: #8fa0b5; margin-bottom: 3px; font-weight: 600; }
+        .form-input, .form-select { width: 100%; background: #131b26; border: 1px solid #233348; color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 12px; outline: none; }
 
-        .u-meta { font-size: 12px; color: #8fa0b5; line-height: 1.6; margin-bottom: 8px; }
-        .u-bal-row { display: flex; justify-content: space-between; background: #131b26; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
-        .u-actions { display: flex; gap: 8px; }
-        .btn-sm-action { flex: 1; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; }
-        .btn-sm-action:hover { background: #0070f3; color: #fff; border-color: #0070f3; }
+        .btn-apply-trend {
+            width: 100%;
+            background: #0070f3;
+            color: #fff;
+            border: none;
+            padding: 9px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
 
-        /* গ্রুপ ফর্ম */
-        .form-row { margin-bottom: 12px; }
-        .form-row label { display: block; font-size: 11px; color: #8fa0b5; margin-bottom: 4px; font-weight: 600; }
-        .form-input, .form-select, .form-textarea { width: 100%; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px; border-radius: 6px; font-size: 13px; outline: none; }
-        .btn-primary { width: 100%; background: #0070f3; color: #fff; border: none; padding: 11px; border-radius: 6px; font-size: 13px; font-weight: 800; cursor: pointer; }
-        .btn-primary:active { background: #005ecb; }
+        .btn-group-trend { display: flex; gap: 6px; margin-bottom: 8px; }
+        .btn-t-dir { flex: 1; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; }
+        .btn-t-dir.active-up { background: #00b074; color: #fff; border-color: #00b074; }
+        .btn-t-dir.active-down { background: #eb5757; color: #fff; border-color: #eb5757; }
 
-        .group-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-        .chip { background: #1e293b; color: #cbd5e1; padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 700; border: 1px solid #334155; }
-
-        .toast-msg { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00b074; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; z-index: 100; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+        .toast-msg { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00b074; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; z-index: 100; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>👥 User Directory & Control <span class="badge-live">LIVE</span></h1>
-        <button onclick="loadOverview()" style="background:#233348; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">🔄 Refresh</button>
+        <h1>⚡ OTC Market & Trend Controller <span class="badge-live">ONLINE</span></h1>
+        <button onclick="loadAdminData()" style="background:#233348; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">🔄 Refresh</button>
     </div>
 
-    <div class="stat-grid">
-        <div class="stat-card">
-            <div class="stat-lbl">Total Registered Users</div>
-            <div class="stat-val" id="totalUsersVal">0</div>
+    <div class="card">
+        <div class="card-head">
+            <span>Official OTC Assets Management</span>
+            <span style="font-size:11px; color:#8fa0b5;">Total 10 Pairs</span>
         </div>
-        <div class="stat-card">
-            <div class="stat-lbl">Active User Groups</div>
-            <div class="stat-val" id="totalGroupsVal">4</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-lbl">Total Approved Deposits</div>
-            <div class="stat-val green" id="totalDepVal">$0.00</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-lbl">Platform Volume</div>
-            <div class="stat-val" id="totalVolVal">$135.50</div>
-        </div>
-    </div>
-
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('users')">Users List</button>
-        <button class="tab-btn" onclick="switchTab('groups')">Group Manager</button>
-        <button class="tab-btn" onclick="switchTab('balance')">Balance Credit</button>
-        <button class="tab-btn" onclick="switchTab('payout')">Market Payout</button>
-    </div>
-
-    <div class="section-box active" id="sec-users">
-        <div class="sec-head">
-            <span>User Accounts & Search</span>
-            <span style="font-size:11px; color:#8fa0b5;" id="userCountLabel">Showing all users</span>
-        </div>
-
-        <div class="search-wrap">
-            <input type="text" id="userSearchInput" class="search-input" placeholder="🔍 Search by User ID, Name, or Email..." oninput="filterUserList()">
-            <select id="groupFilterSelect" class="filter-select" onchange="filterUserList()">
-                <option value="ALL">All Groups</option>
-            </select>
-        </div>
-
-        <div id="userListContainer">লোড হচ্ছে...</div>
-    </div>
-
-    <div class="section-box" id="sec-groups">
-        <div class="sec-head">🏷️ Manage User Groups & Tiers</div>
-        
-        <div class="form-row">
-            <label>Current Active Groups:</label>
-            <div class="group-chips" id="activeGroupChips"></div>
-        </div>
-
-        <div class="form-row" style="margin-top:14px;">
-            <label>Create New Group Name:</label>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="newGroupNameInput" class="form-input" placeholder="e.g. Diamond Traders">
-                <button onclick="createNewGroup()" style="background:#00b074; color:#fff; border:none; padding:0 14px; border-radius:6px; font-weight:700; cursor:pointer;">Create</button>
-            </div>
-        </div>
-
-        <hr style="border:none; border-top:1px solid #1e2d40; margin:16px 0;">
-
-        <div class="sec-head" style="font-size:13px;">👥 Group Assigning by User IDs:</div>
-        <div class="form-row">
-            <label>Enter User IDs (One ID or comma-separated for multiple IDs):</label>
-            <textarea id="groupUserIdsInput" class="form-textarea" rows="2" placeholder="e.g. 85857047, 85857048, 85857049"></textarea>
-            <small style="color:#8fa0b5; font-size:10px; display:block; margin-top:3px;">২ জন, ৫ জন, ২০ জন বা ৫০ জনের আইডি কমা দিয়ে লিখে একসাথে গ্রুপে নেওয়া যাবে।</small>
-        </div>
-
-        <div class="form-row">
-            <label>Select Target Group:</label>
-            <select id="targetGroupSelect" class="form-select"></select>
-        </div>
-
-        <button class="btn-primary" onclick="submitGroupAssign()">Assign Selected Users to Group</button>
-    </div>
-
-    <div class="section-box" id="sec-balance">
-        <div class="sec-head">💰 Adjust User Live Balance</div>
-        <div class="form-row">
-            <label>Select User:</label>
-            <select id="balUserSelect" class="form-select"></select>
-        </div>
-        <div class="form-row">
-            <label>Action:</label>
-            <select id="balActionType" class="form-select">
-                <option value="add">Credit Live Balance (+)</option>
-                <option value="deduct">Debit Live Balance (-)</option>
-            </select>
-        </div>
-        <div class="form-row">
-            <label>Amount (USD $):</label>
-            <input type="number" id="balAmountInput" class="form-input" placeholder="e.g. 50" min="1">
-        </div>
-        <button class="btn-primary" onclick="submitBalanceAdjust()">Update User Balance</button>
-    </div>
-
-    <div class="section-box" id="sec-payout">
-        <div class="sec-head">⚡ Configure Asset Payout (%)</div>
-        <div class="form-row">
-            <label>Select Asset:</label>
-            <select id="payoutAssetSelect" class="form-select">
-                <option value="BTC">BTC/USD (OTC)</option>
-                <option value="ETH">ETH/USD (OTC)</option>
-                <option value="SOL">SOL/USD (OTC)</option>
-                <option value="BNB">BNB/USD (OTC)</option>
-            </select>
-        </div>
-        <div class="form-row">
-            <label>Payout Percentage (%):</label>
-            <input type="number" id="payoutValueInput" class="form-input" placeholder="e.g. 92" min="10" max="98">
-        </div>
-        <button class="btn-primary" onclick="submitPayoutUpdate()">Save Payout</button>
+        <div id="otcAdminCardsContainer">লোড হচ্ছে...</div>
     </div>
 
     <div id="toast" class="toast-msg"></div>
 
     <script>
-        let allUsersData = {};
-        let allGroupsList = [];
+        let adminAssets = {};
+        let serverCurrentTime = Date.now();
 
         function showToast(msg) {
             let t = document.getElementById('toast');
@@ -192,204 +86,110 @@
             setTimeout(() => { t.style.display = 'none'; }, 3000);
         }
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.section-box').forEach(s => s.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('sec-' + tabId).classList.add('active');
-        }
-
-        function loadOverview() {
-            fetch('/api/admin/overview')
+        function loadAdminData() {
+            fetch('/api/admin/data')
             .then(r => r.json())
             .then(d => {
-                allUsersData = d.users || {};
-                allGroupsList = d.groups || [];
-
-                document.getElementById('totalUsersVal').innerText = d.totalUsers;
-                document.getElementById('totalDepVal').innerText = '$' + d.totalDeposits.toFixed(2);
-                document.getElementById('totalGroupsVal').innerText = allGroupsList.length;
-
-                // গ্রুপ সিলেক্ট অপশনস
-                let gOptions = '<option value="ALL">All Groups</option>';
-                let targetGOptions = '';
-                let chipsHtml = '';
-                allGroupsList.forEach(g => {
-                    gOptions += `<option value="${g}">${g}</option>`;
-                    targetGOptions += `<option value="${g}">${g}</option>`;
-                    chipsHtml += `<span class="chip">${g}</span>`;
-                });
-                document.getElementById('groupFilterSelect').innerHTML = gOptions;
-                document.getElementById('targetGroupSelect').innerHTML = targetGOptions;
-                document.getElementById('activeGroupChips').innerHTML = chipsHtml;
-
-                // ব্যালেন্স ড্রপডাউন
-                let uSelectHtml = '';
-                for (let k in allUsersData) {
-                    let u = allUsersData[k];
-                    uSelectHtml += `<option value="${u.id}">${u.name} (ID: ${u.id}) - Live: $${u.liveBalance.toFixed(2)}</option>`;
-                }
-                document.getElementById('balUserSelect').innerHTML = uSelectHtml;
-
-                filterUserList();
+                adminAssets = d.assets || {};
+                serverCurrentTime = d.serverTime || Date.now();
+                renderAdminOtcCards();
             });
         }
 
-        function filterUserList() {
-            let searchQ = document.getElementById('userSearchInput').value.trim().toLowerCase();
-            let selectedGroup = document.getElementById('groupFilterSelect').value;
-            let container = document.getElementById('userListContainer');
-
+        function renderAdminOtcCards() {
+            let container = document.getElementById('otcAdminCardsContainer');
             let html = '';
-            let count = 0;
 
-            for (let k in allUsersData) {
-                let u = allUsersData[k];
-                let matchesSearch = (
-                    u.id.toLowerCase().includes(searchQ) ||
-                    u.name.toLowerCase().includes(searchQ) ||
-                    u.email.toLowerCase().includes(searchQ) ||
-                    u.phone.toLowerCase().includes(searchQ)
-                );
+            for (let k in adminAssets) {
+                let item = adminAssets[k];
+                let isTrending = (serverCurrentTime < item.trendUntil && item.trend !== 'NORMAL');
+                let remMin = isTrending ? Math.ceil((item.trendUntil - serverCurrentTime) / 60000) : 0;
 
-                let matchesGroup = (selectedGroup === 'ALL' || u.group === selectedGroup);
+                let statusBadge = isTrending 
+                    ? `<span class="otc-trend-status ${item.trend.toLowerCase()}">${item.trend === 'UP' ? '▲ Bullish UP' : '▼ Bearish DOWN'} (${remMin}m left)</span>`
+                    : `<span class="otc-trend-status normal">⚪ Normal Trend</span>`;
 
-                if (matchesSearch && matchesGroup) {
-                    count++;
-                    let groupClass = u.group.toLowerCase().replace(' ', '-');
-                    html += `
-                        <div class="user-card">
-                            <div class="u-top">
-                                <div>
-                                    <span class="u-name">${u.name}</span>
-                                    <span class="u-id-badge">ID: ${u.id}</span>
-                                </div>
-                                <span class="group-pill ${groupClass}">${u.group}</span>
+                html += `
+                    <div class="otc-ctrl-card">
+                        <div class="otc-head-row">
+                            <div>
+                                <span class="otc-title">${item.name}</span>
+                                <span style="font-size:11px; color:#8fa0b5; margin-left:6px;">Live: ${item.price.toFixed(item.decimals)}</span>
                             </div>
-                            <div class="u-meta">
-                                <div>📧 <b>Email:</b> ${u.email}</div>
-                                <div>📱 <b>Phone:</b> ${u.phone}</div>
-                                <div>📅 <b>Registered:</b> ${u.registeredAt || 'Active'}</div>
-                            </div>
-                            <div class="u-bal-row">
-                                <span style="color:#00e676;">Live: $${u.liveBalance.toFixed(2)}</span>
-                                <span style="color:#f5a623;">Demo: $${u.demoBalance.toFixed(2)}</span>
-                                <span style="color:#38bdf8;">Status: ${u.status}</span>
-                            </div>
-                            <div class="u-actions">
-                                <button class="btn-sm-action" onclick="quickCreditPrompt('${u.id}', '${u.name}')">+ Quick Balance</button>
-                                <button class="btn-sm-action" onclick="quickGroupPrompt('${u.id}')">Change Group</button>
+                            ${statusBadge}
+                        </div>
+
+                        <div class="form-row">
+                            <label>Set Direction & Duration (ক্যান্ডেল সেই দিকে যাবে):</label>
+                            <div class="btn-group-trend">
+                                <button class="btn-t-dir ${item.trend === 'UP' ? 'active-up' : ''}" onclick="applyOtcTrend('${k}', 'UP')">▲ UP (Bullish)</button>
+                                <button class="btn-t-dir ${item.trend === 'DOWN' ? 'active-down' : ''}" onclick="applyOtcTrend('${k}', 'DOWN')">▼ DOWN (Bearish)</button>
+                                <button class="btn-t-dir" onclick="applyOtcTrend('${k}', 'NORMAL')">⚪ Normal</button>
                             </div>
                         </div>
-                    `;
-                }
+
+                        <div class="otc-form-grid">
+                            <div class="form-row">
+                                <label>Duration (Minutes):</label>
+                                <input type="number" id="dur_${k}" class="form-input" value="5" min="1" max="120">
+                            </div>
+                            <div class="form-row">
+                                <label>Apply Trend:</label>
+                                <button class="btn-apply-trend" onclick="applyOtcTrend('${k}', null)">Apply Direction</button>
+                            </div>
+                        </div>
+
+                        <div class="otc-form-grid" style="border-top:1px solid #1e293b; padding-top:8px;">
+                            <div class="form-row">
+                                <label>Profit 1+ min (%):</label>
+                                <input type="number" id="p1m_${k}" class="form-input" value="${item.payout1m}" min="10" max="98">
+                            </div>
+                            <div class="form-row">
+                                <label>Profit 5+ min (%):</label>
+                                <input type="number" id="p5m_${k}" class="form-input" value="${item.payout5m}" min="10" max="98">
+                            </div>
+                        </div>
+                        <button class="btn-apply-trend" style="background:#00b074;" onclick="saveOtcPayout('${k}')">Save Payout %</button>
+                    </div>
+                `;
             }
 
-            container.innerHTML = html || `<p style="color:#8fa0b5; text-align:center; padding:20px; font-size:12px;">কোনো ব্যবহারকারী খুঁজে পাওয়া যায়নি।</p>`;
-            document.getElementById('userCountLabel').innerText = `Showing ${count} user(s)`;
+            container.innerHTML = html;
         }
 
-        function createNewGroup() {
-            let name = document.getElementById('newGroupNameInput').value.trim();
-            if (!name) return alert("গ্রুপের নাম লিখুন!");
+        function applyOtcTrend(assetKey, dir) {
+            let dur = document.getElementById(`dur_${assetKey}`).value;
+            let direction = dir || (adminAssets[assetKey].trend === 'UP' ? 'UP' : 'DOWN');
 
-            fetch('/api/admin/create-group', {
+            fetch('/api/admin/set-otc-trend', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name })
+                body: JSON.stringify({ asset: assetKey, direction, durationMinutes: dur })
             })
             .then(r => r.json())
             .then(d => {
                 showToast(d.message);
-                if (d.success) {
-                    document.getElementById('newGroupNameInput').value = '';
-                    loadOverview();
-                }
+                loadAdminData();
             });
         }
 
-        function submitGroupAssign() {
-            let rawIds = document.getElementById('groupUserIdsInput').value.trim();
-            let targetGroup = document.getElementById('targetGroupSelect').value;
+        function saveOtcPayout(assetKey) {
+            let p1 = document.getElementById(`p1m_${assetKey}`).value;
+            let p5 = document.getElementById(`p5m_${assetKey}`).value;
 
-            if (!rawIds) return alert("কমপক্ষে একটি ইউজার আইডি প্রদান করুন!");
-
-            let idArray = rawIds.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
-            fetch('/api/admin/assign-group', {
+            fetch('/api/admin/set-otc-payout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userIds: idArray, groupName: targetGroup })
+                body: JSON.stringify({ asset: assetKey, payout1m: p1, payout5m: p5 })
             })
             .then(r => r.json())
             .then(d => {
                 showToast(d.message);
-                if (d.success) {
-                    document.getElementById('groupUserIdsInput').value = '';
-                    loadOverview();
-                }
+                loadAdminData();
             });
         }
 
-        function submitBalanceAdjust() {
-            let userId = document.getElementById('balUserSelect').value;
-            let type = document.getElementById('balActionType').value;
-            let amount = document.getElementById('balAmountInput').value;
-
-            if (!amount || Number(amount) <= 0) return alert("সঠিক পরিমাণ লিখুন!");
-
-            fetch('/api/admin/adjust-balance', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, type, amount })
-            })
-            .then(r => r.json())
-            .then(res => {
-                showToast(res.message);
-                document.getElementById('balAmountInput').value = '';
-                loadOverview();
-            });
-        }
-
-        function quickCreditPrompt(id, name) {
-            let amt = prompt(`${name} (ID: ${id}) এর অ্যাকাউন্টে কত ডলার যোগ করতে চান?`, "10");
-            if (amt && Number(amt) > 0) {
-                fetch('/api/admin/adjust-balance', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: id, type: 'add', amount: amt })
-                }).then(r => r.json()).then(res => { showToast(res.message); loadOverview(); });
-            }
-        }
-
-        function quickGroupPrompt(id) {
-            let group = prompt(`ইউজার ID ${id} এর জন্য নতুন গ্রুপ লিখুন (Standard, VIP, Premium ইত্যাদি):`, "VIP");
-            if (group) {
-                fetch('/api/admin/assign-group', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userIds: [id], groupName: group })
-                }).then(r => r.json()).then(res => { showToast(res.message); loadOverview(); });
-            }
-        }
-
-        function submitPayoutUpdate() {
-            let asset = document.getElementById('payoutAssetSelect').value;
-            let payout = document.getElementById('payoutValueInput').value;
-
-            fetch('/api/admin/update-payout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ asset, payout })
-            })
-            .then(r => r.json())
-            .then(res => {
-                showToast(res.message);
-                document.getElementById('payoutValueInput').value = '';
-            });
-        }
-
-        loadOverview();
+        loadAdminData();
     </script>
 </body>
 </html>

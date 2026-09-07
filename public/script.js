@@ -9,15 +9,16 @@ let liveBalance = 10.00;
 let panOffset = 0;
 let remainingCountdown = 60;
 
-let activeAssetKey = 'BTC';
-let activeDecimals = 2;
-let currentPayout = 92;
+// ডিফল্ট অ্যাসেট
+let activeAssetKey = 'EUR_USD';
+let activeDecimals = 5;
+let currentPayout = 77;
 let isLoadingAsset = false;
 
-let renderLivePrice = 68525.50;
-let targetLivePrice = 68525.50;
+let renderLivePrice = 1.08540;
+let targetLivePrice = 1.08540;
 
-// কটেক্সের মতো স্ট্যান্ডার্ড মিডিয়াম ক্যান্ডেল সাইজ (খুব ছোট বা খুব বড় হবে না)
+// কটেক্সের স্ট্যান্ডার্ড মিডিয়াম ক্যান্ডেল সাইজ
 let candleWidth = 15;
 let candleSpacing = 6;
 let initialPinchDistance = null;
@@ -31,8 +32,22 @@ let currentInvestAmount = 1;
 let selectedDepMethod = 'Bkash';
 let currentTimezoneOffset = 6;
 
-const ASSET_DECIMALS = { 'BTC': 2, 'ETH': 2, 'SOL': 2, 'BNB': 2, 'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4 };
-const ASSET_BASE_PRICES = { 'BTC': 68525.50, 'ETH': 3422.00, 'SOL': 177.50, 'BNB': 591.20, 'XRP': 0.6250, 'DOGE': 0.1425, 'TON': 5.850, 'ADA': 0.4850 };
+let allAssetsData = {};
+let favoriteAssets = JSON.parse(localStorage.getItem('fav_otc_assets') || '["EUR_USD", "BTC", "GOLD"]');
+
+// ফ্ল্যাগ ও আইকন ডিকশনারি
+const FLAG_ICONS = {
+    'EUR_USD': { flag1: '🇪🇺', flag2: '🇺🇸' },
+    'GBP_USD': { flag1: '🇬🇧', flag2: '🇺🇸' },
+    'EUR_AUD': { flag1: '🇪🇺', flag2: '🇦🇺' },
+    'GBP_JPY': { flag1: '🇬🇧', flag2: '🇯🇵' },
+    'GOLD':    { flag1: '🪙', flag2: '🇺🇸' },
+    'SILVER':  { flag1: '🥈', flag2: '🇺🇸' },
+    'BTC':     { flag1: '₿', flag2: '🇺🇸' },
+    'BNB':     { flag1: '🟡', flag2: '🇺🇸' },
+    'SOL':     { flag1: '🟣', flag2: '🇺🇸' },
+    'ETH':     { flag1: '🔷', flag2: '🇺🇸' }
+};
 
 // ১. অবিচল সুরক্ষিত ঘড়ি
 function syncClock() {
@@ -53,7 +68,6 @@ function syncClock() {
         let sec = Math.floor(now.getTime() / 1000);
         remainingCountdown = 60 - (sec % 60);
 
-        // যদি সক্রিয় ট্রেড ড্রয়ার খোলা থাকে, লাইভ আপডেট
         updateActiveTradesDrawerLive();
     } catch (e) {}
 }
@@ -91,7 +105,7 @@ function fullSyncFromServer() {
         if (d.success) {
             candles = d.history.map(c => ({ ...c }));
             activeDecimals = d.meta.decimals;
-            currentPayout = d.meta.payout;
+            currentPayout = d.meta.payout1m;
             let lastP = candles[candles.length - 1].close;
             targetLivePrice = lastP;
             renderLivePrice = lastP;
@@ -168,7 +182,7 @@ function updateTradeBadges() {
 }
 
 // -------------------------------------------------------------
-// 💼 সবুজ দাগ দেওয়া ব্রিফকেস: সক্রিয় ট্রেড ডিটেইলস হ্যান্ডলার
+// 💼 সক্রিয় ট্রেড লাইভ ডিটেইলস ড্রয়ার
 // -------------------------------------------------------------
 function openActiveTradesDrawer() {
     let m = document.getElementById('activeTradesModal');
@@ -203,7 +217,6 @@ function updateActiveTradesDrawerLive() {
         let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
         let remS = String(diffSec % 60).padStart(2, '0');
 
-        // লাইভ লাভ/লস গণনা
         let currentPrice = (tr.asset === activeAssetKey) ? renderLivePrice : (candles[candles.length - 1]?.close || tr.entryPrice);
         let isWinning = false;
         if (tr.direction === 'UP') isWinning = (currentPrice > tr.entryPrice);
@@ -211,11 +224,12 @@ function updateActiveTradesDrawerLive() {
 
         let payoutPct = currentPayout || 90;
         let expectedProfit = (tr.amount * (payoutPct / 100)).toFixed(2);
+        let assetName = allAssetsData[tr.asset]?.name || tr.asset;
 
         html += `
             <div class="active-trade-card">
                 <div class="at-head">
-                    <span class="at-asset">${tr.asset}/USD (OTC)</span>
+                    <span class="at-asset">${assetName}</span>
                     <span class="at-badge ${tr.direction.toLowerCase()}">${tr.direction === 'UP' ? '▲ UP' : '▼ DOWN'}</span>
                 </div>
                 <div class="at-body-row">
@@ -223,7 +237,7 @@ function updateActiveTradesDrawerLive() {
                     <span>Entry: <b style="color:#fff;">${tr.entryPrice}</b></span>
                 </div>
                 <div class="at-body-row">
-                    <span>Current Price: <b style="color:#fff;">${currentPrice.toFixed(activeDecimals)}</b></span>
+                    <span>Current: <b style="color:#fff;">${currentPrice.toFixed(activeDecimals)}</b></span>
                     <span class="at-timer-tag">⏳ ${remM}:${remS}</span>
                 </div>
                 <div class="at-profit-row">
@@ -237,6 +251,141 @@ function updateActiveTradesDrawerLive() {
     });
 
     container.innerHTML = html;
+}
+
+// -------------------------------------------------------------
+// ⭐ স্ক্রিনশট ৯৪৮-৯৫৭ অনুযায়ী ১০টি নির্দিষ্ট OTC অ্যাসেট হ্যান্ডলার
+// -------------------------------------------------------------
+function openAssetModal() {
+    let m = document.getElementById('assetModal');
+    if (m) {
+        m.style.display = 'flex';
+        loadOtcAssetsList();
+    }
+}
+
+function closeAssetModal() {
+    let m = document.getElementById('assetModal');
+    if (m) m.style.display = 'none';
+}
+
+function loadOtcAssetsList() {
+    fetch('/api/assets')
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            allAssetsData = d.assets;
+            renderOtcAssetRows('');
+        }
+    });
+}
+
+function renderOtcAssetRows(searchFilter) {
+    let container = document.getElementById('otcAssetListContainer');
+    if (!container) return;
+
+    let html = '';
+    let keys = Object.keys(allAssetsData);
+
+    // ফেভারিট অ্যাসেট আগে দেখাবে
+    keys.sort((a, b) => {
+        let isFavA = favoriteAssets.includes(a);
+        let isFavB = favoriteAssets.includes(b);
+        return isFavB - isFavA;
+    });
+
+    keys.forEach(k => {
+        let item = allAssetsData[k];
+        if (searchFilter && !item.name.toLowerCase().includes(searchFilter.toLowerCase())) {
+            return;
+        }
+
+        let isFav = favoriteAssets.includes(k);
+        let isPos = (item.change24h >= 0);
+        let changeStr = (isPos ? '+' : '') + item.change24h.toFixed(2) + '%';
+        let flag1 = FLAG_ICONS[k]?.flag1 || '🌐';
+        let flag2 = FLAG_ICONS[k]?.flag2 || '🇺🇸';
+
+        html += `
+            <div class="otc-asset-row" onclick="selectAsset('${k}')">
+                <div class="otc-left-col">
+                    <span class="star-fav-btn ${isFav ? '' : 'unfav'}" onclick="toggleFavoriteAsset(event, '${k}')">★</span>
+                    <div class="flag-pair-wrap">
+                        <span class="flag-circle flag-1">${flag1}</span>
+                        <span class="flag-circle flag-2">${flag2}</span>
+                    </div>
+                    <div class="otc-title-box">
+                        <span class="otc-pair-name">${item.name}</span>
+                        <span class="otc-payout-subtitle">Profit 1+ min <b>${item.payout1m}%</b> &nbsp; 5+ min <b>${item.payout5m}%</b></span>
+                    </div>
+                </div>
+                <div class="otc-right-col">
+                    <div class="otc-change-pill ${isPos ? 'up' : 'down'}">
+                        <span class="arrow-circle-trend ${isPos ? 'up' : 'down'}">${isPos ? '↑' : '↓'}</span>
+                        <span>${changeStr}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+}
+
+function filterOtcList(val) {
+    renderOtcAssetRows(val);
+}
+
+function toggleFavoriteAsset(e, key) {
+    e.stopPropagation();
+    if (favoriteAssets.includes(key)) {
+        favoriteAssets = favoriteAssets.filter(item => item !== key);
+    } else {
+        favoriteAssets.push(key);
+    }
+    localStorage.setItem('fav_otc_assets', JSON.stringify(favoriteAssets));
+    let searchVal = document.getElementById('assetSearchInput')?.value || '';
+    renderOtcAssetRows(searchVal);
+}
+
+function selectAsset(key) {
+    if (activeAssetKey === key && candles.length > 0) {
+        closeAssetModal();
+        return;
+    }
+    isLoadingAsset = true;
+    candles = [];
+    showChartLoader();
+    closeAssetModal();
+
+    activeAssetKey = key;
+    let item = allAssetsData[key] || {};
+    activeDecimals = item.decimals || (ASSET_DECIMALS[key] || 2);
+    currentPayout = item.payout1m || 88;
+
+    let cur = document.getElementById('curName');
+    let pOut = document.getElementById('curPayout');
+    if (cur) cur.innerText = item.name || key;
+    if (pOut) pOut.innerText = `${currentPayout}% ▼`;
+
+    updatePayoutCalc();
+
+    fetch(`/api/history/${key}`)
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            candles = data.history.map(c => ({ ...c }));
+            activeDecimals = data.meta.decimals;
+            currentPayout = data.meta.payout1m;
+            let lastP = candles[candles.length - 1].close;
+            targetLivePrice = lastP;
+            renderLivePrice = lastP;
+        }
+    })
+    .finally(() => {
+        isLoadingAsset = false;
+        hideChartLoader();
+    });
 }
 
 function stepAmt(delta) {
@@ -334,7 +483,7 @@ function updateBalanceUI(val) {
     }
 }
 
-// ৪. ট্রেড প্লেস
+// ট্রেড প্লেসিং
 function placeOrder(direction) {
     let amount = currentInvestAmount;
     let totalSec = (currentMode === 'timer') ? selectedTimerSeconds : 60;
@@ -368,7 +517,8 @@ function placeOrder(direction) {
         let toast = document.getElementById('tradeOpenToast');
         if (toast) {
             let msg = document.getElementById('toastMsg');
-            if (msg) msg.innerText = `Trade opened: ${data.trade.entryPrice} ${activeAssetKey}`;
+            let assetName = allAssetsData[activeAssetKey]?.name || activeAssetKey;
+            if (msg) msg.innerText = `Trade opened: ${data.trade.entryPrice} on ${assetName}`;
             toast.style.display = 'flex';
             setTimeout(() => { toast.style.display = 'none'; }, 2500);
         }
@@ -390,7 +540,7 @@ function showResultBubble(res) {
 }
 
 // -------------------------------------------------------------
-// ৫. ক্যানভাস রেন্ডার লুপ (কটেক্স সাইজ ক্যান্ডেল ও টাইম-বক্স ছাড়া মার্কার)
+// ক্যানভাস রেন্ডার লুপ (কটেক্সের স্ট্যান্ডার্ড মিডিয়াম ক্যান্ডেল)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -436,13 +586,12 @@ function render() {
     let rawMaxP = Math.max(...prices);
     let rawRange = rawMaxP - rawMinP;
 
-    // কটেক্সের মতো সুষম স্কেলিং প্যাডিং
-    let activeVol = (ASSET_BASE_PRICES[activeAssetKey] ? (ASSET_BASE_PRICES[activeAssetKey] * 0.00018) : 1.0);
+    let activeVol = (allAssetsData[activeAssetKey] ? (allAssetsData[activeAssetKey].vol * 0.8) : 0.001);
     let pad = Math.max(rawRange * 0.18, activeVol);
 
     let minP = rawMinP - pad;
     let maxP = rawMaxP + pad;
-    let range = (maxP - minP) || 0.01;
+    let range = (maxP - minP) || 0.0001;
     let padY = 32;
 
     function getY(p) {
@@ -466,7 +615,7 @@ function render() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // কটেক্সের মতো মাঝারি ও স্পষ্ট ক্যান্ডেলস্টিক আঁকা
+    // কটেক্সের মতো মিডিয়াম ও স্পষ্ট ক্যান্ডেলস্টিক
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -538,7 +687,7 @@ function render() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(candleTimerStr, pillX + 10, pillY + 14);
 
-    // ট্রেড মার্কার (কোনো বাড়তি কালো বক্স ছাড়া নিখুঁত অ্যারো ও লাইন)
+    // ট্রেড মার্কার
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let candle = candles.find(c => c.time === tr.candleTime);
         let cIdx = candle ? candles.indexOf(candle) : candles.findIndex(c => c.time <= tr.entryTime && tr.entryTime < c.time + 60);
@@ -582,7 +731,7 @@ function render() {
     });
 }
 
-// ৬. WebSocket ইঞ্জিন
+// WebSocket কানেকশন
 function connectWS() {
     try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -622,44 +771,7 @@ function connectWS() {
 }
 connectWS();
 
-function selectAsset(key) {
-    if (activeAssetKey === key && candles.length > 0) {
-        closeAssetModal();
-        return;
-    }
-    isLoadingAsset = true;
-    candles = [];
-    showChartLoader();
-    closeAssetModal();
-
-    activeAssetKey = key;
-    activeDecimals = ASSET_DECIMALS[key] || 2;
-    let cur = document.getElementById('curName');
-    if (cur) cur.innerText = `${key}/USD (OTC)`;
-
-    fetch(`/api/history/${key}`)
-    .then(r => r.json())
-    .then(data => {
-        if (data.success && data.meta.ticker === activeAssetKey) {
-            candles = data.history.map(c => ({ ...c }));
-            activeDecimals = data.meta.decimals;
-            currentPayout = data.meta.payout;
-            let pOut = document.getElementById('curPayout');
-            if (pOut) pOut.innerText = `${currentPayout}% ▼`;
-            updatePayoutCalc();
-
-            let lastP = candles[candles.length - 1].close;
-            targetLivePrice = lastP;
-            renderLivePrice = lastP;
-        }
-    })
-    .finally(() => {
-        isLoadingAsset = false;
-        hideChartLoader();
-    });
-}
-
-// মোডাল ও হেল্পার ফাংশনসমূহ
+// মোডাল হ্যান্ডলারস
 function openMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'flex'; }
 function closeMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'none'; }
 function openHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'flex'; }
@@ -692,65 +804,6 @@ function openTournamentsModal() {
 }
 function closeTournamentsModal() { document.getElementById('tournamentsModal').style.display = 'none'; }
 
-function openSupportTicketForm() { closeHelpModal(); let m = document.getElementById('supportModal'); if (m) m.style.display = 'flex'; switchSupportTab('new'); }
-function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
-
-function switchSupportTab(tab) {
-    let btn1 = document.getElementById('tabMyTicketsBtn');
-    let btn2 = document.getElementById('tabNewTicketBtn');
-    let v1 = document.getElementById('viewUserTickets');
-    let v2 = document.getElementById('viewNewTicketForm');
-
-    if (tab === 'tickets') {
-        if (btn1) btn1.classList.add('active');
-        if (btn2) btn2.classList.remove('active');
-        if (v1) v1.style.display = 'block';
-        if (v2) v2.style.display = 'none';
-        loadUserTickets();
-    } else {
-        if (btn2) btn2.classList.add('active');
-        if (btn1) btn1.classList.remove('active');
-        if (v2) v2.style.display = 'block';
-        if (v1) v1.style.display = 'none';
-    }
-}
-
-function submitSupportTicket() {
-    let category = document.getElementById('ticketCategory').value;
-    let message = document.getElementById('ticketMessage').value.trim();
-    if (!message) return alert("Please explain your problem!");
-
-    fetch('/api/support/create-ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: "demo_user", category, message, screenshot: "" })
-    })
-    .then(r => r.json())
-    .then(d => {
-        alert(d.message);
-        document.getElementById('ticketMessage').value = "";
-        switchSupportTab('tickets');
-    });
-}
-
-function loadUserTickets() {
-    fetch('/api/support/tickets?username=demo_user').then(r => r.json()).then(d => {
-        let container = document.getElementById('userTicketListContainer');
-        if (!container) return;
-        if (!d.tickets || d.tickets.length === 0) {
-            container.innerHTML = `<p style="color:#6e829c; font-size:13px; text-align:center; padding:25px;">No support tickets created yet.</p>`;
-            return;
-        }
-        let html = '';
-        d.tickets.forEach(tk => {
-            html += `<div class="ticket-card-item"><div class="tk-header"><span class="tk-id">${tk.id} - ${tk.category}</span><span class="tk-status ${tk.status.toLowerCase()}">${tk.status}</span></div><div class="tk-msg">${tk.message}</div></div>`;
-        });
-        container.innerHTML = html;
-    });
-}
-
-function openSettingsModal() { closeMainMenuModal(); document.getElementById('settingsModal').style.display = 'flex'; }
-function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
 function openTradesHistoryModal() {
     closeMainMenuModal();
     document.getElementById('tradesModal').style.display = 'flex';
@@ -776,7 +829,6 @@ function openTradesHistoryModal() {
         box.innerHTML = html;
     });
 }
-function closeTradesHistoryModal() { document.getElementById('tradesModal').style.display = 'none'; }
 
 function openPaymentsModal() {
     closeMainMenuModal();
@@ -791,53 +843,18 @@ function openPaymentsModal() {
                 html += `<div class="hist-card"><div class="hist-row-top"><span>#${p.id} (${p.method})</span><span class="hist-badge-win">+$${parseFloat(p.amount).toFixed(2)}</span></div><div class="hist-row-sub"><span>${p.status}</span><span>${p.date}</span></div></div>`;
             });
         }
-        if (d.withdrawals && d.withdrawals.length > 0) {
-            html += `<div style="font-size:13px; font-weight:800; margin:14px 0 6px; color:#f5a623;">Withdrawals:</div>`;
-            d.withdrawals.forEach(w => {
-                html += `<div class="hist-card"><div class="hist-row-top"><span>#${w.id} (${w.method})</span><span style="color:#f5a623;">-$${parseFloat(w.amount).toFixed(2)}</span></div><div class="hist-row-sub"><span>${w.status}</span><span>${w.date}</span></div></div>`;
-            });
-        }
         box.innerHTML = html || `<p style="text-align:center; padding:30px; color:#8fa0b5;">No records found.</p>`;
     });
 }
-function closePaymentsModal() { document.getElementById('paymentsModal').style.display = 'none'; }
 
 function openDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'flex'; }
 function closeDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'none'; }
 function resetPan() { panOffset = 0; }
-function openAssetModal() { let m = document.getElementById('assetModal'); if (m) m.style.display = 'flex'; }
-function closeAssetModal() { let m = document.getElementById('assetModal'); if (m) m.style.display = 'none'; }
 function closeResult() { let r = document.getElementById('resultBubble'); if (r) r.style.display = 'none'; }
 function closeToast() { let t = document.getElementById('tradeOpenToast'); if (t) t.style.display = 'none'; }
 function closeAllDrawers() {}
 
 function toggleTimePopup() { let p = document.getElementById('timeSelectPopup'); if (p) p.style.display = (p.style.display !== 'block') ? 'block' : 'none'; }
-function switchPopupTab(tab) {
-    currentMode = tab;
-    let b1 = document.getElementById('tabTimerBtn');
-    let b2 = document.getElementById('tabTimeBtn');
-    let g1 = document.getElementById('gridTimerMode');
-    let g2 = document.getElementById('gridTimeMode');
-    let lbl = document.getElementById('dockTimeLabel');
-    let val = document.getElementById('dockTimeValue');
-
-    if (tab === 'time') {
-        if (b2) b2.classList.add('active');
-        if (b1) b1.classList.remove('active');
-        if (g2) g2.style.display = 'grid';
-        if (g1) g1.style.display = 'none';
-        if (lbl) lbl.innerText = 'Time';
-        if (val) val.innerText = selectedTimeValue || '00:01';
-    } else {
-        if (b1) b1.classList.add('active');
-        if (b2) b2.classList.remove('active');
-        if (g1) g1.style.display = 'grid';
-        if (g2) g2.style.display = 'none';
-        if (lbl) lbl.innerText = 'Timer';
-        if (val) val.innerText = selectedTimerDisplay;
-    }
-}
-
 function selectTimer(sec, display) {
     selectedTimerSeconds = sec;
     selectedTimerDisplay = display;
@@ -847,39 +864,6 @@ function selectTimer(sec, display) {
     if (event) event.target.classList.add('selected');
     let p = document.getElementById('timeSelectPopup');
     if (p) p.style.display = 'none';
-}
-
-function changeLanguage(lang) { localStorage.setItem('app_lang', lang); }
-function setAppTheme(theme) {
-    localStorage.setItem('app_theme', theme);
-    let btnDark = document.getElementById('btnThemeDark');
-    let btnLight = document.getElementById('btnThemeLight');
-    if (theme === 'light') {
-        document.body.classList.add('theme-light');
-        if (btnLight) btnLight.classList.add('active');
-        if (btnDark) btnDark.classList.remove('active');
-    } else {
-        document.body.classList.remove('theme-light');
-        if (btnDark) btnDark.classList.add('active');
-        if (btnLight) btnLight.classList.remove('active');
-    }
-}
-
-function handleLogout() {
-    if (confirm("Are you sure you want to log out?")) {
-        localStorage.clear();
-        window.location.reload();
-    }
-}
-
-function setDepMethod(method, number, note) {
-    selectedDepMethod = method;
-    document.querySelectorAll('.dep-pill').forEach(p => p.classList.remove('active'));
-    if (event) event.target.classList.add('active');
-    let l = document.getElementById('depMethodLabel');
-    let n = document.getElementById('depTargetNumber');
-    if (l) l.innerText = `${method} ${note}:`;
-    if (n) n.innerText = number;
 }
 
 function submitDepositForm() {
@@ -908,7 +892,8 @@ function submitDepositForm() {
 
 // বুটস্ট্র্যাপ
 fitCanvas();
-selectAsset('BTC');
+loadOtcAssetsList();
+selectAsset('EUR_USD');
 switchAccount('demo');
 fullSyncFromServer();
 requestAnimationFrame(render);

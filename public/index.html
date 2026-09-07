@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option Terminal</title>
-    <link rel="stylesheet" href="style.css?v=32.0">
+    <link rel="stylesheet" href="style.css?v=33.0">
 </head>
 <body>
     <div class="app-root">
@@ -73,8 +73,8 @@
             <div class="dock-row-1">
                 <div class="asset-selector" onclick="openAssetModal()">
                     <span id="activeCoinIcon" class="coin-icon-badge"></span>
-                    <b id="curName">BTC/USD (OTC)</b>
-                    <span class="payout-pill" id="curPayout">92% ▼</span>
+                    <b id="curName">EUR/USD (OTC)</b>
+                    <span class="payout-pill" id="curPayout">77% ▼</span>
                 </div>
                 <div class="pending-toggle">
                     <span>PENDING TRADE</span>
@@ -107,7 +107,7 @@
             <div class="payout-row">
                 <span class="payout-txt">Payout</span>
                 <span class="payout-dots">....................................................................................</span>
-                <b class="payout-amt" id="calcPayout">1.92 $</b>
+                <b class="payout-amt" id="calcPayout">1.77 $</b>
             </div>
 
             <div class="dock-actions">
@@ -143,15 +143,25 @@
         </nav>
     </div>
 
+    <div id="assetModal" class="full-screen-modal">
+        <div class="modal-inner asset-modal-sheet">
+            <div class="modal-header">
+                <h3>Select OTC Asset</h3>
+                <span class="x-close" onclick="closeAssetModal()">✕</span>
+            </div>
+            <input type="text" id="assetSearchInput" class="asset-search-box" placeholder="🔍 Search OTC Pair or Asset..." oninput="filterOtcList(this.value)">
+            <div id="otcAssetListContainer">
+                </div>
+        </div>
+    </div>
+
     <div id="activeTradesModal" class="full-screen-modal">
         <div class="modal-inner">
             <div class="modal-header">
                 <h3>Active Trades Details (<span id="activeTradesCountHeader">0</span>)</h3>
                 <span class="x-close" onclick="closeActiveTradesDrawer()">✕</span>
             </div>
-            <div id="activeTradesLiveListContainer">
-                <p style="text-align:center; padding:30px; color:#8fa0b5;">No active trades running right now.</p>
-            </div>
+            <div id="activeTradesLiveListContainer"></div>
         </div>
     </div>
 
@@ -164,55 +174,26 @@
             <div class="menu-user-header-card">
                 <div class="u-mail">teachsajib@gmail.com</div>
                 <div class="u-id">ID: 85857047</div>
-                <div class="u-standard">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    STANDARD: +0% profit
-                </div>
+                <div class="u-standard">STANDARD: +0% profit</div>
                 <button class="btn-quick-trading" onclick="closeMainMenuModal()">
                     <span>Quick trading</span> ➔
                 </button>
             </div>
             <div class="menu-action-list">
                 <div class="menu-row-item" onclick="openDepositModal(); closeMainMenuModal();">
-                    <div class="item-left">
-                        <span class="m-svg-wrap"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></span>
-                        <span>Deposit</span>
-                    </div>
+                    <div class="item-left"><span>💳</span> <span>Deposit</span></div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item" onclick="window.location.href='/profile.html';">
-                    <div class="item-left">
-                        <span class="m-svg-wrap"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6L12 1z"/></svg></span>
-                        <span>Withdrawal</span>
-                    </div>
+                    <div class="item-left"><span>🏦</span> <span>Withdrawal</span></div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item" onclick="openPaymentsModal();">
-                    <div class="item-left">
-                        <span class="m-svg-wrap"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 22l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2l-1.5 1.5L6 2l-1.5 1.5L3 2v20z"/></svg></span>
-                        <span>Payments</span>
-                    </div>
+                    <div class="item-left"><span>🧾</span> <span>Payments</span></div>
                     <span class="m-arr">➔</span>
                 </div>
                 <div class="menu-row-item" onclick="openTradesHistoryModal();">
-                    <div class="item-left">
-                        <span class="m-svg-wrap"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg></span>
-                        <span>Trades</span>
-                    </div>
-                    <span class="m-arr">➔</span>
-                </div>
-                <div class="menu-row-item" onclick="openSettingsModal();">
-                    <div class="item-left">
-                        <span class="m-svg-wrap"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></span>
-                        <span>Settings</span>
-                    </div>
-                    <span class="m-arr">➔</span>
-                </div>
-                <div class="menu-row-item logout-row" onclick="handleLogout()">
-                    <div class="item-left">
-                        <span class="m-svg-wrap"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg></span>
-                        <span>Logout</span>
-                    </div>
+                    <div class="item-left"><span>📊</span> <span>Trades</span></div>
                     <span class="m-arr">➔</span>
                 </div>
             </div>
@@ -226,66 +207,15 @@
                 <span class="x-close" onclick="closeHelpModal()">✕</span>
             </div>
             <div class="help-center-items">
-                <div class="help-menu-block" onclick="alert('Opening database...')">
-                    <div class="help-icon-box">
-                        <svg viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg>
-                    </div>
+                <div class="help-menu-block" onclick="alert('Opening FAQ database...')">
                     <div class="help-item-name">FAQ</div>
                     <div class="help-item-sub">Open the database</div>
                 </div>
                 <div class="help-divider-line"></div>
-                <div class="help-menu-block" onclick="alert('Tutorials loading...')">
-                    <div class="help-icon-box">
-                        <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>
-                    </div>
+                <div class="help-menu-block" onclick="alert('Loading Tutorials...')">
                     <div class="help-item-name">Tutorials</div>
                     <div class="help-item-sub">Use the hints</div>
                 </div>
-                <div class="help-divider-line"></div>
-                <div class="help-menu-block" onclick="openSupportTicketForm()">
-                    <div class="help-icon-box">
-                        <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
-                    </div>
-                    <div class="help-item-name">Support</div>
-                    <div class="help-item-sub">Submit a ticket</div>
-                </div>
-            </div>
-            <div class="help-contact-box" onclick="openSupportTicketForm()">
-                <div class="red-q-bubble">?</div>
-                <div class="help-contact-text">Didn't find an answer to your question?</div>
-                <div class="help-contact-link">Contact support</div>
-            </div>
-        </div>
-    </div>
-
-    <div id="supportModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Customer Support Desk</h3>
-                <span class="x-close" onclick="closeSupportModal()">✕</span>
-            </div>
-            <div class="support-tabs-bar">
-                <button class="sp-tab-btn active" id="tabMyTicketsBtn" onclick="switchSupportTab('tickets')">My Tickets</button>
-                <button class="sp-tab-btn" id="tabNewTicketBtn" onclick="switchSupportTab('new')">Create Ticket</button>
-            </div>
-            <div id="viewUserTickets">
-                <div id="userTicketListContainer"></div>
-            </div>
-            <div id="viewNewTicketForm" style="display:none;">
-                <div class="form-row">
-                    <label style="font-size:12px; color:#8fa0b5;">Category</label>
-                    <select id="ticketCategory" class="settings-select" style="margin-top:4px;">
-                        <option value="Deposit / Payment">Deposit / Payment</option>
-                        <option value="Withdrawal Inquiry">Withdrawal Inquiry</option>
-                        <option value="Trade Execution">Trade Execution</option>
-                        <option value="Account Verification">Account Verification</option>
-                    </select>
-                </div>
-                <div class="form-row">
-                    <label style="font-size:12px; color:#8fa0b5;">Explain Problem</label>
-                    <textarea id="ticketMessage" rows="4" class="form-row input" style="width:100%; background:var(--bg-card); border:1px solid var(--bg-card-border); color:#fff; padding:10px; border-radius:6px;" placeholder="Explain your issue in detail..."></textarea>
-                </div>
-                <button class="btn-submit-ticket" onclick="submitSupportTicket()">Submit Ticket</button>
             </div>
         </div>
     </div>
@@ -301,72 +231,35 @@
         </div>
     </div>
 
-    <div id="settingsModal" class="full-screen-modal">
+    <div id="depositModal" class="full-screen-modal">
         <div class="modal-inner">
             <div class="modal-header">
-                <h3>Settings</h3>
-                <span class="x-close" onclick="closeSettingsModal()">✕</span>
+                <h3>Deposit Funds</h3>
+                <span class="x-close" onclick="closeDepositModal()">✕</span>
             </div>
-            <div class="sec-title">Interface:</div>
-            <div class="form-field-box">
-                <label>Language</label>
-                <select id="langSelect" class="settings-select" onchange="changeLanguage(this.value)">
-                    <option value="en">🌐 English (US)</option>
-                    <option value="bn">🇧🇩 বাংলা (Bengali)</option>
-                </select>
+            <div class="dep-methods">
+                <div class="dep-pill active" onclick="setDepMethod('Bkash', '01700000000', 'Personal')">bKash</div>
+                <div class="dep-pill" onclick="setDepMethod('Nagad', '01800000000', 'Personal')">Nagad</div>
+                <div class="dep-pill" onclick="setDepMethod('Binance', '85857047', 'Pay ID')">Binance</div>
             </div>
-            <div class="form-field-box">
-                <label>Theme</label>
-                <div class="theme-choice-row">
-                    <div class="theme-card-btn active" id="btnThemeDark" onclick="setAppTheme('dark')">
-                        <div class="theme-preview dark-p"></div>
-                        <span>Dark Theme</span>
-                    </div>
-                    <div class="theme-card-btn" id="btnThemeLight" onclick="setAppTheme('light')">
-                        <div class="theme-preview light-p"></div>
-                        <span>White Theme</span>
-                    </div>
-                </div>
+            <div class="dep-info-box">
+                <span id="depMethodLabel">bKash Personal:</span>
+                <b id="depTargetNumber">01700000000</b>
             </div>
-        </div>
-    </div>
-
-    <div id="tradesModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Trades (Lifetime History)</h3>
-                <span class="x-close" onclick="closeTradesHistoryModal()">✕</span>
-            </div>
-            <div id="lifetimeTradesContainer"></div>
-        </div>
-    </div>
-
-    <div id="paymentsModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Payments & Withdrawals</h3>
-                <span class="x-close" onclick="closePaymentsModal()">✕</span>
-            </div>
-            <div id="lifetimePaymentsContainer"></div>
+            <div class="form-row"><input type="number" id="depAmountInput" placeholder="Amount ($)" min="1"></div>
+            <div class="form-row"><input type="text" id="depTrxInput" placeholder="Transaction ID (TrxID)"></div>
+            <button class="btn-confirm-dep" onclick="submitDepositForm()">Confirm Deposit</button>
         </div>
     </div>
 
     <div id="accountModal" class="acc-modal-overlay" onclick="closeAccountModal(event)">
         <div class="acc-dropdown-card">
             <div class="acc-head">
-                <div class="std-badge">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="#00b074"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    STANDARD: <b>+0% profit</b>
-                </div>
-                <span class="eye-btn"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg></span>
+                <div class="std-badge">STANDARD: <b>+0% profit</b></div>
             </div>
             <div class="user-email-id">
                 <div class="u-mail">teachsajib@gmail.com</div>
                 <div class="u-id">ID: 85857047</div>
-            </div>
-            <div class="currency-row">
-                <span>Currency: <b>USD</b></span>
-                <button class="btn-change">CHANGE</button>
             </div>
             <div class="acc-option" id="optLiveCard" onclick="switchAccount('live')">
                 <div class="acc-radio-circle" id="radioLiveCircle"></div>
@@ -381,48 +274,30 @@
                     <div class="opt-title">Demo Account</div>
                     <div class="opt-bal-row">
                         <span class="opt-bal" id="modalDemoBal">$11,068.77</span>
-                        <span class="reset-demo-btn" onclick="resetDemoBalance(event)">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="#0070f3"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-                        </span>
+                        <span class="reset-demo-btn" onclick="resetDemoBalance(event)">🔄</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="depositModal" class="full-screen-modal">
+    <div id="tradesModal" class="full-screen-modal">
         <div class="modal-inner">
             <div class="modal-header">
-                <h3>Deposit Funds</h3>
-                <span class="x-close" onclick="closeDepositModal()">✕</span>
+                <h3>Trades History</h3>
+                <span class="x-close" onclick="document.getElementById('tradesModal').style.display='none'">✕</span>
             </div>
-            <div class="dep-methods">
-                <div class="dep-pill active" onclick="setDepMethod('Bkash', '01700000000', 'Personal (Send Money)')">bKash</div>
-                <div class="dep-pill" onclick="setDepMethod('Nagad', '01800000000', 'Personal (Send Money)')">Nagad</div>
-                <div class="dep-pill" onclick="setDepMethod('Binance', '85857047', 'Pay ID (USDT)')">Binance</div>
-            </div>
-            <div class="dep-info-box">
-                <span id="depMethodLabel">bKash Personal:</span>
-                <b id="depTargetNumber">01700000000</b>
-            </div>
-            <div class="form-row"><input type="number" id="depAmountInput" placeholder="Amount ($)" min="1"></div>
-            <div class="form-row"><input type="text" id="depTrxInput" placeholder="Transaction ID (TrxID)"></div>
-            <button class="btn-confirm-dep" onclick="submitDepositForm()">Confirm Deposit</button>
+            <div id="lifetimeTradesContainer"></div>
         </div>
     </div>
 
-    <div id="assetModal" class="full-screen-modal">
+    <div id="paymentsModal" class="full-screen-modal">
         <div class="modal-inner">
             <div class="modal-header">
-                <h3>Select Crypto Pair</h3>
-                <span class="x-close" onclick="closeAssetModal()">✕</span>
+                <h3>Payments</h3>
+                <span class="x-close" onclick="document.getElementById('paymentsModal').style.display='none'">✕</span>
             </div>
-            <div class="asset-list-view">
-                <div class="asset-item" onclick="selectAsset('BTC')"><div class="coin-meta-left"><span class="c-logo btc-logo">₿</span><div><b>Bitcoin</b> <small>BTC/USD (OTC)</small></div></div><b class="green-pct">92%</b></div>
-                <div class="asset-item" onclick="selectAsset('ETH')"><div class="coin-meta-left"><span class="c-logo eth-logo">Ξ</span><div><b>Ethereum</b> <small>ETH/USD (OTC)</small></div></div><b class="green-pct">90%</b></div>
-                <div class="asset-item" onclick="selectAsset('SOL')"><div class="coin-meta-left"><span class="c-logo sol-logo">◎</span><div><b>Solana</b> <small>SOL/USD (OTC)</small></div></div><b class="green-pct">88%</b></div>
-                <div class="asset-item" onclick="selectAsset('BNB')"><div class="coin-meta-left"><span class="c-logo bnb-logo">◆</span><div><b>BNB</b> <small>BNB/USD (OTC)</small></div></div><b class="green-pct">88%</b></div>
-            </div>
+            <div id="lifetimePaymentsContainer"></div>
         </div>
     </div>
 
@@ -443,6 +318,6 @@
         <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
     </div>
 
-    <script src="script.js?v=32.0"></script>
+    <script src="script.js?v=33.0"></script>
 </body>
 </html>

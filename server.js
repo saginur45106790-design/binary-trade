@@ -15,16 +15,18 @@ let users = {
   "demo_user": { id: "85857047", liveBalance: 10.00, demoBalance: 11068.77, control: "normal" }
 };
 
-// স্বাভাবিক ও স্পষ্ট ক্যান্ডেল তৈরি করার জন্য রিয়েল মার্কেট ভোলাটিলিটি
+// স্ক্রিনশট ৯৪৮ থেকে ৯৫৭ অনুযায়ী ১০টি নির্দিষ্ট OTC অ্যাসেট
 let ASSETS = {
-  'BTC':  { name: 'Bitcoin', ticker: 'BTC', price: 68525.50, basePrice: 68525.50, decimals: 2, payout: 92, vol: 4.8 },
-  'ETH':  { name: 'Ethereum', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, payout: 90, vol: 1.4 },
-  'SOL':  { name: 'Solana', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, payout: 88, vol: 0.40 },
-  'BNB':  { name: 'BNB', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, payout: 88, vol: 0.60 },
-  'XRP':  { name: 'XRP', ticker: 'XRP', price: 0.6250, basePrice: 0.6250, decimals: 4, payout: 85, vol: 0.0008 },
-  'DOGE': { name: 'Dogecoin', ticker: 'DOGE', price: 0.1425, basePrice: 0.1425, decimals: 4, payout: 82, vol: 0.0003 },
-  'TON':  { name: 'Toncoin', ticker: 'TON', price: 5.850, basePrice: 5.850, decimals: 3, payout: 86, vol: 0.007 },
-  'ADA':  { name: 'Cardano', ticker: 'ADA', price: 0.4850, basePrice: 0.4850, decimals: 4, payout: 84, vol: 0.0007 }
+  'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', type: 'currency', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00030, payout1m: 77, payout5m: 77, change24h: -1.27, trend: 'NORMAL', trendUntil: 0 },
+  'GBP_USD': { name: 'GBP/USD (OTC)', ticker: 'GBP_USD', type: 'currency', price: 1.31210, basePrice: 1.31210, decimals: 5, vol: 0.00035, payout1m: 92, payout5m: 83, change24h: 0.00, trend: 'NORMAL', trendUntil: 0 },
+  'EUR_AUD': { name: 'EUR/AUD (OTC)', ticker: 'EUR_AUD', type: 'currency', price: 1.62480, basePrice: 1.62480, decimals: 5, vol: 0.00040, payout1m: 94, payout5m: 95, change24h: -0.61, trend: 'NORMAL', trendUntil: 0 },
+  'GBP_JPY': { name: 'GBP/JPY (OTC)', ticker: 'GBP_JPY', type: 'currency', price: 191.450, basePrice: 191.450, decimals: 3, vol: 0.045, payout1m: 77, payout5m: 80, change24h: 0.21, trend: 'NORMAL', trendUntil: 0 },
+  'GOLD':    { name: 'Gold (OTC)', ticker: 'GOLD', type: 'commodity', price: 2350.40, basePrice: 2350.40, decimals: 2, vol: 0.80, payout1m: 92, payout5m: 79, change24h: 0.03, trend: 'NORMAL', trendUntil: 0 },
+  'SILVER':  { name: 'Silver (OTC)', ticker: 'SILVER', type: 'commodity', price: 28.520, basePrice: 28.520, decimals: 3, vol: 0.025, payout1m: 88, payout5m: 77, change24h: 0.11, trend: 'NORMAL', trendUntil: 0 },
+  'BTC':     { name: 'Bitcoin (OTC)', ticker: 'BTC', type: 'crypto', price: 68525.50, basePrice: 68525.50, decimals: 2, vol: 4.80, payout1m: 75, payout5m: 82, change24h: 1.29, trend: 'NORMAL', trendUntil: 0 },
+  'BNB':     { name: 'Binance Coin (OTC)', ticker: 'BNB', type: 'crypto', price: 591.20, basePrice: 591.20, decimals: 2, vol: 0.60, payout1m: 89, payout5m: 75, change24h: 2.33, trend: 'NORMAL', trendUntil: 0 },
+  'SOL':     { name: 'Solana (OTC)', ticker: 'SOL', type: 'crypto', price: 177.50, basePrice: 177.50, decimals: 2, vol: 0.40, payout1m: 81, payout5m: 64, change24h: -10.94, trend: 'NORMAL', trendUntil: 0 },
+  'ETH':     { name: 'Ethereum (OTC)', ticker: 'ETH', type: 'crypto', price: 3422.00, basePrice: 3422.00, decimals: 2, vol: 1.40, payout1m: 81, payout5m: 67, change24h: 4.75, trend: 'NORMAL', trendUntil: 0 }
 };
 
 let activeServerTrades = [];
@@ -33,7 +35,7 @@ let recentTradeResults = [];
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// ২৪ ঘণ্টার স্বাভাবিক আকৃতির ১,৪৪০ ক্যান্ডেল তৈরি
+// প্রতিটি OTC অ্যাসেটের ২৪ ঘণ্টার ১,৪৪০টি অবিচ্ছিন্ন ক্যান্ডেল তৈরি
 function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
   currentCandleMinute = Math.floor(nowSec / 60) * 60;
@@ -45,12 +47,12 @@ function init24HourMarket() {
 
     for (let i = 1440; i > 0; i--) {
       let t = currentCandleMinute - (i * 60);
-      let drift = -(cur - meta.basePrice) * 0.002;
-      let delta = (Math.random() - 0.495) * meta.vol * 0.75 + drift;
+      let drift = -(cur - meta.basePrice) * 0.001;
+      let delta = (Math.random() - 0.495) * meta.vol * 0.7 + drift;
       let o = cur;
       let c = parseFloat((o + delta).toFixed(meta.decimals));
-      let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol * 0.35 + 0.03 * meta.vol).toFixed(meta.decimals));
-      let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol * 0.35 - 0.03 * meta.vol).toFixed(meta.decimals));
+      let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol * 0.3 + 0.02 * meta.vol).toFixed(meta.decimals));
+      let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol * 0.3 - 0.02 * meta.vol).toFixed(meta.decimals));
       list.push({ time: t, open: o, high: h, low: l, close: c });
       cur = c;
     }
@@ -62,6 +64,7 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
+// লাইভ মার্কেট টিক ও ট্রেন্ড এক্সিকিউশন ইঞ্জিন
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -72,8 +75,18 @@ setInterval(() => {
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
-    let drift = -(meta.price - meta.basePrice) * 0.0012;
-    let delta = (Math.random() - 0.495) * (meta.vol * 0.4) + drift;
+    
+    // অ্যাডমিন নির্ধারিত ট্রেন্ড যাচাই (UP / DOWN / NORMAL)
+    let trendDrift = 0;
+    if (now < meta.trendUntil) {
+      if (meta.trend === 'UP') trendDrift = meta.vol * 0.35; // নির্দিষ্ট সময় ঊর্ধ্বমুখী গতি
+      else if (meta.trend === 'DOWN') trendDrift = -meta.vol * 0.35; // নির্দিষ্ট সময় নিম্নমুখী গতি
+    } else {
+      meta.trend = 'NORMAL';
+      trendDrift = -(meta.price - meta.basePrice) * 0.001;
+    }
+
+    let delta = (Math.random() - 0.495) * (meta.vol * 0.3) + trendDrift;
     meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
 
     let list = candleHistories[key];
@@ -91,7 +104,7 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // ট্রেড অটো-সেটেলমেন্ট
+  // সক্রিয় ট্রেডগুলোর অটো-সেটেলমেন্ট
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
@@ -106,7 +119,9 @@ setInterval(() => {
         else if (tr.direction === 'DOWN') isWin = (exitP < tr.entryPrice);
       }
 
-      let profit = isWin ? parseFloat((tr.amount * (1 + (ASSETS[tr.asset]?.payout || 90) / 100)).toFixed(2)) : 0;
+      let payoutRate = ASSETS[tr.asset] ? ASSETS[tr.asset].payout1m : 90;
+      let profit = isWin ? parseFloat((tr.amount * (1 + payoutRate / 100)).toFixed(2)) : 0;
+
       if (isWin) {
         if (tr.accountType === 'live') user.liveBalance += profit;
         else user.demoBalance += profit;
@@ -133,12 +148,15 @@ setInterval(() => {
     }
   }
 
+  // লাইভ ব্রডকাস্ট
   let tickPayload = { type: 'TICK', countdown: remainingSec, serverTime: now, assets: {} };
   for (let key in ASSETS) {
     tickPayload.assets[key] = {
       price: ASSETS[key].price.toFixed(ASSETS[key].decimals),
       candle: candleHistories[key][candleHistories[key].length - 1],
-      payout: ASSETS[key].payout
+      payout1m: ASSETS[key].payout1m,
+      payout5m: ASSETS[key].payout5m,
+      change24h: ASSETS[key].change24h
     };
   }
 
@@ -148,8 +166,13 @@ setInterval(() => {
   });
 }, 1000);
 
+// এপিআই রুটস
+app.get('/api/assets', (req, res) => {
+  res.json({ success: true, assets: ASSETS });
+});
+
 app.get('/api/history/:asset', (req, res) => {
-  let asset = req.params.asset || 'BTC';
+  let asset = req.params.asset || 'EUR_USD';
   if (candleHistories[asset]) {
     res.json({ success: true, history: candleHistories[asset], meta: ASSETS[asset], serverTime: Date.now() });
   } else {
@@ -172,7 +195,7 @@ app.post('/api/trade', (req, res) => {
   if (accountType === 'live') user.liveBalance -= tradeAmount;
   else user.demoBalance -= tradeAmount;
 
-  let selectedAsset = ASSETS[asset] || ASSETS['BTC'];
+  let selectedAsset = ASSETS[asset] || ASSETS['EUR_USD'];
   let nowSec = Math.floor(Date.now() / 1000);
   let dur = Number(durationSec) || 60;
   let entryP = clientEntryPrice ? parseFloat(clientEntryPrice) : selectedAsset.price;
@@ -180,7 +203,7 @@ app.post('/api/trade', (req, res) => {
   let newTrade = {
     id: "TR-" + Date.now(),
     username: username || "demo_user",
-    asset: asset || "BTC",
+    asset: asset || "EUR_USD",
     amount: tradeAmount,
     direction,
     accountType,
@@ -215,6 +238,43 @@ app.get('/api/user/info', (req, res) => {
   res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
 });
 
+// -------------------------------------------------------------
+// অ্যাডমিন ট্রেন্ড কন্ট্রোল ও পেআউট এপিআই
+// -------------------------------------------------------------
+app.get(['/admin', '/admin-secret-panel'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/api/admin/data', (req, res) => {
+  res.json({ users, assets: ASSETS, serverTime: Date.now() });
+});
+
+// নির্দিষ্ট OTC অ্যাসেটের ডিরেকশন ও সময় সেট
+app.post('/api/admin/set-otc-trend', (req, res) => {
+  const { asset, direction, durationMinutes } = req.body;
+  if (ASSETS[asset]) {
+    let mins = Math.max(1, parseInt(durationMinutes) || 5);
+    ASSETS[asset].trend = direction || 'NORMAL';
+    ASSETS[asset].trendUntil = Date.now() + (mins * 60 * 1000);
+    return res.json({
+      success: true,
+      message: `${ASSETS[asset].name} ট্রেন্ড সফলভাবে ${direction} এ ${mins} মিনিটের জন্য সেট করা হয়েছে।`
+    });
+  }
+  res.json({ success: false, message: "অ্যাসেট খুঁজে পাওয়া যায়নি।" });
+});
+
+// পেআউট পরিবর্তন এপিআই (1m & 5m)
+app.post('/api/admin/set-otc-payout', (req, res) => {
+  const { asset, payout1m, payout5m } = req.body;
+  if (ASSETS[asset]) {
+    if (payout1m) ASSETS[asset].payout1m = parseInt(payout1m);
+    if (payout5m) ASSETS[asset].payout5m = parseInt(payout5m);
+    return res.json({ success: true, message: `${ASSETS[asset].name} পেআউট আপডেট করা হয়েছে।` });
+  }
+  res.json({ success: false, message: "অ্যাসেট পাওয়া যায়নি।" });
+});
+
 app.get('/api/tournaments', (req, res) => {
   res.json({
     success: true,
@@ -233,8 +293,5 @@ app.get('/api/payments', (req, res) => {
   });
 });
 
-app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-app.get('/api/admin/data', (req, res) => res.json({ users, assets: ASSETS }));
-
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`OTC Master Server running on port ${PORT}`));
