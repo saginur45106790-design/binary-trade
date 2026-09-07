@@ -7,26 +7,48 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.json({ limit: '30mb' }));
-app.use(express.urlencoded({ limit: '30mb', extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+// গ্লোবাল কনফিগারেশন
+let PLATFORM_CONFIG = {
+  dollarRate: 125.00,
+  telegramLink: "https://t.me/yourchannel",
+  bkashNumber: "01700000000",
+  nagadNumber: "01800000000",
+  usdtBrc20: "0x71C...BEP20_USDT_ADDR",
+  usdtTrc20: "TX9...TRC20_USDT_ADDR",
+  btcBep20: "0x89A...BEP20_BTC_ADDR",
+  btcNetwork: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa"
+};
 
 // ইউজার ডাটাবেস
 let users = {
-  "85857047": { id: "85857047", username: "demo_user", name: "MD Sajib Hossain", email: "teachsajib@gmail.com", phone: "+8801700000000", liveBalance: 10.00, demoBalance: 11068.77, group: "VIP", status: "Active" },
-  "85857048": { id: "85857048", username: "user_85857048", name: "Rahim Ahmed", email: "trader_rahim@gmail.com", phone: "+8801811111111", liveBalance: 25.50, demoBalance: 10000.00, group: "Standard", status: "Active" },
-  "85857049": { id: "85857049", username: "user_85857049", name: "Karim Uddin", email: "karim_fx@gmail.com", phone: "+8801922222222", liveBalance: 50.00, demoBalance: 10000.00, group: "Premium", status: "Active" }
+  "85857047": {
+    id: "85857047",
+    username: "teachsajib@gmail.com",
+    name: "MD Sajib Hossain",
+    email: "teachsajib@gmail.com",
+    phone: "01700000000",
+    dob: "2000-01-01",
+    address: "Dhaka, Bangladesh",
+    zip: "1200",
+    password: "password123",
+    liveBalance: 10.00,
+    demoBalance: 11068.77,
+    bonusBalance: 0.00,
+    requiredTurnover: 0.00,
+    currentTurnover: 0.00,
+    hasActiveBonus: false,
+    verificationStatus: "Unverified", // Unverified | Pending | Verified
+    nidFront: "",
+    nidBack: "",
+    registeredAt: "2026-09-01"
+  }
 };
 
-let userGroups = ["Standard", "VIP", "Premium", "New Traders"];
-
-let RISK_CONFIG = {
-  maxTradeAmount: 100.00,
-  maxAssetExposure: 500.00,
-  dynamicPayoutEnabled: true
-};
-
-// ১০টি অফিসিয়াল OTC পেয়ার
+// ১০টি সম্পূর্ণ স্বতন্ত্র OTC অ্যাসেট (প্রত্যেকটির আলাদা প্রাইস, ভোলাটিলিটি ও ট্রেন্ড)
 let ASSETS = {
   'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00030, payout1m: 77, payout5m: 77, change24h: -1.27, trend: 'NORMAL', trendUntil: 0 },
   'GBP_JPY': { name: 'GBP/JPY (OTC)', ticker: 'GBP_JPY', price: 191.450, basePrice: 191.450, decimals: 3, vol: 0.045, payout1m: 77, payout5m: 80, change24h: 0.21, trend: 'NORMAL', trendUntil: 0 },
@@ -41,35 +63,41 @@ let ASSETS = {
 };
 
 let activeServerTrades = [];
-let recentTradeResults = [];
+let lifetimeTrades = [];
+let depositHistory = [];
+let withdrawalHistory = [];
+let chatMessages = [];
+let notifications = [
+  { id: 1, title: "Welcome to Platform", body: "Deposit now and get up to 50% extra bonus with instant withdrawal capability!", time: "Just now" }
+];
+
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// কটেক্স স্টাইলের হ্যামার ও ডোজি সহ ২৪ ঘণ্টার ১,৪৪০ ক্যান্ডেল তৈরি
+// ২৪ ঘণ্টার ১,৪৪০টি ক্যান্ডেল পৃথক পজিশনে তৈরি
 function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
   currentCandleMinute = Math.floor(nowSec / 60) * 60;
+
+  let seedMultipliers = { 'EUR_USD': 1.1, 'GBP_JPY': 0.8, 'GBP_USD': 1.3, 'EUR_AUD': 0.9, 'ETH': 1.5, 'SOL': 1.2, 'BNB': 0.7, 'BTC': 1.4, 'SILVER': 0.6, 'GOLD': 1.0 };
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
     let list = [];
     let cur = meta.price;
+    let seed = seedMultipliers[key] || 1.0;
 
     for (let i = 1440; i > 0; i--) {
       let t = currentCandleMinute - (i * 60);
-      let randShape = Math.random();
       let drift = -(cur - meta.basePrice) * 0.001;
-      let delta = (Math.random() - 0.495) * meta.vol * 0.6 + drift;
+      let delta = (Math.sin(i * seed) * 0.5 + (Math.random() - 0.495)) * meta.vol * 0.65 + drift;
       let o = cur;
       let c = parseFloat((o + delta).toFixed(meta.decimals));
 
-      let upperWick = Math.random() * meta.vol * 0.3;
-      let lowerWick = Math.random() * meta.vol * 0.3;
-      if (randShape > 0.85) lowerWick += meta.vol * 0.5;
-      else if (randShape < 0.15) upperWick += meta.vol * 0.5;
-
-      let h = parseFloat((Math.max(o, c) + upperWick + 0.01 * meta.vol).toFixed(meta.decimals));
-      let l = parseFloat((Math.min(o, c) - lowerWick - 0.01 * meta.vol).toFixed(meta.decimals));
+      let upperWick = Math.random() * meta.vol * 0.25;
+      let lowerWick = Math.random() * meta.vol * 0.25;
+      let h = parseFloat((Math.max(o, c) + upperWick + 0.005 * meta.vol).toFixed(meta.decimals));
+      let l = parseFloat((Math.min(o, c) - lowerWick - 0.005 * meta.vol).toFixed(meta.decimals));
 
       list.push({ time: t, open: o, high: h, low: l, close: c });
       cur = c;
@@ -82,31 +110,27 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
-// প্রতি সেকেন্ডের ইঞ্জিন (স্বাভাবিক গতির ট্রেন্ড ও কোনো স্পাইক ছাড়া)
+// প্রতি সেকেন্ডের ক্যান্ডেল আপডেট ইঞ্জিন (কোনো জাম্প নেই, মসৃণ সিঁড়ি মুভমেন্ট)
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
   let nowMinute = Math.floor(sec / 60) * 60;
   let remainingSec = 60 - (sec % 60);
-
   let isNewMinute = (nowMinute > currentCandleMinute);
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
-    
-    // ট্রেন্ড গতি: পুরো ৬০ সেকেন্ডে মাত্র ১টি স্বাভাবিক ক্যান্ডেল বডি তৈরি করবে
     let trendDrift = 0;
+
     if (now < meta.trendUntil) {
-      // (meta.vol * 0.35) পুরো ৬০ সেকেন্ডে ধীরে ধীরে ভাগ করে নেওয়া হয়েছে
       if (meta.trend === 'UP') trendDrift = (meta.vol * 0.35) / 60.0;
       else if (meta.trend === 'DOWN') trendDrift = -(meta.vol * 0.35) / 60.0;
     } else {
       meta.trend = 'NORMAL';
-      trendDrift = -(meta.price - meta.basePrice) * 0.0005 / 60.0;
+      trendDrift = -(meta.price - meta.basePrice) * 0.0004 / 60.0;
     }
 
-    // স্বাভাবিক মাইক্রো-টিক নয়েজ (লাফালাফি ছাড়া মসৃণ মুভমেন্ট)
-    let tickNoise = (Math.random() - 0.495) * (meta.vol * 0.04);
+    let tickNoise = (Math.random() - 0.495) * (meta.vol * 0.035);
     meta.price = parseFloat((meta.price + trendDrift + tickNoise).toFixed(meta.decimals));
 
     let list = candleHistories[key];
@@ -124,13 +148,13 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // সক্রিয় ট্রেডগুলোর অটো-সেটেলমেন্ট
+  // ট্রেড অটো-সেটেলমেন্ট
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
       let exitP = ASSETS[tr.asset] ? ASSETS[tr.asset].price : tr.entryPrice;
       let isWin = false;
-      let user = users["85857047"];
+      let user = users[tr.userId] || users["85857047"];
 
       if (tr.direction === 'UP') isWin = (exitP > tr.entryPrice);
       else if (tr.direction === 'DOWN') isWin = (exitP < tr.entryPrice);
@@ -143,187 +167,334 @@ setInterval(() => {
         else user.demoBalance += profit;
       }
 
-      let resObj = {
-        tradeId: tr.id,
-        username: tr.username,
-        asset: tr.asset,
-        isWin,
-        profit,
-        balance: (tr.accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2),
-        time: now
-      };
+      // বোনাস টার্নওভার কাউন্টিং
+      if (user.hasActiveBonus && tr.accountType === 'live') {
+        user.currentTurnover += tr.amount;
+        if (user.currentTurnover >= user.requiredTurnover) {
+          user.hasActiveBonus = false;
+          user.requiredTurnover = 0;
+          user.currentTurnover = 0;
+          user.bonusBalance = 0;
+        }
+      }
 
-      recentTradeResults.unshift(resObj);
+      let resRecord = {
+        id: tr.id,
+        userId: tr.userId,
+        asset: tr.asset,
+        direction: tr.direction,
+        amount: tr.amount,
+        entryPrice: tr.entryPrice,
+        exitPrice: exitP,
+        profit: isWin ? profit : 0,
+        isWin,
+        accountType: tr.accountType,
+        time: new Date().toLocaleTimeString()
+      };
+      lifetimeTrades.unshift(resRecord);
       activeServerTrades.splice(i, 1);
 
-      let settleMsg = JSON.stringify({ type: 'TRADE_SETTLED', result: resObj });
-      wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) client.send(settleMsg);
+      let settleMsg = JSON.stringify({
+        type: 'TRADE_SETTLED',
+        result: {
+          tradeId: tr.id,
+          isWin,
+          profit: resRecord.profit,
+          balance: (tr.accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2)
+        }
       });
+      wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(settleMsg); });
     }
   }
 
-  // রিয়েল-টাইম অর্ডারবুক এক্সপোজার বিলবোর্ড
-  let billboard = {};
-  for (let key in ASSETS) {
-    let upVol = 0, downVol = 0, upCount = 0, downCount = 0;
-    activeServerTrades.filter(t => t.asset === key).forEach(t => {
-      if (t.direction === 'UP') { upVol += Number(t.amount); upCount++; }
-      else { downVol += Number(t.amount); downCount++; }
-    });
-    billboard[key] = { upVol, downVol, upCount, downCount, totalTrades: upCount + downCount };
-  }
-
-  let tickPayload = {
-    type: 'TICK',
-    countdown: remainingSec,
-    serverTime: now,
-    assets: {},
-    billboard
-  };
-
-  for (let key in ASSETS) {
-    tickPayload.assets[key] = {
-      price: ASSETS[key].price.toFixed(ASSETS[key].decimals),
-      candle: candleHistories[key][candleHistories[key].length - 1],
-      payout1m: ASSETS[key].payout1m,
-      payout5m: ASSETS[key].payout5m,
-      change24h: ASSETS[key].change24h
+  // লাইভ ব্রডকাস্ট
+  let tickPayload = { type: 'TICK', countdown: remainingSec, serverTime: now, assets: {} };
+  for (let k in ASSETS) {
+    tickPayload.assets[k] = {
+      price: ASSETS[k].price.toFixed(ASSETS[k].decimals),
+      candle: candleHistories[k][candleHistories[k].length - 1],
+      payout1m: ASSETS[k].payout1m,
+      payout5m: ASSETS[k].payout5m,
+      change24h: ASSETS[k].change24h
     };
   }
-
-  let broadcastData = JSON.stringify(tickPayload);
-  wss.clients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) client.send(broadcastData);
-  });
+  let payloadStr = JSON.stringify(tickPayload);
+  wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(payloadStr); });
 }, 1000);
 
-// API Routes
-app.get('/api/assets', (req, res) => res.json({ success: true, assets: ASSETS }));
-
-app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
-  let asset = req.params.asset || req.query.asset || 'EUR_USD';
-  asset = asset.replace('/', '_');
-  let data = candleHistories[asset] || candleHistories['EUR_USD'];
-  let meta = ASSETS[asset] || ASSETS['EUR_USD'];
-  res.json({ success: true, history: data, meta: meta, serverTime: Date.now() });
+// অথেন্টিকেশন API
+app.post('/api/auth/register', (req, res) => {
+  const { email, password, phone } = req.body;
+  let newId = String(Math.floor(10000000 + Math.random() * 90000000));
+  users[newId] = {
+    id: newId,
+    username: email,
+    name: email.split('@')[0],
+    email,
+    phone: phone || "01700000000",
+    dob: "2000-01-01",
+    address: "Bangladesh",
+    zip: "1000",
+    password,
+    liveBalance: 0.00,
+    demoBalance: 11068.77,
+    bonusBalance: 0.00,
+    requiredTurnover: 0.00,
+    currentTurnover: 0.00,
+    hasActiveBonus: false,
+    verificationStatus: "Unverified",
+    nidFront: "",
+    nidBack: "",
+    registeredAt: new Date().toISOString().split('T')[0]
+  };
+  res.json({ success: true, userId: newId, user: users[newId] });
 });
 
-app.get('/api/active-trades', (req, res) => res.json({ success: true, trades: activeServerTrades, results: recentTradeResults }));
+app.post('/api/auth/login', (req, res) => {
+  const { email, password } = req.body;
+  for (let id in users) {
+    if ((users[id].email === email || users[id].id === email) && users[id].password === password) {
+      return res.json({ success: true, userId: id, user: users[id] });
+    }
+  }
+  res.json({ success: false, message: "Invalid credentials!" });
+});
+
+// প্রোফাইল ও কেওয়াইসি সাবমিশন
+app.get('/api/user/:id', (req, res) => {
+  let u = users[req.params.id] || users["85857047"];
+  res.json({ success: true, user: u });
+});
+
+app.post('/api/user/update', (req, res) => {
+  const { id, name, email, phone, dob, address, zip } = req.body;
+  let u = users[id] || users["85857047"];
+  if (name) u.name = name;
+  if (email) u.email = email;
+  if (phone) u.phone = phone;
+  if (dob) u.dob = dob;
+  if (address) u.address = address;
+  if (zip) u.zip = zip;
+  res.json({ success: true, message: "Profile updated successfully!", user: u });
+});
+
+app.post('/api/user/submit-nid', (req, res) => {
+  const { id, nidFront, nidBack } = req.body;
+  let u = users[id] || users["85857047"];
+  u.nidFront = nidFront || "";
+  u.nidBack = nidBack || "";
+  u.verificationStatus = "Pending";
+  res.json({ success: true, message: "Documents submitted for verification!" });
+});
+
+// ট্রেডিং ও বোনাস টাস্ক (ডাবল টার্নওভার লজিক)
+app.post('/api/bonus/claim', (req, res) => {
+  const { userId, targetTrade, freeAmount } = req.body;
+  let u = users[userId] || users["85857047"];
+  let free = parseFloat(freeAmount);
+  u.bonusBalance += free;
+  u.liveBalance += free;
+  u.hasActiveBonus = true;
+  u.requiredTurnover += (free * 2.0); // ডাবল টার্নওভার শর্ত
+  res.json({ success: true, message: `Congratulations! $${free} bonus added. 2X Turnover ($${u.requiredTurnover}) activated.` });
+});
 
 app.post('/api/trade', (req, res) => {
-  const { username, amount, direction, accountType, durationSec, asset, candleTime, clientEntryPrice } = req.body;
-  let user = users["85857047"];
-  let tradeAmount = Number(amount) || 1;
+  const { userId, amount, direction, accountType, durationSec, asset } = req.body;
+  let u = users[userId] || users["85857047"];
+  let tradeAmount = parseFloat(amount) || 1;
+  let bal = accountType === 'live' ? u.liveBalance : u.demoBalance;
 
-  if (tradeAmount > RISK_CONFIG.maxTradeAmount) {
-    return res.json({ success: false, message: `সর্বোচ্চ ট্রেড লিমিট $${RISK_CONFIG.maxTradeAmount}!` });
-  }
+  if (bal < tradeAmount) return res.json({ success: false, message: "Insufficient balance!" });
 
-  let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
-  if (targetBal < tradeAmount) return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
+  if (accountType === 'live') u.liveBalance -= tradeAmount;
+  else u.demoBalance -= tradeAmount;
 
   let cleanAsset = (asset || "EUR_USD").replace('/', '_');
-  let selectedAsset = ASSETS[cleanAsset] || ASSETS['EUR_USD'];
-
-  if (accountType === 'live') user.liveBalance -= tradeAmount;
-  else user.demoBalance -= tradeAmount;
-
   let nowSec = Math.floor(Date.now() / 1000);
-  let dur = Number(durationSec) || 60;
-  let entryP = clientEntryPrice ? parseFloat(clientEntryPrice) : selectedAsset.price;
+  let dur = parseInt(durationSec) || 60;
+  let currentPrice = ASSETS[cleanAsset] ? ASSETS[cleanAsset].price : 1.08540;
 
-  let newTrade = {
+  let trade = {
     id: "TR-" + Date.now(),
-    username: "demo_user",
+    userId: u.id,
     asset: cleanAsset,
     amount: tradeAmount,
     direction,
     accountType,
-    entryPrice: entryP,
-    candleTime: candleTime || (Math.floor(nowSec / 60) * 60),
+    entryPrice: currentPrice,
+    candleTime: Math.floor(nowSec / 60) * 60,
     entryTime: nowSec,
     durationSec: dur,
     expireTime: nowSec + dur
   };
+  activeServerTrades.push(trade);
 
-  activeServerTrades.push(newTrade);
-  res.json({ success: true, trade: newTrade, balance: (accountType === 'live' ? user.liveBalance : user.demoBalance).toFixed(2) });
+  res.json({ success: true, trade, balance: (accountType === 'live' ? u.liveBalance : u.demoBalance).toFixed(2) });
 });
 
-app.post('/api/switch-account', (req, res) => {
-  let user = users["85857047"];
-  res.json({ success: true, activeAccount: req.body.type, balance: req.body.type === 'live' ? user.liveBalance : user.demoBalance });
+// ডিপোজিট ও উইথড্রয়াল API
+app.post('/api/wallet/deposit', (req, res) => {
+  const { userId, method, amount, trxId, screenshot, currency, network } = req.body;
+  let dep = {
+    id: "DEP-" + Date.now(),
+    userId: userId || "85857047",
+    method: method || "bKash",
+    currency: currency || "BDT",
+    network: network || "Default",
+    amount: parseFloat(amount),
+    trxId: trxId || "TRX-MANUAL",
+    screenshot: screenshot || "",
+    status: "Pending",
+    date: new Date().toLocaleString()
+  };
+  depositHistory.unshift(dep);
+  res.json({ success: true, message: "Deposit request submitted! Awaiting approval." });
 });
 
-app.post('/api/reset-demo', (req, res) => {
-  let user = users["85857047"];
-  user.demoBalance = 11068.77;
-  res.json({ success: true, balance: user.demoBalance.toFixed(2) });
-});
+app.post('/api/wallet/withdraw', (req, res) => {
+  const { userId, method, amount, accountDetails, network } = req.body;
+  let u = users[userId] || users["85857047"];
+  let amt = parseFloat(amount);
 
-app.get('/api/user/info', (req, res) => {
-  let user = users["85857047"];
-  res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
-});
-
-// অ্যাডমিন প্যানেল API
-app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
-
-app.get(['/api/admin/overview', '/api/admin/data'], (req, res) => {
-  let billboard = {};
-  for (let key in ASSETS) {
-    let upVol = 0, downVol = 0, upCount = 0, downCount = 0;
-    activeServerTrades.filter(t => t.asset === key).forEach(t => {
-      if (t.direction === 'UP') { upVol += Number(t.amount); upCount++; }
-      else { downVol += Number(t.amount); downCount++; }
+  // বোনাস টার্নওভার ভ্যালিডেশন
+  if (u.hasActiveBonus && u.currentTurnover < u.requiredTurnover) {
+    let rem = (u.requiredTurnover - u.currentTurnover).toFixed(2);
+    return res.json({
+      success: false,
+      turnoverBlocked: true,
+      message: `Withdrawal Blocked! Complete your 2X Turnover. Remaining: $${rem}`
     });
-    billboard[key] = { upVol, downVol, upCount, downCount, totalTrades: upCount + downCount };
   }
 
+  if (u.liveBalance < amt) return res.json({ success: false, message: "Insufficient live balance!" });
+
+  u.liveBalance -= amt;
+  let w = {
+    id: "WIT-" + Date.now(),
+    userId: u.id,
+    method,
+    network: network || "Direct",
+    amount: amt,
+    accountDetails,
+    status: "Pending",
+    date: new Date().toLocaleString()
+  };
+  withdrawalHistory.unshift(w);
+  res.json({ success: true, message: "Withdrawal request placed!", balance: u.liveBalance.toFixed(2) });
+});
+
+// লাইভ সাপোর্ট মেসেঞ্জার (২৪ ঘণ্টা হিস্ট্রি)
+app.get('/api/support/messages', (req, res) => {
+  let cutoff = Date.now() - (24 * 60 * 60 * 1000);
+  chatMessages = chatMessages.filter(m => m.timestamp >= cutoff);
+  res.json({ success: true, messages: chatMessages });
+});
+
+app.post('/api/support/send', (req, res) => {
+  const { sender, text, image, userId } = req.body;
+  let msg = {
+    id: Date.now(),
+    sender: sender || "User",
+    userId: userId || "85857047",
+    text: text || "",
+    image: image || "",
+    timestamp: Date.now(),
+    timeStr: new Date().toLocaleTimeString()
+  };
+  chatMessages.push(msg);
+
+  let chatBroadcast = JSON.stringify({ type: 'CHAT_MSG', message: msg });
+  wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(chatBroadcast); });
+  res.json({ success: true, message: msg });
+});
+
+// অ্যাডমিন কন্ট্রোল রাউটস
+app.get('/api/admin/overview', (req, res) => {
   res.json({
-    success: true,
-    totalUsers: Object.keys(users).length,
+    config: PLATFORM_CONFIG,
     users,
-    groups: userGroups,
+    deposits: depositHistory,
+    withdrawals: withdrawalHistory,
+    trades: activeServerTrades,
+    notifications,
     assets: ASSETS,
-    riskConfig: RISK_CONFIG,
-    activeTrades: activeServerTrades,
-    billboard,
     serverTime: Date.now()
   });
 });
 
-app.post('/api/admin/set-otc-trend', (req, res) => {
-  const { asset, direction, durationMinutes } = req.body;
+app.post('/api/admin/action-deposit', (req, res) => {
+  const { id, action } = req.body;
+  let dep = depositHistory.find(d => d.id === id);
+  if (dep) {
+    dep.status = action === 'approve' ? 'Approved' : 'Rejected';
+    if (action === 'approve') {
+      let u = users[dep.userId];
+      if (u) u.liveBalance += dep.amount;
+    }
+    return res.json({ success: true, message: `Deposit ${dep.status}!` });
+  }
+  res.json({ success: false, message: "Deposit not found!" });
+});
+
+app.post('/api/admin/action-withdraw', (req, res) => {
+  const { id, action } = req.body;
+  let w = withdrawalHistory.find(item => item.id === id);
+  if (w) {
+    w.status = action === 'approve' ? 'Approved' : 'Rejected';
+    if (action === 'reject') {
+      let u = users[w.userId];
+      if (u) u.liveBalance += w.amount; // ব্যালেন্স রিফান্ড
+    }
+    return res.json({ success: true, message: `Withdrawal ${w.status}!` });
+  }
+  res.json({ success: false, message: "Withdrawal not found!" });
+});
+
+app.post('/api/admin/action-kyc', (req, res) => {
+  const { userId, action } = req.body;
+  let u = users[userId];
+  if (u) {
+    u.verificationStatus = action === 'approve' ? 'Verified' : 'Unverified';
+    return res.json({ success: true, message: `User KYC ${u.verificationStatus}!` });
+  }
+  res.json({ success: false, message: "User not found!" });
+});
+
+app.post('/api/admin/config-update', (req, res) => {
+  const { dollarRate, telegramLink, bkashNumber, nagadNumber } = req.body;
+  if (dollarRate) PLATFORM_CONFIG.dollarRate = parseFloat(dollarRate);
+  if (telegramLink) PLATFORM_CONFIG.telegramLink = telegramLink;
+  if (bkashNumber) PLATFORM_CONFIG.bkashNumber = bkashNumber;
+  if (nagadNumber) PLATFORM_CONFIG.nagadNumber = nagadNumber;
+  res.json({ success: true, message: "Platform settings updated!", config: PLATFORM_CONFIG });
+});
+
+app.post('/api/admin/set-trend', (req, res) => {
+  const { asset, direction, minutes } = req.body;
   if (ASSETS[asset]) {
-    let mins = Math.max(1, parseInt(durationMinutes) || 5);
     ASSETS[asset].trend = direction || 'NORMAL';
-    ASSETS[asset].trendUntil = Date.now() + (mins * 60 * 1000);
-    return res.json({ success: true, message: `${ASSETS[asset].name} ট্রেন্ড ${direction} এ ${mins} মিনিটের জন্য মসৃণভাবে সেট করা হয়েছে।` });
+    ASSETS[asset].trendUntil = Date.now() + ((parseInt(minutes) || 5) * 60 * 1000);
+    return res.json({ success: true, message: `${ASSETS[asset].name} smooth trend set to ${direction} for ${minutes}m.` });
   }
-  res.json({ success: false, message: "অ্যাসেট পাওয়া যায়নি।" });
+  res.json({ success: false, message: "Asset not found!" });
 });
 
-app.post('/api/admin/set-otc-payout', (req, res) => {
-  const { asset, payout1m, payout5m } = req.body;
-  if (ASSETS[asset]) {
-    if (payout1m) ASSETS[asset].payout1m = parseInt(payout1m);
-    if (payout5m) ASSETS[asset].payout5m = parseInt(payout5m);
-    return res.json({ success: true, message: `${ASSETS[asset].name} পেআউট আপডেট করা হয়েছে।` });
-  }
-  res.json({ success: false, message: "অ্যাসেট পাওয়া যায়নি।" });
+app.post('/api/admin/send-notification', (req, res) => {
+  const { title, body } = req.body;
+  notifications.unshift({ id: Date.now(), title, body, time: new Date().toLocaleTimeString() });
+  res.json({ success: true, message: "Notification broadcasted!" });
 });
 
-app.post('/api/admin/adjust-balance', (req, res) => {
-  const { userId, amount, type } = req.body;
-  let user = users[userId];
-  if (!user) return res.json({ success: false, message: "ব্যবহারকারী পাওয়া যায়নি!" });
-  let delta = parseFloat(amount) || 0;
-  if (type === 'add') user.liveBalance += delta;
-  else user.liveBalance = Math.max(0, user.liveBalance - delta);
-  res.json({ success: true, message: `ব্যালেন্স সফলভাবে আপডেট হয়েছে: $${user.liveBalance.toFixed(2)}` });
+app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
+app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
+  let asset = (req.params.asset || req.query.asset || 'EUR_USD').replace('/', '_');
+  res.json({ success: true, history: candleHistories[asset] || candleHistories['EUR_USD'], meta: ASSETS[asset] || ASSETS['EUR_USD'] });
 });
+app.get('/api/assets', (req, res) => res.json({ success: true, assets: ASSETS }));
+app.get('/api/payments/all', (req, res) => res.json({ deposits: depositHistory, withdrawals: withdrawalHistory }));
+app.get('/api/trades/lifetime', (req, res) => res.json({ trades: lifetimeTrades }));
+app.get('/api/notifications', (req, res) => res.json({ notifications }));
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Smooth Quotex Candlestick Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Super Platform Engine listening on port ${PORT}`));

@@ -1,280 +1,235 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Admin | Risk Management & Exposure Billboard</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: #0c1017; color: #e2e8f0; padding: 12px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 16px; border-bottom: 1px solid #1e293b; margin-bottom: 14px; }
-        .header h1 { font-size: 16px; font-weight: 800; color: #fff; }
-        .badge-live { background: #00b074; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-        
-        .tabs { display: flex; gap: 6px; background: #131b26; padding: 4px; border-radius: 8px; margin-bottom: 14px; overflow-x: auto; }
-        .tab-btn { flex: 1; min-width: 85px; background: none; border: none; color: #8fa0b5; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; white-space: nowrap; }
-        .tab-btn.active { background: #0070f3; color: #fff; }
-
-        .section-box { display: none; background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
-        .section-box.active { display: block; }
-
-        /* লাইভ অর্ডারবুক বিলবোর্ড */
-        .billboard-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
-        .bb-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; }
-        .bb-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 8px; }
-        .bb-bars { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #1e293b; margin-bottom: 8px; }
-        .bb-bar-up { background: #00b074; transition: width 0.3s; }
-        .bb-bar-down { background: #eb5757; transition: width 0.3s; }
-        .bb-stats { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
-        .bb-up-txt { color: #00e676; }
-        .bb-down-txt { color: #eb5757; }
-
-        /* রিস্ক ম্যানেজমেন্ট কন্ট্রোল */
-        .risk-form-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 12px; }
-        .form-row { margin-bottom: 12px; }
-        .form-row label { display: block; font-size: 11px; color: #8fa0b5; margin-bottom: 4px; font-weight: 600; }
-        .form-input { width: 100%; background: #131b26; border: 1px solid #233348; color: #fff; padding: 9px 12px; border-radius: 6px; font-size: 13px; outline: none; }
-        .btn-primary { width: 100%; background: #0070f3; color: #fff; border: none; padding: 11px; border-radius: 6px; font-size: 13px; font-weight: 800; cursor: pointer; }
-
-        .otc-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-        .otc-title-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
-        .btn-trend-row { display: flex; gap: 6px; margin-bottom: 8px; }
-        .btn-t { flex: 1; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 7px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; }
-        .btn-t.up { background: #00b074; color: #fff; }
-        .btn-t.down { background: #eb5757; color: #fff; }
-        
-        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .input-row input { flex: 1; background: #131b26; border: 1px solid #233348; color: #fff; padding: 7px 10px; border-radius: 4px; font-size: 12px; }
-        .btn-save { background: #0070f3; color: #fff; border: none; padding: 7px 14px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; }
-
-        .search-input { width: 100%; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; outline: none; margin-bottom: 12px; }
-        .user-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .u-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; }
-        .u-meta { font-size: 12px; color: #8fa0b5; line-height: 1.5; margin-bottom: 8px; }
-        .u-bal-row { display: flex; justify-content: space-between; background: #131b26; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
-
-        .toast-msg { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00b074; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; z-index: 100; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin Control Console</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+    body { background: #0c121c; color: #e2e8f0; padding: 12px; }
+    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1e2a3c; padding-bottom: 10px; margin-bottom: 12px; }
+    .tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; }
+    .t-btn { flex: 1; min-width: 80px; background: #172233; color: #8fa0b5; border: none; padding: 8px 6px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; }
+    .t-btn.active { background: #0070f3; color: #fff; }
+    .panel { display: none; background: #172233; border: 1px solid #233348; border-radius: 8px; padding: 12px; }
+    .panel.active { display: block; }
+    .input-row { margin-bottom: 10px; }
+    .input-row label { display: block; font-size: 11px; color: #8fa0b5; margin-bottom: 3px; }
+    .input-row input { width: 100%; background: #0c121c; border: 1px solid #233348; color: #fff; padding: 8px; border-radius: 6px; font-size: 12px; }
+    .btn { background: #0070f3; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+    .card-item { background: #0c121c; border: 1px solid #233348; border-radius: 6px; padding: 10px; margin-bottom: 8px; font-size: 12px; }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🛡️ Broker Risk Console <span class="badge-live">ONLINE</span></h1>
-        <button onclick="loadAdminData()" style="background:#233348; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">🔄 Refresh</button>
-    </div>
+  <div class="header">
+    <h3>Admin Master Console</h3>
+    <button onclick="loadAdmin()" class="btn" style="padding:4px 8px; font-size:11px;">🔄 Refresh</button>
+  </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('billboard')">Live Exposure</button>
-        <button class="tab-btn" onclick="switchTab('risk')">Risk Guard</button>
-        <button class="tab-btn" onclick="switchTab('otc')">OTC Trend</button>
-        <button class="tab-btn" onclick="switchTab('users')">Users Directory</button>
-    </div>
+  <div class="tabs">
+    <button class="t-btn active" onclick="showTab('trend')">Smooth Trend</button>
+    <button class="t-btn" onclick="showTab('kyc')">KYC Review</button>
+    <button class="t-btn" onclick="showTab('wallet')">Deposits/Withdraws</button>
+    <button class="t-btn" onclick="showTab('chat')">Support Chat</button>
+    <button class="t-btn" onclick="showTab('settings')">Settings & Rates</button>
+  </div>
 
-    <div class="section-box active" id="sec-billboard">
-        <div style="font-size:13px; font-weight:800; margin-bottom:10px;">📊 Live Exposure Billboard (রিয়েল-টাইম আপ/ডাউন ভলিউম):</div>
-        <div class="billboard-grid" id="billboardContainer">লোড হচ্ছে...</div>
+  <div id="tab-trend" class="panel active">
+    <h4 style="margin-bottom:8px;">OTC Smooth Trend (No Spikes)</h4>
+    <div class="input-row">
+      <label>Select Asset</label>
+      <select id="trendAsset" style="width:100%; background:#0c121c; border:1px solid #233348; color:#fff; padding:8px; border-radius:6px;">
+        <option value="EUR_USD">EUR/USD (OTC)</option>
+        <option value="BTC">Bitcoin (OTC)</option>
+        <option value="ETH">Ethereum (OTC)</option>
+        <option value="GOLD">Gold (OTC)</option>
+      </select>
     </div>
+    <div class="input-row">
+      <label>Direction</label>
+      <select id="trendDir" style="width:100%; background:#0c121c; border:1px solid #233348; color:#fff; padding:8px; border-radius:6px;">
+        <option value="UP">▲ Smooth UP</option>
+        <option value="DOWN">▼ Smooth DOWN</option>
+        <option value="NORMAL">⚪ Normal</option>
+      </select>
+    </div>
+    <div class="input-row">
+      <label>Duration (Minutes)</label>
+      <input type="number" id="trendMinutes" value="5">
+    </div>
+    <button class="btn" onclick="applyTrend()">Apply Smooth Trend</button>
+  </div>
 
-    <div class="section-box" id="sec-risk">
-        <div style="font-size:13px; font-weight:800; margin-bottom:12px;">🛡️ House Exposure & Limits Protection:</div>
-        <div class="risk-form-card">
-            <div class="form-row">
-                <label>Max Single Trade Cap ($) - একক ট্রেডে সর্বোচ্চ সীমা:</label>
-                <input type="number" id="riskMaxTrade" class="form-input" placeholder="e.g. 100" min="1">
+  <div id="tab-kyc" class="panel">
+    <h4 style="margin-bottom:8px;">KYC / NID Verification Requests</h4>
+    <div id="kycContainer"></div>
+  </div>
+
+  <div id="tab-wallet" class="panel">
+    <h4 style="margin-bottom:8px;">Pending Deposits & Withdrawals</h4>
+    <div id="walletContainer"></div>
+  </div>
+
+  <div id="tab-chat" class="panel">
+    <h4 style="margin-bottom:8px;">User Messages</h4>
+    <div id="adminChatBox" style="max-height:250px; overflow-y:auto; margin-bottom:8px;"></div>
+    <div style="display:flex; gap:6px;">
+      <input type="text" id="adminReplyText" placeholder="Reply as Admin..." style="flex:1; background:#0c121c; border:1px solid #233348; color:#fff; padding:8px; border-radius:6px;">
+      <button class="btn" onclick="sendAdminReply()">Reply</button>
+    </div>
+  </div>
+
+  <div id="tab-settings" class="panel">
+    <h4 style="margin-bottom:8px;">Platform Exchange Rate & Links</h4>
+    <div class="input-row">
+      <label>1 USD = (BDT)</label>
+      <input type="number" id="admDollarRate">
+    </div>
+    <div class="input-row">
+      <label>Telegram Partner Channel Link</label>
+      <input type="text" id="admTeleLink">
+    </div>
+    <div class="input-row">
+      <label>bKash Personal Number</label>
+      <input type="text" id="admBkash">
+    </div>
+    <div class="input-row">
+      <label>Nagad Personal Number</label>
+      <input type="text" id="admNagad">
+    </div>
+    <button class="btn" onclick="saveAdminSettings()">Save Platform Config</button>
+  </div>
+
+  <script>
+    function showTab(t) {
+      document.querySelectorAll('.t-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById('tab-' + t).classList.add('active');
+    }
+
+    function loadAdmin() {
+      fetch('/api/admin/overview').then(r => r.json()).then(d => {
+        document.getElementById('admDollarRate').value = d.config.dollarRate;
+        document.getElementById('admTeleLink').value = d.config.telegramLink;
+        document.getElementById('admBkash').value = d.config.bkashNumber;
+        document.getElementById('admNagad').value = d.config.nagadNumber;
+
+        // KYC
+        let kycHtml = '';
+        for (let id in d.users) {
+          let u = d.users[id];
+          if (u.verificationStatus === 'Pending') {
+            kycHtml += `
+              <div class="card-item">
+                <b>${u.name} (ID: ${u.id})</b>
+                <p>Status: ${u.verificationStatus}</p>
+                <button class="btn" style="background:#00e676; padding:3px 8px; margin-top:4px;" onclick="actionKyc('${u.id}', 'approve')">Approve</button>
+                <button class="btn" style="background:#eb5757; padding:3px 8px; margin-top:4px;" onclick="actionKyc('${u.id}', 'reject')">Reject</button>
+              </div>
+            `;
+          }
+        }
+        document.getElementById('kycContainer').innerHTML = kycHtml || '<p style="color:#8fa0b5;">No pending KYC.</p>';
+
+        // ওয়ালেট
+        let wHtml = '';
+        d.deposits.filter(x => x.status === 'Pending').forEach(dep => {
+          wHtml += `
+            <div class="card-item">
+              <b>Deposit: $${dep.amount} (${dep.method})</b>
+              <p>TrxID: ${dep.trxId} | User: ${dep.userId}</p>
+              <button class="btn" style="background:#00e676; padding:3px 8px;" onclick="actionDep('${dep.id}', 'approve')">Approve</button>
+              <button class="btn" style="background:#eb5757; padding:3px 8px;" onclick="actionDep('${dep.id}', 'reject')">Reject</button>
             </div>
-            <div class="form-row">
-                <label>Max Asset Directional Exposure ($) - প্রতি পেয়ারে একমুখী এক্সপোজার ক্যাপ:</label>
-                <input type="number" id="riskMaxExposure" class="form-input" placeholder="e.g. 500" min="10">
-                <small style="color:#8fa0b5; font-size:10px; margin-top:2px; display:block;">একই সময়ে এই পরিমাণের বেশি একমুখী ট্রেড পড়লে অতিরিক্ত ট্রেড ব্লক হয়ে যাবে।</small>
+          `;
+        });
+        d.withdrawals.filter(x => x.status === 'Pending').forEach(w => {
+          wHtml += `
+            <div class="card-item">
+              <b>Withdrawal: $${w.amount} (${w.method})</b>
+              <p>Details: ${w.accountDetails} | User: ${w.userId}</p>
+              <button class="btn" style="background:#00e676; padding:3px 8px;" onclick="actionWith('${w.id}', 'approve')">Approve</button>
+              <button class="btn" style="background:#eb5757; padding:3px 8px;" onclick="actionWith('${w.id}', 'reject')">Reject</button>
             </div>
-            <button class="btn-primary" onclick="saveRiskConfig()">Save Risk Protection</button>
-        </div>
-    </div>
+          `;
+        });
+        document.getElementById('walletContainer').innerHTML = wHtml || '<p style="color:#8fa0b5;">No pending transactions.</p>';
+      });
 
-    <div class="section-box" id="sec-otc">
-        <div style="font-size:13px; font-weight:800; margin-bottom:12px;">📈 Smooth Trend Direction & Duration:</div>
-        <div id="otcCardsContainer">লোড হচ্ছে...</div>
-    </div>
+      // চ্যাট
+      fetch('/api/support/messages').then(r => r.json()).then(d => {
+        let h = '';
+        d.messages.forEach(m => {
+          h += `<div style="font-size:11px; margin-bottom:4px;"><b>${m.sender}:</b> ${m.text}</div>`;
+        });
+        document.getElementById('adminChatBox').innerHTML = h;
+      });
+    }
 
-    <div class="section-box" id="sec-users">
-        <div style="font-size:13px; font-weight:800; margin-bottom:10px;">👥 Registered Users Directory:</div>
-        <input type="text" id="userSearchInput" class="search-input" placeholder="🔍 Search User by ID, Name, or Email..." oninput="filterUsers()">
-        <div id="usersListContainer">লোড হচ্ছে...</div>
-    </div>
+    function applyTrend() {
+      fetch('/api/admin/set-trend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          asset: document.getElementById('trendAsset').value,
+          direction: document.getElementById('trendDir').value,
+          minutes: document.getElementById('trendMinutes').value
+        })
+      }).then(r => r.json()).then(d => alert(d.message));
+    }
 
-    <div id="toast" class="toast-msg"></div>
+    function actionKyc(userId, action) {
+      fetch('/api/admin/action-kyc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action })
+      }).then(() => loadAdmin());
+    }
 
-    <script>
-        let adminData = { users: {}, assets: {}, billboard: {}, riskConfig: {} };
+    function actionDep(id, action) {
+      fetch('/api/admin/action-deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action })
+      }).then(() => loadAdmin());
+    }
 
-        function showToast(msg) {
-            let t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.display = 'block';
-            setTimeout(() => { t.style.display = 'none'; }, 3000);
-        }
+    function actionWith(id, action) {
+      fetch('/api/admin/action-withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action })
+      }).then(() => loadAdmin());
+    }
 
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.section-box').forEach(s => s.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('sec-' + tab).classList.add('active');
-        }
+    function sendAdminReply() {
+      let txt = document.getElementById('adminReplyText').value;
+      if (!txt) return;
+      fetch('/api/support/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: 'Admin', text: txt })
+      }).then(() => {
+        document.getElementById('adminReplyText').value = '';
+        loadAdmin();
+      });
+    }
 
-        function loadAdminData() {
-            fetch('/api/admin/overview')
-            .then(r => r.json())
-            .then(d => {
-                adminData = d;
-                renderBillboard();
-                renderRiskConfig();
-                renderOtcControls();
-                filterUsers();
-            });
-        }
-        setInterval(loadAdminData, 3000);
+    function saveAdminSettings() {
+      fetch('/api/admin/config-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dollarRate: document.getElementById('admDollarRate').value,
+          telegramLink: document.getElementById('admTeleLink').value,
+          bkashNumber: document.getElementById('admBkash').value,
+          nagadNumber: document.getElementById('admNagad').value
+        })
+      }).then(r => r.json()).then(d => alert(d.message));
+    }
 
-        function renderBillboard() {
-            let box = document.getElementById('billboardContainer');
-            let html = '';
-
-            for (let k in adminData.assets) {
-                let a = adminData.assets[k];
-                let b = (adminData.billboard && adminData.billboard[k]) ? adminData.billboard[k] : { upVol: 0, downVol: 0, upCount: 0, downCount: 0 };
-                let totalVol = b.upVol + b.downVol;
-                let upPct = totalVol > 0 ? (b.upVol / totalVol) * 100 : 50;
-                let downPct = totalVol > 0 ? (b.downVol / totalVol) * 100 : 50;
-
-                html += `
-                    <div class="bb-card">
-                        <div class="bb-top">
-                            <span>${a.name}</span>
-                            <span style="color:#8fa0b5; font-size:11px;">Active Trades: ${b.upCount + b.downCount}</span>
-                        </div>
-                        <div class="bb-bars">
-                            <div class="bb-bar-up" style="width: ${upPct}%;"></div>
-                            <div class="bb-bar-down" style="width: ${downPct}%;"></div>
-                        </div>
-                        <div class="bb-stats">
-                            <span class="bb-up-txt">▲ UP: $${b.upVol.toFixed(2)} (${b.upCount})</span>
-                            <span class="bb-down-txt">▼ DOWN: $${b.downVol.toFixed(2)} (${b.downCount})</span>
-                        </div>
-                    </div>
-                `;
-            }
-            box.innerHTML = html;
-        }
-
-        function renderRiskConfig() {
-            if (adminData.riskConfig) {
-                document.getElementById('riskMaxTrade').value = adminData.riskConfig.maxTradeAmount || 100;
-                document.getElementById('riskMaxExposure').value = adminData.riskConfig.maxAssetExposure || 500;
-            }
-        }
-
-        function saveRiskConfig() {
-            let maxTrade = document.getElementById('riskMaxTrade').value;
-            let maxExposure = document.getElementById('riskMaxExposure').value;
-
-            fetch('/api/admin/update-risk-config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ maxTradeAmount: maxTrade, maxAssetExposure: maxExposure })
-            })
-            .then(r => r.json())
-            .then(d => {
-                showToast(d.message);
-                loadAdminData();
-            });
-        }
-
-        function renderOtcControls() {
-            let box = document.getElementById('otcCardsContainer');
-            let html = '';
-            for (let k in adminData.assets) {
-                let a = adminData.assets[k];
-                let isTrending = (adminData.serverTime < a.trendUntil && a.trend !== 'NORMAL');
-                let remMin = isTrending ? Math.ceil((a.trendUntil - adminData.serverTime) / 60000) : 0;
-
-                html += `
-                    <div class="otc-card">
-                        <div class="otc-title-row">
-                            <span>${a.name}</span>
-                            <span style="font-size:11px; color:${isTrending ? (a.trend === 'UP' ? '#00e676' : '#eb5757') : '#8fa0b5'};">
-                                ${isTrending ? `${a.trend} (${remMin}m left)` : 'Normal'}
-                            </span>
-                        </div>
-                        <div class="btn-trend-row">
-                            <button class="btn-t up" onclick="setTrend('${k}', 'UP')">▲ Smooth UP</button>
-                            <button class="btn-t down" onclick="setTrend('${k}', 'DOWN')">▼ Smooth DOWN</button>
-                            <button class="btn-t" onclick="setTrend('${k}', 'NORMAL')">⚪ Normal</button>
-                        </div>
-                        <div class="input-row">
-                            <input type="number" id="dur_${k}" placeholder="Minutes" value="5" min="1">
-                            <input type="number" id="p1_${k}" placeholder="1m %" value="${a.payout1m}">
-                            <input type="number" id="p5_${k}" placeholder="5m %" value="${a.payout5m}">
-                            <button class="btn-save" onclick="savePayout('${k}')">Save</button>
-                        </div>
-                    </div>
-                `;
-            }
-            box.innerHTML = html;
-        }
-
-        function setTrend(asset, direction) {
-            let dur = document.getElementById('dur_' + asset)?.value || 5;
-            fetch('/api/admin/set-otc-trend', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ asset, direction, durationMinutes: dur })
-            }).then(r => r.json()).then(res => {
-                showToast(res.message);
-                loadAdminData();
-            });
-        }
-
-        function savePayout(asset) {
-            let p1 = document.getElementById('p1_' + asset).value;
-            let p5 = document.getElementById('p5_' + asset).value;
-            fetch('/api/admin/set-otc-payout', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ asset, payout1m: p1, payout5m: p5 })
-            }).then(r => r.json()).then(res => {
-                showToast(res.message);
-                loadAdminData();
-            });
-        }
-
-        function filterUsers() {
-            let q = document.getElementById('userSearchInput')?.value.trim().toLowerCase() || '';
-            let box = document.getElementById('usersListContainer');
-            let html = '';
-
-            for (let id in adminData.users) {
-                let u = adminData.users[id];
-                if (u.id.includes(q) || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) {
-                    html += `
-                        <div class="user-card">
-                            <div class="u-top">
-                                <span>${u.name} (ID: ${u.id})</span>
-                                <span style="font-size:11px; color:#38bdf8;">${u.group}</span>
-                            </div>
-                            <div class="u-meta">
-                                <div>📧 ${u.email}</div>
-                                <div>📱 ${u.phone}</div>
-                            </div>
-                            <div class="u-bal-row">
-                                <span style="color:#00e676;">Live: $${u.liveBalance.toFixed(2)}</span>
-                                <span style="color:#f5a623;">Demo: $${u.demoBalance.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-            box.innerHTML = html || '<p style="color:#8fa0b5; text-align:center; padding:15px;">No users found</p>';
-        }
-
-        loadAdminData();
-    </script>
+    loadAdmin();
+  </script>
 </body>
 </html>
