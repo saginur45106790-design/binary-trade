@@ -839,3 +839,78 @@ input:checked + .slider:before { transform: translateX(14px); }
 }
 .arrow-circle-trend.up { background: #00b074; }
 .arrow-circle-trend.down { background: #eb5757; }
+
+/* -------------------------------------------------------------
+   ⏱️ ভিডিও ৯৬৮ অনুযায়ী টাইমফ্রেম বাটন ও পপআপ স্টাইল
+------------------------------------------------------------- */
+.timeframe-pill-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--bg-card-border);
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    pointer-events: auto;
+}
+.timeframe-pill-btn:hover {
+    border-color: #0070f3;
+}
+
+/* টাইমফ্রেম ডায়ালগ ড্রপডাউন */
+.timeframe-dialog-menu {
+    display: none;
+    position: absolute;
+    top: 36px;
+    left: 10px;
+    background: #182333;
+    border: 1px solid #28374d;
+    border-radius: 8px;
+    padding: 12px;
+    z-index: 50;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    width: 250px;
+}
+
+.tf-group-label {
+    font-size: 10px;
+    color: #8fa0b5;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 8px 0 4px;
+}
+.tf-group-label:first-child {
+    margin-top: 0;
+}
+
+.tf-btn-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+}
+
+.tf-choice-btn {
+    background: #121a26;
+    border: 1px solid #24344c;
+    color: #cbd5e1;
+    padding: 7px 2px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 800;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+}
+.tf-choice-btn:hover {
+    background: #1f2e44;
+    color: #fff;
+}
+.tf-choice-btn.active {
+    background: #ffffff;
+    color: #0c1017;
+    border-color: #ffffff;
+}

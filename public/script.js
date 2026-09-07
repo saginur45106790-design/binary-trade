@@ -1,15 +1,18 @@
 const canvas = document.getElementById('tradeCanvas');
 const ctx = canvas.getContext('2d');
 
+let raw5sBars = [];
 let candles = [];
 let activeTrades = [];
 let currentAccount = 'demo';
 let demoBalance = 11068.77;
 let liveBalance = 10.00;
 let panOffset = 0;
-let remainingCountdown = 60;
 
-// ডিফল্ট অ্যাসেট
+// টাইমফ্রেম সিস্টেম (ডিফল্ট ১ মিনিট = ৬০ সেকেন্ড)
+let activeTfSeconds = 60;
+let activeTfLabel = '1m';
+
 let activeAssetKey = 'EUR_USD';
 let activeDecimals = 5;
 let currentPayout = 77;
@@ -18,9 +21,9 @@ let isLoadingAsset = false;
 let renderLivePrice = 1.08540;
 let targetLivePrice = 1.08540;
 
-// কটেক্সের স্ট্যান্ডার্ড মিডিয়াম ক্যান্ডেল সাইজ
-let candleWidth = 15;
-let candleSpacing = 6;
+// কটেক্স ও পকেট অপশন স্ট্যান্ডার্ড ক্যান্ডেল সাইজ
+let candleWidth = 14;
+let candleSpacing = 5;
 let initialPinchDistance = null;
 
 let currentMode = 'timer';
@@ -35,21 +38,95 @@ let currentTimezoneOffset = 6;
 let allAssetsData = {};
 let favoriteAssets = JSON.parse(localStorage.getItem('fav_otc_assets') || '["EUR_USD", "BTC", "GOLD"]');
 
-// ফ্ল্যাগ ও আইকন ডিকশনারি
 const FLAG_ICONS = {
     'EUR_USD': { flag1: '🇪🇺', flag2: '🇺🇸' },
+    'GBP_JPY': { flag1: '🇬🇧', flag2: '🇯🇵' },
     'GBP_USD': { flag1: '🇬🇧', flag2: '🇺🇸' },
     'EUR_AUD': { flag1: '🇪🇺', flag2: '🇦🇺' },
-    'GBP_JPY': { flag1: '🇬🇧', flag2: '🇯🇵' },
-    'GOLD':    { flag1: '🪙', flag2: '🇺🇸' },
-    'SILVER':  { flag1: '🥈', flag2: '🇺🇸' },
-    'BTC':     { flag1: '₿', flag2: '🇺🇸' },
-    'BNB':     { flag1: '🟡', flag2: '🇺🇸' },
+    'ETH':     { flag1: '🔷', flag2: '🇺🇸' },
     'SOL':     { flag1: '🟣', flag2: '🇺🇸' },
-    'ETH':     { flag1: '🔷', flag2: '🇺🇸' }
+    'BNB':     { flag1: '🟡', flag2: '🇺🇸' },
+    'BTC':     { flag1: '₿', flag2: '🇺🇸' },
+    'SILVER':  { flag1: '🥈', flag2: '🇺🇸' },
+    'GOLD':    { flag1: '🪙', flag2: '🇺🇸' }
 };
 
-// ১. অবিচল সুরক্ষিত ঘড়ি
+// তাৎক্ষণিক ব্যাকআপ ক্যান্ডেল তৈরি (চার্ট যেন কখনো ব্ল্যাক না হয়)
+function generateEmergencyFallbackCandles(basePrice = 1.08540, decimals = 5) {
+    let list = [];
+    let cur = basePrice;
+    let nowSec = Math.floor(Date.now() / 5000) * 5;
+    for (let i = 400; i > 0; i--) {
+        let t = nowSec - (i * 5);
+        let delta = (Math.random() - 0.495) * 0.00015;
+        let o = cur;
+        let c = parseFloat((o + delta).toFixed(decimals));
+        let h = parseFloat((Math.max(o, c) + Math.random() * 0.00008).toFixed(decimals));
+        let l = parseFloat((Math.min(o, c) - Math.random() * 0.00008).toFixed(decimals));
+        list.push({ time: t, open: o, high: h, low: l, close: c });
+        cur = c;
+    }
+    return list;
+}
+raw5sBars = generateEmergencyFallbackCandles();
+candles = resampleBars(raw5sBars, activeTfSeconds);
+
+// -------------------------------------------------------------
+// ⏱️ ভিডিও ৯৬৮ অনুযায়ী টাইমফ্রেম রি-স্যাম্পলিং ফাংশন
+// -------------------------------------------------------------
+function resampleBars(baseBars, intervalSec) {
+    if (!baseBars || baseBars.length === 0) return [];
+    if (intervalSec <= 5) return baseBars.map(b => ({ ...b }));
+
+    let resampled = [];
+    let currBucket = null;
+
+    for (let i = 0; i < baseBars.length; i++) {
+        let b = baseBars[i];
+        let bucketTime = Math.floor(b.time / intervalSec) * intervalSec;
+
+        if (currBucket === null || currBucket.time !== bucketTime) {
+            if (currBucket !== null) resampled.push(currBucket);
+            currBucket = {
+                time: bucketTime,
+                open: b.open,
+                high: b.high,
+                low: b.low,
+                close: b.close
+            };
+        } else {
+            if (b.high > currBucket.high) currBucket.high = b.high;
+            if (b.low < currBucket.low) currBucket.low = b.low;
+            currBucket.close = b.close;
+        }
+    }
+    if (currBucket !== null) resampled.push(currBucket);
+    return resampled;
+}
+
+function setCandleTimeframe(seconds, label) {
+    activeTfSeconds = seconds;
+    activeTfLabel = label;
+
+    let badge = document.getElementById('activeTfBadgeLabel');
+    if (badge) badge.innerText = label;
+
+    document.querySelectorAll('.tf-choice-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.innerText.trim().toLowerCase() === label.toLowerCase());
+    });
+
+    // ক্যান্ডেল রি-স্যাম্পল ও ড্রপডাউন বন্ধ
+    candles = resampleBars(raw5sBars, activeTfSeconds);
+    let menu = document.getElementById('timeframeMenu');
+    if (menu) menu.style.display = 'none';
+}
+
+function toggleTimeframeDialog() {
+    let menu = document.getElementById('timeframeMenu');
+    if (menu) menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+}
+
+// ঘড়ি ও কাউন্টডাউন
 function syncClock() {
     try {
         let now = new Date();
@@ -61,12 +138,7 @@ function syncClock() {
         let ss = String(targetTime.getSeconds()).padStart(2, '0');
         
         let clock = document.getElementById('liveUtcClock');
-        if (clock) {
-            clock.innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC+6`;
-        }
-
-        let sec = Math.floor(now.getTime() / 1000);
-        remainingCountdown = 60 - (sec % 60);
+        if (clock) clock.innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC+6`;
 
         updateActiveTradesDrawerLive();
     } catch (e) {}
@@ -87,28 +159,19 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-function showChartLoader() {
-    let el = document.getElementById('chartLoader');
-    if (el) el.classList.add('active');
-    setTimeout(hideChartLoader, 700);
-}
-function hideChartLoader() {
-    let el = document.getElementById('chartLoader');
-    if (el) el.classList.remove('active');
-}
-
-// ২. অটো-রিকভারি সিঙ্ক
+// হিস্ট্রি সিঙ্ক
 function fullSyncFromServer() {
-    fetch(`/api/history/${activeAssetKey}`)
+    fetch(`/api/history?asset=${activeAssetKey}`)
     .then(r => r.json())
     .then(d => {
-        if (d.success) {
-            candles = d.history.map(c => ({ ...c }));
+        if (d.success && d.history && d.history.length > 0) {
+            raw5sBars = d.history.map(c => ({ ...c }));
             activeDecimals = d.meta.decimals;
             currentPayout = d.meta.payout1m;
-            let lastP = candles[candles.length - 1].close;
+            let lastP = raw5sBars[raw5sBars.length - 1].close;
             targetLivePrice = lastP;
             renderLivePrice = lastP;
+            candles = resampleBars(raw5sBars, activeTfSeconds);
         }
     }).catch(() => {});
 
@@ -128,7 +191,7 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('focus', fullSyncFromServer);
 
-// ৩. টাচ প্যান ও জুম
+// টাচ স্ক্রোল
 let startX = 0;
 let isPanning = false;
 
@@ -156,8 +219,8 @@ if (canvas) {
             if (factor > 1.04 && candleWidth < 26) {
                 candleWidth = Math.min(26, candleWidth + 0.3);
                 candleSpacing = Math.min(10, candleSpacing + 0.15);
-            } else if (factor < 0.96 && candleWidth > 9) {
-                candleWidth = Math.max(9, candleWidth - 0.3);
+            } else if (factor < 0.96 && candleWidth > 8) {
+                candleWidth = Math.max(8, candleWidth - 0.3);
                 candleSpacing = Math.max(3, candleSpacing - 0.15);
             }
             initialPinchDistance = currentDist;
@@ -181,9 +244,7 @@ function updateTradeBadges() {
     if (b1) b1.innerText = count;
 }
 
-// -------------------------------------------------------------
-// 💼 সক্রিয় ট্রেড লাইভ ডিটেইলস ড্রয়ার
-// -------------------------------------------------------------
+// ব্রিফকেস লাইভ ট্রেড ড্রয়ার
 function openActiveTradesDrawer() {
     let m = document.getElementById('activeTradesModal');
     if (m) {
@@ -191,7 +252,6 @@ function openActiveTradesDrawer() {
         updateActiveTradesDrawerLive();
     }
 }
-
 function closeActiveTradesDrawer() {
     let m = document.getElementById('activeTradesModal');
     if (m) m.style.display = 'none';
@@ -203,7 +263,6 @@ function updateActiveTradesDrawerLive() {
     if (!container) return;
 
     if (countHeader) countHeader.innerText = activeTrades.length;
-
     if (activeTrades.length === 0) {
         container.innerHTML = `<p style="text-align:center; padding:35px; color:#8fa0b5; font-size:13px;">No active trades running right now.</p>`;
         return;
@@ -253,9 +312,7 @@ function updateActiveTradesDrawerLive() {
     container.innerHTML = html;
 }
 
-// -------------------------------------------------------------
-// ⭐ স্ক্রিনশট ৯৪৮-৯৫৭ অনুযায়ী ১০টি নির্দিষ্ট OTC অ্যাসেট হ্যান্ডলার
-// -------------------------------------------------------------
+// অ্যাসেট মেনু ও ফেভারিট স্টার
 function openAssetModal() {
     let m = document.getElementById('assetModal');
     if (m) {
@@ -263,7 +320,6 @@ function openAssetModal() {
         loadOtcAssetsList();
     }
 }
-
 function closeAssetModal() {
     let m = document.getElementById('assetModal');
     if (m) m.style.display = 'none';
@@ -287,7 +343,6 @@ function renderOtcAssetRows(searchFilter) {
     let html = '';
     let keys = Object.keys(allAssetsData);
 
-    // ফেভারিট অ্যাসেট আগে দেখাবে
     keys.sort((a, b) => {
         let isFavA = favoriteAssets.includes(a);
         let isFavB = favoriteAssets.includes(b);
@@ -296,9 +351,7 @@ function renderOtcAssetRows(searchFilter) {
 
     keys.forEach(k => {
         let item = allAssetsData[k];
-        if (searchFilter && !item.name.toLowerCase().includes(searchFilter.toLowerCase())) {
-            return;
-        }
+        if (searchFilter && !item.name.toLowerCase().includes(searchFilter.toLowerCase())) return;
 
         let isFav = favoriteAssets.includes(k);
         let isPos = (item.change24h >= 0);
@@ -332,9 +385,7 @@ function renderOtcAssetRows(searchFilter) {
     container.innerHTML = html;
 }
 
-function filterOtcList(val) {
-    renderOtcAssetRows(val);
-}
+function filterOtcList(val) { renderOtcAssetRows(val); }
 
 function toggleFavoriteAsset(e, key) {
     e.stopPropagation();
@@ -344,48 +395,23 @@ function toggleFavoriteAsset(e, key) {
         favoriteAssets.push(key);
     }
     localStorage.setItem('fav_otc_assets', JSON.stringify(favoriteAssets));
-    let searchVal = document.getElementById('assetSearchInput')?.value || '';
-    renderOtcAssetRows(searchVal);
+    renderOtcAssetRows(document.getElementById('assetSearchInput')?.value || '');
 }
 
 function selectAsset(key) {
-    if (activeAssetKey === key && candles.length > 0) {
-        closeAssetModal();
-        return;
-    }
-    isLoadingAsset = true;
-    candles = [];
-    showChartLoader();
-    closeAssetModal();
-
     activeAssetKey = key;
     let item = allAssetsData[key] || {};
-    activeDecimals = item.decimals || (ASSET_DECIMALS[key] || 2);
-    currentPayout = item.payout1m || 88;
+    activeDecimals = item.decimals || 2;
+    currentPayout = item.payout1m || 80;
 
     let cur = document.getElementById('curName');
     let pOut = document.getElementById('curPayout');
     if (cur) cur.innerText = item.name || key;
     if (pOut) pOut.innerText = `${currentPayout}% ▼`;
 
+    closeAssetModal();
     updatePayoutCalc();
-
-    fetch(`/api/history/${key}`)
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            candles = data.history.map(c => ({ ...c }));
-            activeDecimals = data.meta.decimals;
-            currentPayout = data.meta.payout1m;
-            let lastP = candles[candles.length - 1].close;
-            targetLivePrice = lastP;
-            renderLivePrice = lastP;
-        }
-    })
-    .finally(() => {
-        isLoadingAsset = false;
-        hideChartLoader();
-    });
+    fullSyncFromServer();
 }
 
 function stepAmt(delta) {
@@ -455,18 +481,6 @@ function switchAccount(type) {
     }).catch(() => {});
 }
 
-function resetDemoBalance(event) {
-    if (event) event.stopPropagation();
-    fetch('/api/reset-demo', { method: 'POST' })
-    .then(r => r.json())
-    .then(d => {
-        if (d.success) {
-            demoBalance = Number(d.balance);
-            updateBalanceUI(demoBalance);
-        }
-    });
-}
-
 function updateBalanceUI(val) {
     let num = Number(val) || 0;
     let str = "$" + num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -483,12 +497,12 @@ function updateBalanceUI(val) {
     }
 }
 
-// ট্রেড প্লেসিং
+// ট্রেড প্লেস
 function placeOrder(direction) {
     let amount = currentInvestAmount;
     let totalSec = (currentMode === 'timer') ? selectedTimerSeconds : 60;
     let last = candles[candles.length - 1];
-    let curTime = last ? last.time : Math.floor(Date.now() / 60000) * 60;
+    let curTime = last ? last.time : Math.floor(Date.now() / 1000);
     let curPrice = last ? last.close : renderLivePrice;
 
     fetch('/api/trade', {
@@ -540,7 +554,7 @@ function showResultBubble(res) {
 }
 
 // -------------------------------------------------------------
-// ক্যানভাস রেন্ডার লুপ (কটেক্সের স্ট্যান্ডার্ড মিডিয়াম ক্যান্ডেল)
+// ক্যানভাস রেন্ডার লুপ (টাইমফ্রেম-সচেতন ক্যান্ডেল ও কাউন্টডাউন)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -550,14 +564,14 @@ function render() {
     const height = parseFloat(canvas.style.height) || canvas.height;
     ctx.clearRect(0, 0, width, height);
 
-    if (candles.length === 0 || isLoadingAsset) return;
-
-    let isLightTheme = document.body.classList.contains('theme-light');
-
+    // লাইভ ইন্টারপোলেশন
     renderLivePrice += (targetLivePrice - renderLivePrice) * 0.18;
-    candles[candles.length - 1].close = parseFloat(renderLivePrice.toFixed(activeDecimals));
-    candles[candles.length - 1].high = Math.max(candles[candles.length - 1].high, candles[candles.length - 1].close);
-    candles[candles.length - 1].low = Math.min(candles[candles.length - 1].low, candles[candles.length - 1].close);
+    if (candles.length > 0) {
+        let last = candles[candles.length - 1];
+        last.close = parseFloat(renderLivePrice.toFixed(activeDecimals));
+        last.high = Math.max(last.high, last.close);
+        last.low = Math.min(last.low, last.close);
+    }
 
     let totalUnit = candleWidth + candleSpacing;
     let baseRightX = width - 85 + panOffset;
@@ -586,7 +600,7 @@ function render() {
     let rawMaxP = Math.max(...prices);
     let rawRange = rawMaxP - rawMinP;
 
-    let activeVol = (allAssetsData[activeAssetKey] ? (allAssetsData[activeAssetKey].vol * 0.8) : 0.001);
+    let activeVol = (allAssetsData[activeAssetKey] ? (allAssetsData[activeAssetKey].vol * 0.8) : 0.0005);
     let pad = Math.max(rawRange * 0.18, activeVol);
 
     let minP = rawMinP - pad;
@@ -598,10 +612,10 @@ function render() {
         return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
-    // গ্রিড
-    ctx.strokeStyle = isLightTheme ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.05)';
+    // ব্যাকগ্রাউন্ড গ্রিড ও প্রাইস স্কেল
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
-    ctx.fillStyle = isLightTheme ? '#57606a' : '#7a8ba1';
+    ctx.fillStyle = '#7a8ba1';
     ctx.font = '11px -apple-system, sans-serif';
 
     for (let i = 1; i <= 6; i++) {
@@ -615,7 +629,7 @@ function render() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // কটেক্সের মতো মিডিয়াম ও স্পষ্ট ক্যান্ডেলস্টিক
+    // ক্যান্ডেলস্টিক রেন্ডার (ভিডিও ৯৬৮ ও কোটেক্স সাইজ)
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -638,65 +652,86 @@ function render() {
         ctx.fillRect(Math.floor(c.x), Math.floor(topY), Math.ceil(candleWidth), Math.ceil(h));
     });
 
-    let last = candles[candles.length - 1];
-    let liveY = getY(last.close);
+    if (candles.length > 0) {
+        let last = candles[candles.length - 1];
+        let liveY = getY(last.close);
 
-    ctx.setLineDash([3, 3]);
-    ctx.strokeStyle = isLightTheme ? 'rgba(0, 0, 0, 0.4)' : 'rgba(255, 255, 255, 0.85)';
-    ctx.beginPath();
-    ctx.moveTo(0, liveY);
-    ctx.lineTo(width - 55, liveY);
-    ctx.stroke();
-    ctx.setLineDash([]);
+        // লাইভ প্রাইস ড্যাশ লাইন
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.beginPath();
+        ctx.moveTo(0, liveY);
+        ctx.lineTo(width - 55, liveY);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-    ctx.fillStyle = '#0070f3';
-    ctx.beginPath();
-    ctx.roundRect(width - 56, liveY - 10, 54, 20, 4);
-    ctx.fill();
+        // ডানের ব্লু প্রাইস ব্যাজ
+        ctx.fillStyle = '#0070f3';
+        ctx.beginPath();
+        ctx.roundRect(width - 56, liveY - 10, 54, 20, 4);
+        ctx.fill();
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 10px monospace';
-    ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
-    let expX = baseRightX + (candleWidth + candleSpacing);
-    ctx.setLineDash([4, 4]);
-    ctx.strokeStyle = isLightTheme ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.45)';
-    ctx.beginPath();
-    ctx.moveTo(expX, 0);
-    ctx.lineTo(expX, height - 20);
-    ctx.stroke();
-    ctx.setLineDash([]);
+        // ভার্টিক্যাল ড্যাশড এক্সপায়ারেশন লাইন
+        let expX = baseRightX + (candleWidth + candleSpacing);
+        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+        ctx.beginPath();
+        ctx.moveTo(expX, 0);
+        ctx.lineTo(expX, height - 20);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-    let cdS = remainingCountdown % 60;
-    let candleTimerStr = (remainingCountdown === 60) ? '01:00' : `00:${String(cdS).padStart(2, '0')}`;
+        // টাইমফ্রেম অনুযায়ী ডায়নামিক ক্যান্ডেল কাউন্টডাউন
+        let nowSec = Math.floor(Date.now() / 1000);
+        let remSec = activeTfSeconds - (nowSec % activeTfSeconds);
+        let candleTimerStr = '';
 
-    let pillW = 54;
-    let pillH = 20;
-    let pillX = expX + 6;
-    let pillY = liveY - (pillH / 2);
+        if (activeTfSeconds < 60) {
+            candleTimerStr = `00:${String(remSec).padStart(2, '0')}`;
+        } else if (activeTfSeconds < 3600) {
+            let m = Math.floor(remSec / 60);
+            let s = remSec % 60;
+            candleTimerStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        } else {
+            let h = Math.floor(remSec / 3600);
+            let m = Math.floor((remSec % 3600) / 60);
+            let s = remSec % 60;
+            candleTimerStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
 
-    ctx.fillStyle = isLightTheme ? '#ffffff' : '#1c2638';
-    ctx.strokeStyle = isLightTheme ? '#d0d7de' : '#2d3e56';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.roundRect(pillX, pillY, pillW, pillH, 4);
-    ctx.fill();
-    ctx.stroke();
+        let pillW = 56;
+        let pillH = 20;
+        let pillX = expX + 6;
+        let pillY = liveY - (pillH / 2);
 
-    ctx.fillStyle = isLightTheme ? '#0f172a' : '#ffffff';
-    ctx.font = 'bold 10px monospace';
-    ctx.fillText(candleTimerStr, pillX + 10, pillY + 14);
+        ctx.fillStyle = '#1c2638';
+        ctx.strokeStyle = '#2d3e56';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.fillText(candleTimerStr, pillX + 8, pillY + 14);
+    }
 
     // ট্রেড মার্কার
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let candle = candles.find(c => c.time === tr.candleTime);
-        let cIdx = candle ? candles.indexOf(candle) : candles.findIndex(c => c.time <= tr.entryTime && tr.entryTime < c.time + 60);
+        let cIdx = candle ? candles.indexOf(candle) : candles.findIndex(c => c.time <= tr.entryTime && tr.entryTime < c.time + activeTfSeconds);
         if (cIdx === -1) cIdx = candles.length - 1;
 
         let entryX = getX(cIdx);
         let entryY = getY(tr.entryPrice);
         let isUp = (tr.direction === 'UP');
         let tradeColor = isUp ? '#00e676' : '#eb5757';
+        let expX = baseRightX + (candleWidth + candleSpacing);
 
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = tradeColor;
@@ -731,7 +766,7 @@ function render() {
     });
 }
 
-// WebSocket কানেকশন
+// WebSocket ইঞ্জিন
 function connectWS() {
     try {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -740,22 +775,21 @@ function connectWS() {
         ws.onmessage = (event) => {
             let msg = JSON.parse(event.data);
             if (msg.type === 'TICK') {
-                if (!isLoadingAsset && candles.length > 0 && msg.assets[activeAssetKey]) {
+                if (msg.assets[activeAssetKey]) {
                     let item = msg.assets[activeAssetKey];
                     targetLivePrice = parseFloat(item.price);
 
-                    let last = candles[candles.length - 1];
-                    if (item.candle.time - last.time > 60) {
-                        fullSyncFromServer();
-                        return;
-                    }
-
-                    if (last.time === item.candle.time) {
-                        last.high = Math.max(last.high, item.candle.high);
-                        last.low = Math.min(last.low, item.candle.low);
-                    } else {
-                        candles.push({ ...item.candle });
-                        if (candles.length > 1440) candles.shift();
+                    if (raw5sBars.length > 0 && item.candle5s) {
+                        let last = raw5sBars[raw5sBars.length - 1];
+                        if (last.time === item.candle5s.time) {
+                            last.high = Math.max(last.high, item.candle5s.high);
+                            last.low = Math.min(last.low, item.candle5s.low);
+                            last.close = item.candle5s.close;
+                        } else {
+                            raw5sBars.push({ ...item.candle5s });
+                            if (raw5sBars.length > 3500) raw5sBars.shift();
+                        }
+                        candles = resampleBars(raw5sBars, activeTfSeconds);
                     }
                 }
             } else if (msg.type === 'TRADE_SETTLED') {
@@ -771,130 +805,12 @@ function connectWS() {
 }
 connectWS();
 
-// মোডাল হ্যান্ডলারস
-function openMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'flex'; }
-function closeMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'none'; }
-function openHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'flex'; }
-function closeHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'none'; }
-function openTournamentsModal() {
-    let m = document.getElementById('tournamentsModal');
-    if (m) m.style.display = 'flex';
-    fetch('/api/tournaments').then(r => r.json()).then(d => {
-        let box = document.getElementById('tournamentsListContainer');
-        if (!box) return;
-        let html = '';
-        d.tournaments.forEach(t => {
-            html += `
-                <div class="tournament-card-item">
-                    <span class="tour-pill-badge">${t.status}</span>
-                    <div class="tour-content-row">
-                        <span class="tour-name">${t.title}</span>
-                        <div class="tour-prize-block"><div style="font-size:10px; color:#7e92aa; font-weight:700;">PRIZE POOL</div><div class="tour-prize-val">${t.prizePool}</div></div>
-                    </div>
-                    <div class="tour-specs-row">
-                        <div class="tour-spec-item"><b>${t.entryFee}</b><span>Entry fee</span></div>
-                        <div class="tour-spec-item"><b>${t.duration}</b><span>Duration</span></div>
-                    </div>
-                    <button class="btn-tour-details" onclick="alert('Joining ${t.title}...')">Details</button>
-                </div>
-            `;
-        });
-        box.innerHTML = html;
-    });
-}
-function closeTournamentsModal() { document.getElementById('tournamentsModal').style.display = 'none'; }
-
-function openTradesHistoryModal() {
-    closeMainMenuModal();
-    document.getElementById('tradesModal').style.display = 'flex';
-    fetch('/api/user/trades').then(r => r.json()).then(d => {
-        let box = document.getElementById('lifetimeTradesContainer');
-        if (!box) return;
-        if (!d.trades || d.trades.length === 0) {
-            box.innerHTML = `<p style="text-align:center; padding:30px; color:#8fa0b5;">No trades recorded yet.</p>`;
-            return;
-        }
-        let html = '';
-        d.trades.forEach(t => {
-            html += `
-                <div class="hist-card">
-                    <div class="hist-row-top">
-                        <span>${t.asset} ${t.direction === 'UP' ? 'UP' : 'DOWN'}</span>
-                        <span class="${t.isWin ? 'hist-badge-win' : 'hist-badge-loss'}">${t.isWin ? `+$${t.profit.toFixed(2)}` : `-$${t.amount.toFixed(2)}`}</span>
-                    </div>
-                    <div class="hist-row-sub"><span>Invest: $${t.amount.toFixed(2)}</span><span>${t.time}</span></div>
-                </div>
-            `;
-        });
-        box.innerHTML = html;
-    });
-}
-
-function openPaymentsModal() {
-    closeMainMenuModal();
-    document.getElementById('paymentsModal').style.display = 'flex';
-    fetch('/api/payments').then(r => r.json()).then(d => {
-        let box = document.getElementById('lifetimePaymentsContainer');
-        if (!box) return;
-        let html = '';
-        if (d.deposits && d.deposits.length > 0) {
-            html += `<div style="font-size:13px; font-weight:800; margin:10px 0 6px; color:#00e676;">Deposits:</div>`;
-            d.deposits.forEach(p => {
-                html += `<div class="hist-card"><div class="hist-row-top"><span>#${p.id} (${p.method})</span><span class="hist-badge-win">+$${parseFloat(p.amount).toFixed(2)}</span></div><div class="hist-row-sub"><span>${p.status}</span><span>${p.date}</span></div></div>`;
-            });
-        }
-        box.innerHTML = html || `<p style="text-align:center; padding:30px; color:#8fa0b5;">No records found.</p>`;
-    });
-}
-
-function openDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'flex'; }
-function closeDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'none'; }
-function resetPan() { panOffset = 0; }
-function closeResult() { let r = document.getElementById('resultBubble'); if (r) r.style.display = 'none'; }
-function closeToast() { let t = document.getElementById('tradeOpenToast'); if (t) t.style.display = 'none'; }
-function closeAllDrawers() {}
-
-function toggleTimePopup() { let p = document.getElementById('timeSelectPopup'); if (p) p.style.display = (p.style.display !== 'block') ? 'block' : 'none'; }
-function selectTimer(sec, display) {
-    selectedTimerSeconds = sec;
-    selectedTimerDisplay = display;
-    let val = document.getElementById('dockTimeValue');
-    if (val) val.innerText = display;
-    document.querySelectorAll('#gridTimerMode button').forEach(b => b.classList.remove('selected'));
-    if (event) event.target.classList.add('selected');
-    let p = document.getElementById('timeSelectPopup');
-    if (p) p.style.display = 'none';
-}
-
-function submitDepositForm() {
-    let amtElem = document.getElementById('depAmountInput');
-    let trxElem = document.getElementById('depTrxInput');
-    let amount = amtElem ? amtElem.value : "";
-    let trx = trxElem ? trxElem.value : "";
-
-    if (!amount || !trx) return alert("Please enter amount and TrxID!");
-
-    fetch('/api/deposit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'demo_user', method: selectedDepMethod, amount, senderNumber: '', trxId: trx })
-    })
-    .then(r => r.json())
-    .then(d => {
-        alert(d.message);
-        if (d.success) {
-            if (amtElem) amtElem.value = '';
-            if (trxElem) trxElem.value = '';
-            closeDepositModal();
-        }
-    });
-}
-
 // বুটস্ট্র্যাপ
 fitCanvas();
 loadOtcAssetsList();
-selectAsset('EUR_USD');
-switchAccount('demo');
 fullSyncFromServer();
 requestAnimationFrame(render);
-setTimeout(hideChartLoader, 600);
+setTimeout(() => {
+    let loader = document.getElementById('chartLoader');
+    if (loader) loader.classList.remove('active');
+}, 500);

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option Terminal</title>
-    <link rel="stylesheet" href="style.css?v=33.0">
+    <link rel="stylesheet" href="style.css?v=35.0">
 </head>
 <body>
     <div class="app-root">
@@ -30,26 +30,49 @@
         <div class="chart-box-container" id="chartContainer">
             <div id="chartWatermark" class="watermark-text">DEMO</div>
 
-            <div id="chartLoader" class="chart-loading-overlay">
-                <div class="pocket-spinner-badge">
-                    <div class="spinner-ring"></div>
-                    <div class="pocket-logo-icon">
-                        <svg viewBox="0 0 32 32" width="28" height="28">
-                            <path fill="#eb5757" d="M16 2L4 9v14l12 7 12-7V9L16 2zm0 4.2l8 4.6v9.4l-8 4.6-8-4.6v-9.4l8-4.6z"/>
-                            <path fill="#2a66e4" d="M16 11l5 3v6l-5 3-5-3v-6l5-3z"/>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-
             <div class="chart-meta-tags">
                 <div class="sub-menu-btn" onclick="openMainMenuModal()">•••</div>
+                
+                <div class="timeframe-pill-btn" onclick="toggleTimeframeDialog()">
+                    <span id="activeTfBadgeLabel">1m</span>
+                    <span style="font-size:8px; color:#8fa0b5;">▼</span>
+                </div>
+
                 <div class="briefcase-btn" onclick="openActiveTradesDrawer()">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
                     <span class="sub-badge" id="openTradesBadge">0</span>
                 </div>
+
                 <div class="utc-clock" id="liveUtcClock">
                     <span class="live-dot"></span> 00:00:00 UTC+6
+                </div>
+            </div>
+
+            <div id="timeframeMenu" class="timeframe-dialog-menu">
+                <div class="tf-group-label">Seconds (সেকেন্ড)</div>
+                <div class="tf-btn-grid">
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(5, '5s')">5s</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(10, '10s')">10s</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(15, '15s')">15s</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(30, '30s')">30s</button>
+                </div>
+
+                <div class="tf-group-label">Minutes (মিনিট)</div>
+                <div class="tf-btn-grid">
+                    <button class="tf-choice-btn active" onclick="setCandleTimeframe(60, '1m')">1m</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(120, '2m')">2m</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(180, '3m')">3m</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(300, '5m')">5m</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(600, '10m')">10m</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(900, '15m')">15m</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(1800, '30m')">30m</button>
+                </div>
+
+                <div class="tf-group-label">Hours / Days (ঘণ্টা ও দিন)</div>
+                <div class="tf-btn-grid">
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(3600, '1h')">1h</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(14400, '4h')">4h</button>
+                    <button class="tf-choice-btn" onclick="setCandleTimeframe(86400, '1d')">1d</button>
                 </div>
             </div>
 
@@ -150,8 +173,7 @@
                 <span class="x-close" onclick="closeAssetModal()">✕</span>
             </div>
             <input type="text" id="assetSearchInput" class="asset-search-box" placeholder="🔍 Search OTC Pair or Asset..." oninput="filterOtcList(this.value)">
-            <div id="otcAssetListContainer">
-                </div>
+            <div id="otcAssetListContainer"></div>
         </div>
     </div>
 
@@ -211,11 +233,6 @@
                     <div class="help-item-name">FAQ</div>
                     <div class="help-item-sub">Open the database</div>
                 </div>
-                <div class="help-divider-line"></div>
-                <div class="help-menu-block" onclick="alert('Loading Tutorials...')">
-                    <div class="help-item-name">Tutorials</div>
-                    <div class="help-item-sub">Use the hints</div>
-                </div>
             </div>
         </div>
     </div>
@@ -226,7 +243,6 @@
                 <h3>Tournaments</h3>
                 <span class="x-close" onclick="closeTournamentsModal()">✕</span>
             </div>
-            <div class="tournaments-head-title"><span>Available for participation (4)</span></div>
             <div id="tournamentsListContainer"></div>
         </div>
     </div>
@@ -254,50 +270,16 @@
 
     <div id="accountModal" class="acc-modal-overlay" onclick="closeAccountModal(event)">
         <div class="acc-dropdown-card">
-            <div class="acc-head">
-                <div class="std-badge">STANDARD: <b>+0% profit</b></div>
-            </div>
-            <div class="user-email-id">
-                <div class="u-mail">teachsajib@gmail.com</div>
-                <div class="u-id">ID: 85857047</div>
-            </div>
+            <div class="acc-head"><div class="std-badge">STANDARD: <b>+0% profit</b></div></div>
+            <div class="user-email-id"><div class="u-mail">teachsajib@gmail.com</div><div class="u-id">ID: 85857047</div></div>
             <div class="acc-option" id="optLiveCard" onclick="switchAccount('live')">
                 <div class="acc-radio-circle" id="radioLiveCircle"></div>
-                <div class="acc-opt-info">
-                    <div class="opt-title">Live Account</div>
-                    <div class="opt-bal" id="modalLiveBal">$10.00</div>
-                </div>
+                <div class="acc-opt-info"><div class="opt-title">Live Account</div><div class="opt-bal" id="modalLiveBal">$10.00</div></div>
             </div>
             <div class="acc-option active" id="optDemoCard" onclick="switchAccount('demo')">
                 <div class="acc-radio-circle active" id="radioDemoCircle"></div>
-                <div class="acc-opt-info">
-                    <div class="opt-title">Demo Account</div>
-                    <div class="opt-bal-row">
-                        <span class="opt-bal" id="modalDemoBal">$11,068.77</span>
-                        <span class="reset-demo-btn" onclick="resetDemoBalance(event)">🔄</span>
-                    </div>
-                </div>
+                <div class="acc-opt-info"><div class="opt-title">Demo Account</div><div class="opt-bal" id="modalDemoBal">$11,068.77</div></div>
             </div>
-        </div>
-    </div>
-
-    <div id="tradesModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Trades History</h3>
-                <span class="x-close" onclick="document.getElementById('tradesModal').style.display='none'">✕</span>
-            </div>
-            <div id="lifetimeTradesContainer"></div>
-        </div>
-    </div>
-
-    <div id="paymentsModal" class="full-screen-modal">
-        <div class="modal-inner">
-            <div class="modal-header">
-                <h3>Payments</h3>
-                <span class="x-close" onclick="document.getElementById('paymentsModal').style.display='none'">✕</span>
-            </div>
-            <div id="lifetimePaymentsContainer"></div>
         </div>
     </div>
 
@@ -318,6 +300,6 @@
         <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
     </div>
 
-    <script src="script.js?v=33.0"></script>
+    <script src="script.js?v=35.0"></script>
 </body>
 </html>
