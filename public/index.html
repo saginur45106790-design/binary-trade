@@ -3,381 +3,612 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Pocket Trade Pro | Multi-Featured Terminal</title>
-  <link rel="stylesheet" href="style.css?v=50.0">
+  <title>Pocket Option Terminal</title>
+  <link rel="stylesheet" href="style.css?v=55.0">
 </head>
 <body>
   <div class="app-root">
 
-    <div id="authViewPage" class="app-view-page" style="display:none;">
-      <div class="page-top-bar">
-        <b style="font-size:16px;">Pocket Option Pro</b>
-        <span onclick="closeViewPage('authViewPage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content" style="max-width:400px; margin:auto;">
-        <div class="card-box" id="authBoxLogin">
-          <h3 style="margin-bottom:12px;">Login to Account</h3>
-          <input type="text" id="authLogEmail" class="input-control" placeholder="Email or User ID">
-          <input type="password" id="authLogPass" class="input-control" placeholder="Password">
-          <button class="btn-block-action" onclick="submitLogin()">Login</button>
-          <p style="text-align:center; font-size:12px; margin-top:12px; color:var(--text-muted);">
-            Don't have an account? <a href="#" onclick="switchAuthTab('reg')" style="color:var(--accent-blue);">Register</a>
+    <div id="landingModal" class="modal-overlay-sheet" style="display:flex; z-index:300; background:radial-gradient(circle at 50% 20%, #152236 0%, #080c14 100%);">
+      <div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg class="svg-icon lg" style="color:#00e676;" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <b style="font-size:18px; letter-spacing:1px; color:#fff;">TREDLO</b>
+          </div>
+          <button onclick="openAuthModal('log')" style="background:transparent; border:1px solid rgba(255,255,255,0.25); color:#fff; padding:6px 14px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">Log In</button>
+        </div>
+
+        <div style="text-align:center; padding:20px 0;">
+          <span style="background:rgba(0,176,116,0.15); color:#00e676; border:1px solid rgba(0,176,116,0.3); font-size:11px; font-weight:800; padding:4px 10px; border-radius:14px; text-transform:uppercase;">Institutional OTC Platform</span>
+          <h1 style="font-size:27px; font-weight:900; line-height:1.25; margin:14px 0 10px; color:#fff;">Trade the global markets <br><span style="color:#00e676;">from anywhere</span></h1>
+          <p style="font-size:12px; color:var(--text-muted); line-height:1.6; max-width:320px; margin:auto;">
+            Access 100+ assets, powerful tools and real-time Quotex-standard charts. Build your trading future.
           </p>
         </div>
-        <div class="card-box" id="authBoxReg" style="display:none;">
-          <h3 style="margin-bottom:12px;">Create Account</h3>
-          <input type="email" id="authRegEmail" class="input-control" placeholder="Email Address">
-          <input type="text" id="authRegPhone" class="input-control" placeholder="Mobile Number">
-          <input type="password" id="authRegPass" class="input-control" placeholder="Password">
-          <button class="btn-block-action" onclick="submitRegister()">Register Now</button>
-          <p style="text-align:center; font-size:12px; margin-top:12px; color:var(--text-muted);">
-            Already have an account? <a href="#" onclick="switchAuthTab('log')" style="color:var(--accent-blue);">Login</a>
-          </p>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn-primary-blue" style="background:#00b074; font-size:15px; padding:14px; border-radius:8px;" onclick="openAuthModal('reg')">Get Started ➔</button>
+          <button class="btn-primary-blue" style="background:transparent; border:1px solid rgba(255,255,255,0.2); font-size:14px; padding:12px; border-radius:8px;" onclick="enterQuickDemo()">Explore Demo ($11,068.77)</button>
         </div>
       </div>
     </div>
 
-    <header class="top-bar">
-      <div class="account-pill" onclick="switchAccountType()">
-        <span class="svg-icon" style="color:var(--accent-blue);">
+    <div id="authModal" class="modal-overlay-sheet" style="z-index:350;">
+      <div class="sheet-container" style="max-height:92vh;">
+        <div class="sheet-head">
+          <h3 id="authHeaderTitle">Welcome Back</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('authModal')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div id="authBoxLogin">
+            <div class="floating-input-group">
+              <label>Email or Mobile Number</label>
+              <input type="text" id="authLogEmail" class="pocket-input" placeholder="example@gmail.com">
+            </div>
+            <div class="floating-input-group">
+              <label>Password</label>
+              <input type="password" id="authLogPass" class="pocket-input" placeholder="••••••••">
+            </div>
+            <button class="btn-primary-blue" style="background:#00b074;" onclick="submitLogin()">Log In ➔</button>
+            <p style="text-align:center; font-size:12px; margin-top:14px; color:var(--text-muted);">
+              Don't have an account? <a href="#" onclick="switchAuthTab('reg')" style="color:#00b074; font-weight:700;">Sign Up</a>
+            </p>
+          </div>
+
+          <div id="authBoxReg" style="display:none;">
+            <div class="floating-input-group">
+              <label>Email Address</label>
+              <input type="email" id="authRegEmail" class="pocket-input" placeholder="example@gmail.com">
+            </div>
+            <div class="floating-input-group">
+              <label>Mobile Number (+880)</label>
+              <input type="text" id="authRegPhone" class="pocket-input" placeholder="01700000000">
+            </div>
+            <div class="floating-input-group">
+              <label>Create Strong Password</label>
+              <input type="password" id="authRegPass" class="pocket-input" placeholder="••••••••">
+            </div>
+            <button class="btn-primary-blue" style="background:#00b074;" onclick="submitRegister()">Create Account ➔</button>
+            <p style="text-align:center; font-size:12px; margin-top:14px; color:var(--text-muted);">
+              Already have an account? <a href="#" onclick="switchAuthTab('log')" style="color:#00b074; font-weight:700;">Log In</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <header class="top-header">
+      <div class="account-pill-btn" onclick="switchAccountType()">
+        <span class="svg-icon" style="color:#38bdf8;">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </span>
-        <span id="accountModeText" style="color:var(--accent-yellow);">DEMO</span>
+        <span id="accountModeText" style="color:var(--accent-gold);">DEMO</span>
         <span id="accountBalanceText" style="font-weight:800;">$11,068.77</span>
-        <span style="font-size:9px;">▼</span>
+        <span style="font-size:9px; color:var(--text-muted);">▼</span>
       </div>
 
-      <div class="top-right">
-        <div class="notif-bell" onclick="openViewPage('notifPage')">
-          <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-yellow);"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
-          <span class="notif-badge" id="notifBadgeCount">1</span>
+      <div class="top-right-group">
+        <div class="notif-bell-btn" onclick="openSheet('notifSheet')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <span class="notif-bubble-count" id="notifBadgeCount">1</span>
         </div>
-        <button class="btn-top-deposit" onclick="openViewPage('depositPage')">Deposit</button>
+        <button class="btn-header-deposit" onclick="openSheet('depositSheet')">Deposit</button>
       </div>
     </header>
 
-    <main class="chart-viewport">
-      <div class="chart-toolbar">
-        <div class="tool-btn" onclick="openViewPage('menuPage')">•••</div>
-        <div class="tool-btn" onclick="openViewPage('activeTradesPage')">
-          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+    <main class="chart-container">
+      <div class="chart-tools-row">
+        <div class="chart-pill-btn" onclick="openSheet('menuSheet')">•••</div>
+        <div class="chart-pill-btn" onclick="openSheet('activeTradesSheet')">
+          <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
           <span id="activeTradesCountBadge">0</span>
         </div>
-        <div class="tool-btn" style="pointer-events:none;">
-          <span class="live-dot"></span> <span id="clockUtcLive">00:00:00 UTC+6</span>
+        <div class="chart-pill-btn" style="pointer-events:none;">
+          <span class="live-green-dot"></span> <span id="clockUtcLive">00:00:00 UTC+6</span>
         </div>
       </div>
 
       <canvas id="tradeCanvas"></canvas>
-      <div class="center-btn" onclick="resetPan()">➔</div>
+      <div class="recenter-chart-btn" onclick="resetPan()">➔</div>
     </main>
 
-    <section class="dock-panel">
-      <div class="dock-row-1">
-        <div class="asset-pill" onclick="openViewPage('assetSelectPage')">
+    <section class="dock-trade-panel">
+      <div class="dock-header-bar">
+        <div class="otc-pair-selector" onclick="openSheet('assetSheet')">
           <b id="activeAssetLabel">EUR/USD (OTC)</b>
-          <span class="payout-tag" id="activeAssetPayout">77% ▼</span>
+          <span style="color:var(--accent-gold); font-size:12px;" id="activeAssetPayout">77% ▼</span>
         </div>
         <span style="font-size:11px; color:var(--text-muted); font-weight:700;">1 MIN CANDLE</span>
       </div>
 
-      <div class="dock-row-2">
-        <div class="box-metric" onclick="openViewPage('timerSelectModal')">
+      <div class="dock-inputs-grid">
+        <div class="metric-box" onclick="openSheet('timerModal')">
           <label>Expiration</label>
-          <span class="val" id="dockTimerDisplay">00:01:00</span>
+          <span class="metric-val" id="dockTimerDisplay">00:01:00</span>
         </div>
-        <div class="box-metric">
+        <div class="metric-box">
           <label>Investment ($)</label>
-          <input type="number" id="investAmountInput" value="1" min="1" class="val" style="background:none; border:none; color:var(--text-main); outline:none;" oninput="updatePayoutCalc()">
+          <input type="number" id="investAmountInput" value="1" min="1" class="metric-val" style="background:none; border:none; color:var(--text-pure); outline:none;" oninput="updatePayoutCalc()">
         </div>
       </div>
 
       <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
         <span>Payout:</span>
-        <b style="color:var(--text-main);" id="payoutCalcText">1.77 $</b>
+        <b style="color:var(--text-pure);" id="payoutCalcText">1.77 $</b>
       </div>
 
-      <div class="btn-actions-row">
-        <button class="btn-trade up" onclick="placeOrder('UP')">
+      <div class="trade-buttons-row">
+        <button class="btn-up-down up" onclick="placeOrder('UP')">
           <span>Up</span>
           <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
         </button>
-        <button class="btn-trade down" onclick="placeOrder('DOWN')">
+        <button class="btn-up-down down" onclick="placeOrder('DOWN')">
           <span>Down</span>
           <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>
         </button>
       </div>
     </section>
 
-    <nav class="footer-nav">
-      <div class="nav-item active" onclick="closeAllPages()">
-        <svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+    <nav class="footer-tab-bar">
+      <div class="tab-icon-item active" onclick="closeAllSheets()">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
       </div>
-      <div class="nav-item" onclick="openViewPage('supportChatPage')">
-        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+      <div class="tab-icon-item" onclick="openSheet('chatSheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
       </div>
-      <div class="nav-item" onclick="openViewPage('profilePage')">
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <div class="tab-icon-item" onclick="openSheet('profileSheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
       </div>
-      <div class="nav-item" onclick="openViewPage('trophyBonusPage')">
-        <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+      <div class="tab-icon-item" onclick="openSheet('trophySheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
       </div>
-      <div class="nav-item" onclick="openViewPage('menuPage')">
-        <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <div class="tab-icon-item" onclick="openSheet('menuSheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
       </div>
     </nav>
 
-    <div id="profilePage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>User Profile</b>
-        <span onclick="closeViewPage('profilePage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content">
-        <div class="card-box" style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <h3 id="profNameDisplay">MD Sajib Hossain</h3>
-            <small style="color:var(--text-muted);" id="profIdDisplay">ID: 85857047</small>
+    <div id="menuSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Menu</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('menuSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="background:#1a2538; border-color:#253752;">
+            <h4 id="menuEmail" style="font-size:15px; font-weight:800; color:#fff;">teachsajib@gmail.com</h4>
+            <small id="menuUserId" style="color:var(--text-muted); display:block; margin:2px 0 6px;">ID: 85857047</small>
+            <div style="font-size:11px; color:#00e676; font-weight:800; display:flex; align-items:center; gap:5px;">
+              <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+              STANDARD: +0% profit
+            </div>
+            <button class="btn-primary-blue" style="background:#00b074; margin-top:10px; display:flex; justify-content:space-between; align-items:center;" onclick="closeSheet('menuSheet')">
+              <span>Quick trading</span>
+              <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-7.85-1.42 1.42L16.86 11H5v2z"/></svg>
+            </button>
           </div>
-          <span id="profVerifyTag" class="verify-tag unverified">Unverified</span>
-        </div>
 
-        <div class="card-box">
-          <label style="font-size:11px; color:var(--text-muted);">Full Name</label>
-          <input type="text" id="profNameInput" class="input-control" value="MD Sajib Hossain">
-          
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Email Address</label>
-          <input type="text" id="profEmailInput" class="input-control" value="teachsajib@gmail.com">
-          
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Phone Number</label>
-          <input type="text" id="profPhoneInput" class="input-control" value="01700000000">
+          <div class="data-card-wrapper" style="padding:0 8px;">
+            <div class="menu-action-row" onclick="openSheet('depositSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" style="color:#f5a623;" viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                <span>Deposit</span>
+              </div>
+              <svg class="svg-icon sm" style="color:var(--text-muted);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Date of Birth</label>
-          <input type="date" id="profDobInput" class="input-control" value="2000-01-01">
+            <div class="menu-action-row" onclick="openSheet('withdrawSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" style="color:#38bdf8;" viewBox="0 0 24 24"><path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6L12 1z"/></svg>
+                <span>Withdrawal</span>
+              </div>
+              <svg class="svg-icon sm" style="color:var(--text-muted);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Address</label>
-          <input type="text" id="profAddressInput" class="input-control" value="Dhaka, Bangladesh">
+            <div class="menu-action-row" onclick="openSheet('paymentsHistorySheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" style="color:#60a5fa;" viewBox="0 0 24 24"><path d="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 22l1.5-1.5L6 22l1.5-1.5L9 22l1.5-1.5L12 22l1.5-1.5L15 22l1.5-1.5L18 22l1.5-1.5L21 22V2l-1.5 1.5L18 2l-1.5 1.5L15 2l-1.5 1.5L12 2l-1.5 1.5L9 2l-1.5 1.5L6 2l-1.5 1.5L3 2v20z"/></svg>
+                <span>Payments</span>
+              </div>
+              <svg class="svg-icon sm" style="color:var(--text-muted);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Zip Code</label>
-          <input type="text" id="profZipInput" class="input-control" value="1200">
+            <div class="menu-action-row" onclick="openSheet('tradesHistorySheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" style="color:#00e676;" viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
+                <span>Trades</span>
+              </div>
+              <svg class="svg-icon sm" style="color:var(--text-muted);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
 
-          <button class="btn-block-action" onclick="saveProfileDetails()">Save Profile Details</button>
-        </div>
+            <div class="menu-action-row" onclick="openSheet('settingsSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" style="color:#94a3b8;" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                <span>Settings</span>
+              </div>
+              <svg class="svg-icon sm" style="color:var(--text-muted);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
 
-        <div class="card-box" id="nidSubmitSection">
-          <h4 style="margin-bottom:8px;">Identity Verification (NID Card)</h4>
-          <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Upload front & back side photos of your NID card.</p>
-          <input type="file" id="nidFrontFile" class="input-control" accept="image/*">
-          <input type="file" id="nidBackFile" class="input-control" accept="image/*" style="margin-top:6px;">
-          <button class="btn-block-action" style="background:var(--accent-blue);" onclick="submitNidPhotos()">Submit NID for Verification</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="supportChatPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Live Support Desk (24h History)</b>
-        <span onclick="closeViewPage('supportChatPage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content chat-window">
-        <div class="chat-body" id="chatMessagesContainer"></div>
-        <div class="chat-input-bar">
-          <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="sendChatImage(event)">
-          <span onclick="document.getElementById('chatImgInput').click()" style="cursor:pointer; font-size:18px;">📷</span>
-          <input type="text" id="chatTextInput" placeholder="Type your message..." style="flex:1; background:none; border:none; color:var(--text-main); outline:none;">
-          <button onclick="sendChatMessage()" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:6px; font-weight:700;">Send</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="trophyBonusPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Trading Tasks & Bonus Rewards</b>
-        <span onclick="closeViewPage('trophyBonusPage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content">
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-          Claim free bonus cash! To withdraw bonus rewards, a 2X turnover requirement must be fulfilled.
-        </p>
-        <div id="bonusTasksList"></div>
-      </div>
-    </div>
-
-    <div id="menuPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Menu Navigation</b>
-        <span onclick="closeViewPage('menuPage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content">
-        <div class="card-box" style="margin-bottom:14px;">
-          <h4 id="menuEmail">teachsajib@gmail.com</h4>
-          <small id="menuUserId" style="color:var(--text-muted);">ID: 85857047</small>
-        </div>
-        <div class="card-box" style="padding:4px 10px;">
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('depositPage')">💳 Deposit</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('withdrawPage')">🏦 Withdrawal</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('paymentsHistoryPage')">🧾 Payments</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('tradesHistoryPage')">📊 Trades</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('settingsPage')">⚙️ Settings</div>
-          <div style="padding:12px 0; color:var(--accent-red); cursor:pointer; font-weight:700;" onclick="openViewPage('authViewPage')">🚪 Logout</div>
-        </div>
-      </div>
-    </div>
-
-    <div id="depositPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Deposit Funds</b>
-        <span onclick="closeViewPage('depositPage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content">
-        <div class="card-box" style="text-align:center; background:rgba(0,112,243,0.12); border-color:var(--accent-blue);">
-          <span style="font-size:12px; color:var(--text-muted);">Live Exchange Rate</span>
-          <h3 id="depDollarRateDisplay" style="color:var(--accent-blue); margin-top:2px;">1 USD = 125.00 BDT</h3>
-        </div>
-
-        <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Select Payment Gateway</label>
-          <select id="depMethodSelect" class="input-control" onchange="onDepMethodChange()">
-            <option value="Binance">⭐ Binance Pay (USDT / BTC) - Recommended [Fast Pay]</option>
-            <option value="bKash">bKash Personal (Send Money)</option>
-            <option value="Nagad">Nagad Personal (Send Money)</option>
-          </select>
-        </div>
-
-        <div class="card-box" id="depMethodInfoBox">
-          <span id="depTargetLabel" style="font-size:12px; color:var(--text-muted);">Send to Address / Number:</span>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <b id="depTargetAddress" style="font-size:14px;">01700000000</b>
-            <button onclick="copyToClipboard('depTargetAddress')" style="background:var(--accent-blue); border:none; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">Copy</button>
+            <div class="menu-action-row" style="color:var(--accent-red); border-bottom:none;" onclick="handleUserLogout()">
+              <div class="menu-action-left">
+                <svg class="svg-icon" style="color:var(--accent-red);" viewBox="0 0 24 24"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                <span>Logout</span>
+              </div>
+              <svg class="svg-icon sm" style="color:var(--accent-red);" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+            </div>
           </div>
         </div>
-
-        <div class="card-box">
-          <label style="font-size:11px; color:var(--text-muted);">Deposit Amount ($ USD)</label>
-          <input type="number" id="depAmountInput" class="input-control" placeholder="e.g. 20" min="5">
-
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Transaction ID (TrxID)</label>
-          <input type="text" id="depTrxInput" class="input-control" placeholder="Transaction ID">
-
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Payment Screenshot</label>
-          <input type="file" id="depScreenshotFile" class="input-control" accept="image/*">
-
-          <button class="btn-block-action" onclick="submitDepositOrder()">Submit Deposit</button>
-        </div>
-
-        <h4>Deposit History</h4>
-        <div id="depHistoryTable" style="margin-top:8px;"></div>
       </div>
     </div>
 
-    <div id="withdrawPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Withdraw Funds</b>
-        <span onclick="closeViewPage('withdrawPage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content">
-        <div class="turnover-warning-box" id="turnoverWarnBox">
-          ⚠️ <b>Withdrawal Restricted!</b> Complete your 2X Turnover requirement first.
+    <div id="profileSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Personal Data</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('profileSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
+        <div class="sheet-scroll-body">
+          <div class="user-avatar-badge-row">
+            <div class="avatar-circle-blue">
+              <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <div class="user-meta-details">
+              <h4 id="profNameDisplay">MD Sajib Hossain</h4>
+              <small id="profIdDisplay">ID: 85857047</small>
+              <div id="profVerifyTag" class="verify-badge-pill unverified">
+                <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                <span>Unverified</span>
+              </div>
+            </div>
+          </div>
 
-        <div class="card-box" style="display:flex; justify-content:space-between;">
-          <div><small style="color:var(--text-muted);">Real Balance</small><h3 id="wRealBal">$10.00</h3></div>
-          <div><small style="color:var(--text-muted);">Free Bonus Balance</small><h3 id="wBonusBal">$0.00</h3></div>
-        </div>
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Full Name</label>
+              <input type="text" id="profNameInput" class="pocket-input" value="MD Sajib Hossain">
+            </div>
+            <div class="floating-input-group">
+              <label>Email Address</label>
+              <input type="text" id="profEmailInput" class="pocket-input" value="teachsajib@gmail.com">
+            </div>
+            <div class="floating-input-group">
+              <label>Mobile Number</label>
+              <input type="text" id="profPhoneInput" class="pocket-input" value="01700000000">
+            </div>
+            <div class="floating-input-group">
+              <label>Date of Birth</label>
+              <input type="date" id="profDobInput" class="pocket-input" value="2005-01-01">
+            </div>
+            <div class="floating-input-group">
+              <label>Address</label>
+              <input type="text" id="profAddressInput" class="pocket-input" value="Akkelpur, Rajshahi, Bangladesh">
+            </div>
+            <div class="floating-input-group">
+              <label>Zip Code</label>
+              <input type="text" id="profZipInput" class="pocket-input" value="1200">
+            </div>
+            <button class="btn-primary-blue" onclick="saveProfileDetails()">Save</button>
+          </div>
 
-        <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Withdraw Method</label>
-          <select id="withMethodSelect" class="input-control">
-            <option value="bKash">bKash</option>
-            <option value="Nagad">Nagad</option>
-            <option value="Binance">Binance (USDT - BEP20 / TRC20)</option>
-          </select>
-
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Amount ($ USD)</label>
-          <input type="number" id="withAmountInput" class="input-control" placeholder="Minimum $10">
-
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Phone / Wallet Address</label>
-          <input type="text" id="withAccountDetails" class="input-control" placeholder="Enter details">
-
-          <button class="btn-block-action" style="background:var(--accent-blue);" onclick="submitWithdrawOrder()">Submit Withdrawal</button>
-        </div>
-
-        <h4>Withdrawal History</h4>
-        <div id="withHistoryTable" style="margin-top:8px;"></div>
-      </div>
-    </div>
-
-    <div id="settingsPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Global Settings</b>
-        <span onclick="closeViewPage('settingsPage')" style="cursor:pointer; font-size:18px;">✕</span>
-      </div>
-      <div class="page-content">
-        <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Theme Mode</label>
-          <select id="themeSelect" class="input-control" onchange="applyThemeMode(this.value)">
-            <option value="dark">Dark Theme (ডার্ক)</option>
-            <option value="light">White Theme (লাইট)</option>
-          </select>
-        </div>
-
-        <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Language (ভাষা)</label>
-          <select id="langSelect" class="input-control" onchange="applyLanguage(this.value)">
-            <option value="en">English (US)</option>
-            <option value="bn">বাংলা (Bengali)</option>
-            <option value="hi">हिन्दी (Hindi)</option>
-            <option value="ur">اردو (Urdu)</option>
-            <option value="ar">العربية (Arabic)</option>
-            <option value="zh">中文 (Chinese)</option>
-            <option value="tl">Filipino (Tagalog)</option>
-          </select>
-        </div>
-
-        <div class="card-box">
-          <h4>Official Partner Program</h4>
-          <p style="font-size:12px; color:var(--text-muted); margin:4px 0 8px;">Join our official channel for signals and updates.</p>
-          <button class="btn-block-action" onclick="openPartnerTelegram()">Join Now Site Partner</button>
+          <div class="data-card-wrapper" id="nidSubmitSection">
+            <h4 style="font-size:13px; font-weight:800; margin-bottom:4px;">Identity Verification (NID Card)</h4>
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Upload clear front & back side photos of your National ID.</p>
+            
+            <div class="floating-input-group">
+              <label>NID Front Side</label>
+              <input type="file" id="nidFrontFile" class="pocket-input" accept="image/*">
+            </div>
+            <div class="floating-input-group">
+              <label>NID Back Side</label>
+              <input type="file" id="nidBackFile" class="pocket-input" accept="image/*">
+            </div>
+            <button class="btn-primary-blue" style="background:#0070f3;" onclick="submitNidPhotos()">Submit Documents</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div id="notifPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Notifications</b>
-        <span onclick="closeViewPage('notifPage')" style="cursor:pointer; font-size:18px;">✕</span>
+    <div id="chatSheet" class="modal-overlay-sheet">
+      <div class="sheet-container" style="height:80vh;">
+        <div class="sheet-head">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg class="svg-icon" style="color:var(--accent-blue);" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+            <h3>Live Support Desk</h3>
+          </div>
+          <span class="close-sheet-btn" onclick="closeSheet('chatSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body" style="display:flex; flex-direction:column; padding:12px;">
+          <div class="chat-stream" id="chatMessagesContainer"></div>
+          <div class="chat-footer-bar">
+            <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="sendChatImage(event)">
+            <span onclick="document.getElementById('chatImgInput').click()" style="cursor:pointer; display:flex; color:var(--text-muted);">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0 3.2 3.2 0 1 0-6.4 0M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+            </span>
+            <input type="text" id="chatTextInput" placeholder="Type your message..." style="flex:1; background:none; border:none; color:#fff; outline:none; font-size:13px;">
+            <button onclick="sendChatMessage()" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:6px; font-weight:800; cursor:pointer;">Send</button>
+          </div>
+        </div>
       </div>
-      <div class="page-content" id="notificationsList"></div>
     </div>
 
-    <div id="assetSelectPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Select OTC Market</b>
-        <span onclick="closeViewPage('assetSelectPage')" style="cursor:pointer; font-size:18px;">✕</span>
+    <div id="trophySheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg class="svg-icon" style="color:var(--accent-gold);" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+            <h3>Trading Tasks & Rewards</h3>
+          </div>
+          <span class="close-sheet-btn" onclick="closeSheet('trophySheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="background:rgba(0,112,243,0.1); border-color:rgba(0,112,243,0.25);">
+            <b style="color:var(--accent-blue); font-size:12px;">Bonus Claim Notice:</b>
+            <p style="font-size:11px; color:var(--text-muted); margin-top:3px; line-height:1.5;">
+              Claiming bonus credit adds free trading cash. A 2X turnover requirement is applied exclusively to the bonus funds before withdrawals unlock.
+            </p>
+          </div>
+          <div id="bonusTasksList"></div>
+        </div>
       </div>
-      <div class="page-content" id="otcAssetsList"></div>
     </div>
 
-    <div id="activeTradesPage" class="app-view-page">
-      <div class="page-top-bar">
-        <b>Active Running Trades</b>
-        <span onclick="closeViewPage('activeTradesPage')" style="cursor:pointer; font-size:18px;">✕</span>
+    <div id="depositSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Deposit Funds</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('depositSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="text-align:center; background:rgba(0,112,243,0.12); border-color:rgba(0,112,243,0.3);">
+            <small style="font-size:11px; color:var(--text-muted); font-weight:700;">LIVE EXCHANGE RATE</small>
+            <h2 id="depDollarRateDisplay" style="color:#38bdf8; font-weight:900; margin-top:2px;">1 USD = 125.00 BDT</h2>
+          </div>
+
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Select Payment Method</label>
+              <select id="depMethodSelect" class="pocket-input" onchange="onDepMethodChange()">
+                <option value="Binance">Binance Pay (USDT / BTC) — Recommended [Fast Pay]</option>
+                <option value="bKash">bKash Personal (Send Money)</option>
+                <option value="Nagad">Nagad Personal (Send Money)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group" id="binanceCoinSelectBox">
+              <label>Select Crypto Asset</label>
+              <select id="cryptoAssetChoice" class="pocket-input" onchange="onCryptoChoiceChange()">
+                <option value="USDT_TRC20">USDT (TRC20 Network)</option>
+                <option value="USDT_BEP20">USDT (BEP20 BSC Network)</option>
+                <option value="BTC_BEP20">Bitcoin (BTC - BEP20 Network)</option>
+                <option value="BTC_MAIN">Bitcoin (BTC - Native Network)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group">
+              <label id="depTargetLabel">Deposit Address (USDT TRC20):</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); border:1px solid var(--border-subtle); padding:10px; border-radius:6px;">
+                <b id="depTargetAddress" style="font-size:13px; font-family:monospace; word-break:break-all;">TX9...TRC20_USDT_ADDR</b>
+                <button onclick="copyToClipboard('depTargetAddress')" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-left:8px; display:flex; align-items:center; gap:4px;">
+                  <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            <div class="floating-input-group">
+              <label>Amount in USD ($)</label>
+              <input type="number" id="depAmountInput" class="pocket-input" placeholder="e.g. 25" min="5">
+            </div>
+
+            <div class="floating-input-group">
+              <label>Transaction ID (TrxID / Hash)</label>
+              <input type="text" id="depTrxInput" class="pocket-input" placeholder="Enter TrxID">
+            </div>
+
+            <div class="floating-input-group">
+              <label>Payment Slip Screenshot</label>
+              <input type="file" id="depScreenshotFile" class="pocket-input" accept="image/*">
+            </div>
+
+            <button class="btn-primary-blue" style="background:#00b074;" onclick="submitDepositOrder()">Confirm Deposit</button>
+          </div>
+
+          <h4 style="font-size:13px; font-weight:800; margin:14px 0 8px;">Deposit History</h4>
+          <div id="depHistoryTable"></div>
+        </div>
       </div>
-      <div class="page-content" id="activeTradesContainer"></div>
     </div>
 
-    <div id="paymentsHistoryPage" class="app-view-page">
-      <div class="page-top-bar"><b>Payments History</b><span onclick="closeViewPage('paymentsHistoryPage')">✕</span></div>
-      <div class="page-content" id="allPaymentsHistoryBox"></div>
+    <div id="withdrawSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Withdrawal Funds</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('withdrawSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div id="turnoverWarnBox" class="data-card-wrapper" style="display:none; background:rgba(235,87,87,0.15); border-color:var(--accent-red); color:#ff6b6b; font-size:12px; font-weight:800;">
+            ⚠️ Turnover Incomplete: Complete 2X turnover requirement before submitting withdrawals.
+          </div>
+
+          <div class="data-card-wrapper" style="display:flex; justify-content:space-between;">
+            <div><small style="color:var(--text-muted); font-weight:700;">Real Balance</small><h3 id="wRealBal" style="color:#00e676; margin-top:2px;">$10.00</h3></div>
+            <div style="text-align:right;"><small style="color:var(--text-muted); font-weight:700;">Bonus Balance</small><h3 id="wBonusBal" style="color:#f5a623; margin-top:2px;">$0.00</h3></div>
+          </div>
+
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Select Gateway</label>
+              <select id="withMethodSelect" class="pocket-input" onchange="onWithMethodChange()">
+                <option value="bKash">bKash (MFS)</option>
+                <option value="Nagad">Nagad (MFS)</option>
+                <option value="Binance">Binance Pay (USDT)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group" id="withCryptoNetworkBox" style="display:none;">
+              <label>Network</label>
+              <select id="withNetworkSelect" class="pocket-input">
+                <option value="TRC20">USDT - TRC20</option>
+                <option value="BEP20">USDT - BEP20 (BSC)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group">
+              <label>Withdrawal Amount ($)</label>
+              <input type="number" id="withAmountInput" class="pocket-input" placeholder="Minimum $10">
+            </div>
+
+            <div class="floating-input-group">
+              <label id="withDetailsLabel">bKash Account Number</label>
+              <input type="text" id="withAccountDetails" class="pocket-input" placeholder="01700000000">
+            </div>
+
+            <button class="btn-primary-blue" onclick="submitWithdrawOrder()">Submit Withdrawal</button>
+          </div>
+
+          <h4 style="font-size:13px; font-weight:800; margin:14px 0 8px;">Withdrawal History</h4>
+          <div id="withHistoryTable"></div>
+        </div>
+      </div>
     </div>
-    <div id="tradesHistoryPage" class="app-view-page">
-      <div class="page-top-bar"><b>Trades Lifetime</b><span onclick="closeViewPage('tradesHistoryPage')">✕</span></div>
-      <div class="page-content" id="allTradesHistoryBox"></div>
+
+    <div id="settingsSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Settings</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('settingsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Theme Appearance</label>
+              <select id="themeSelect" class="pocket-input" onchange="applyThemeMode(this.value)">
+                <option value="dark">Dark Theme (ডার্ক)</option>
+                <option value="light">White Theme (লাইট)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group">
+              <label>Language (ভাষা)</label>
+              <select id="langSelect" class="pocket-input" onchange="applyLanguage(this.value)">
+                <option value="en">English (US)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="ur">اردو (Urdu)</option>
+                <option value="ar">العربية (Arabic)</option>
+                <option value="zh">中文 (Chinese)</option>
+                <option value="tl">Filipino (Tagalog)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="data-card-wrapper">
+            <h4 style="font-size:13px; font-weight:800; margin-bottom:4px;">Official Site Partner</h4>
+            <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">Join our VIP telegram channel for insights and community updates.</p>
+            <button class="btn-primary-blue" onclick="openPartnerTelegram()">Join Now Site Partner</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="notifSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Notifications</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('notifSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body" id="notificationsList"></div>
+      </div>
+    </div>
+
+    <div id="paymentsHistorySheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Payments History</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('paymentsHistorySheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body" id="allPaymentsHistoryBox"></div>
+      </div>
+    </div>
+
+    <div id="tradesHistorySheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Lifetime Trades</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('tradesHistorySheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body" id="allTradesHistoryBox"></div>
+      </div>
+    </div>
+
+    <div id="assetSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Select OTC Market</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('assetSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body" id="otcAssetsList"></div>
+      </div>
+    </div>
+
+    <div id="activeTradesSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Active Trades</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('activeTradesSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body" id="activeTradesContainer"></div>
+      </div>
+    </div>
+
+    <div id="timerModal" class="modal-overlay-sheet">
+      <div class="sheet-container" style="max-height:40vh;">
+        <div class="sheet-head">
+          <h3>Expiration Duration</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('timerModal')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
+        </div>
+        <div class="sheet-scroll-body" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(60, '00:01:00')">1m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(300, '00:05:00')">5m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(600, '00:10:00')">10m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(1800, '00:30:00')">30m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(3600, '01:00:00')">1h</button>
+        </div>
+      </div>
     </div>
 
   </div>
 
-  <div id="toastMessage" class="toast-msg">Action Completed</div>
+  <div id="toastMessage" class="toast-popup">Action Saved</div>
 
-  <script src="script.js?v=50.0"></script>
+  <script src="script.js?v=55.0"></script>
 </body>
 </html>
