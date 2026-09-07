@@ -640,3 +640,75 @@ input:checked + .slider:before { transform: translateX(14px); }
 .doge-logo { background: #c2a633; }
 .ton-logo { background: #0088cc; font-size: 14px; }
 .ada-logo { background: #0033ad; }
+
+/* -------------------------------------------------------------
+   💼 সক্রিয় ট্রেড লাইভ ডিটেইলস কার্ড স্টাইল
+------------------------------------------------------------- */
+.active-trade-card {
+    background: #182333;
+    border: 1px solid #28374d;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.at-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.at-asset {
+    font-size: 14px;
+    font-weight: 800;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.at-badge {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.at-badge.up { background: rgba(0, 230, 118, 0.15); color: #00e676; border: 1px solid #00e676; }
+.at-badge.down { background: rgba(235, 87, 87, 0.15); color: #eb5757; border: 1px solid #eb5757; }
+
+.at-body-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #8fa0b5;
+    margin-bottom: 4px;
+}
+
+.at-profit-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid #202d3e;
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.at-status-live {
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.at-status-live.win { color: #00e676; }
+.at-status-live.loss { color: #eb5757; }
+
+.at-timer-tag {
+    font-family: monospace;
+    font-size: 12px;
+    color: #f5a623;
+    font-weight: 700;
+}

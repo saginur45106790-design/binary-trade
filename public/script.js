@@ -17,9 +17,9 @@ let isLoadingAsset = false;
 let renderLivePrice = 68525.50;
 let targetLivePrice = 68525.50;
 
-// প্রাকৃতিক মিডিয়াম ক্যান্ডেল সাইজ
-let candleWidth = 12;
-let candleSpacing = 5;
+// কটেক্সের মতো স্ট্যান্ডার্ড মিডিয়াম ক্যান্ডেল সাইজ (খুব ছোট বা খুব বড় হবে না)
+let candleWidth = 15;
+let candleSpacing = 6;
 let initialPinchDistance = null;
 
 let currentMode = 'timer';
@@ -34,7 +34,7 @@ let currentTimezoneOffset = 6;
 const ASSET_DECIMALS = { 'BTC': 2, 'ETH': 2, 'SOL': 2, 'BNB': 2, 'XRP': 4, 'DOGE': 4, 'TON': 3, 'ADA': 4 };
 const ASSET_BASE_PRICES = { 'BTC': 68525.50, 'ETH': 3422.00, 'SOL': 177.50, 'BNB': 591.20, 'XRP': 0.6250, 'DOGE': 0.1425, 'TON': 5.850, 'ADA': 0.4850 };
 
-// ১. অবিরাম সুরক্ষিত ঘড়ি
+// ১. অবিচল সুরক্ষিত ঘড়ি
 function syncClock() {
     try {
         let now = new Date();
@@ -53,11 +53,8 @@ function syncClock() {
         let sec = Math.floor(now.getTime() / 1000);
         remainingCountdown = 60 - (sec % 60);
 
-        let endText = document.getElementById('endTradeTimeText');
-        if (endText) {
-            let expDate = new Date(targetTime.getTime() + selectedTimerSeconds * 1000);
-            endText.innerText = `${String(expDate.getHours()).padStart(2,'0')}:${String(expDate.getMinutes()).padStart(2,'0')}`;
-        }
+        // যদি সক্রিয় ট্রেড ড্রয়ার খোলা থাকে, লাইভ আপডেট
+        updateActiveTradesDrawerLive();
     } catch (e) {}
 }
 syncClock();
@@ -107,6 +104,7 @@ function fullSyncFromServer() {
         if (d.success) {
             activeTrades = d.trades || [];
             updateTradeBadges();
+            updateActiveTradesDrawerLive();
         }
     }).catch(() => {});
 }
@@ -116,7 +114,7 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('focus', fullSyncFromServer);
 
-// ৩. টাচ প্যান ও জুম (কোনো পপআপ ছাড়াই পিওর ড্র্যাগ)
+// ৩. টাচ প্যান ও জুম
 let startX = 0;
 let isPanning = false;
 
@@ -144,9 +142,9 @@ if (canvas) {
             if (factor > 1.04 && candleWidth < 26) {
                 candleWidth = Math.min(26, candleWidth + 0.3);
                 candleSpacing = Math.min(10, candleSpacing + 0.15);
-            } else if (factor < 0.96 && candleWidth > 7) {
-                candleWidth = Math.max(7, candleWidth - 0.3);
-                candleSpacing = Math.max(2, candleSpacing - 0.15);
+            } else if (factor < 0.96 && candleWidth > 9) {
+                candleWidth = Math.max(9, candleWidth - 0.3);
+                candleSpacing = Math.max(3, candleSpacing - 0.15);
             }
             initialPinchDistance = currentDist;
         } else if (e.touches.length === 1 && isPanning) {
@@ -167,6 +165,78 @@ function updateTradeBadges() {
     let count = activeTrades.length;
     let b1 = document.getElementById('openTradesBadge');
     if (b1) b1.innerText = count;
+}
+
+// -------------------------------------------------------------
+// 💼 সবুজ দাগ দেওয়া ব্রিফকেস: সক্রিয় ট্রেড ডিটেইলস হ্যান্ডলার
+// -------------------------------------------------------------
+function openActiveTradesDrawer() {
+    let m = document.getElementById('activeTradesModal');
+    if (m) {
+        m.style.display = 'flex';
+        updateActiveTradesDrawerLive();
+    }
+}
+
+function closeActiveTradesDrawer() {
+    let m = document.getElementById('activeTradesModal');
+    if (m) m.style.display = 'none';
+}
+
+function updateActiveTradesDrawerLive() {
+    let countHeader = document.getElementById('activeTradesCountHeader');
+    let container = document.getElementById('activeTradesLiveListContainer');
+    if (!container) return;
+
+    if (countHeader) countHeader.innerText = activeTrades.length;
+
+    if (activeTrades.length === 0) {
+        container.innerHTML = `<p style="text-align:center; padding:35px; color:#8fa0b5; font-size:13px;">No active trades running right now.</p>`;
+        return;
+    }
+
+    let nowSec = Math.floor(Date.now() / 1000);
+    let html = '';
+
+    activeTrades.forEach(tr => {
+        let diffSec = Math.max(0, tr.expireTime - nowSec);
+        let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
+        let remS = String(diffSec % 60).padStart(2, '0');
+
+        // লাইভ লাভ/লস গণনা
+        let currentPrice = (tr.asset === activeAssetKey) ? renderLivePrice : (candles[candles.length - 1]?.close || tr.entryPrice);
+        let isWinning = false;
+        if (tr.direction === 'UP') isWinning = (currentPrice > tr.entryPrice);
+        else if (tr.direction === 'DOWN') isWinning = (currentPrice < tr.entryPrice);
+
+        let payoutPct = currentPayout || 90;
+        let expectedProfit = (tr.amount * (payoutPct / 100)).toFixed(2);
+
+        html += `
+            <div class="active-trade-card">
+                <div class="at-head">
+                    <span class="at-asset">${tr.asset}/USD (OTC)</span>
+                    <span class="at-badge ${tr.direction.toLowerCase()}">${tr.direction === 'UP' ? '▲ UP' : '▼ DOWN'}</span>
+                </div>
+                <div class="at-body-row">
+                    <span>Invested: <b style="color:#fff;">$${parseFloat(tr.amount).toFixed(2)}</b></span>
+                    <span>Entry: <b style="color:#fff;">${tr.entryPrice}</b></span>
+                </div>
+                <div class="at-body-row">
+                    <span>Current Price: <b style="color:#fff;">${currentPrice.toFixed(activeDecimals)}</b></span>
+                    <span class="at-timer-tag">⏳ ${remM}:${remS}</span>
+                </div>
+                <div class="at-profit-row">
+                    <span>Status:</span>
+                    <span class="at-status-live ${isWinning ? 'win' : 'loss'}">
+                        ${isWinning ? `🟢 PROFIT: +$${expectedProfit} (+${payoutPct}%)` : `🔴 LOSS: -$${parseFloat(tr.amount).toFixed(2)}`}
+                    </span>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
 }
 
 function stepAmt(delta) {
@@ -264,7 +334,7 @@ function updateBalanceUI(val) {
     }
 }
 
-// ৪. ট্রেড প্লেসিং
+// ৪. ট্রেড প্লেস
 function placeOrder(direction) {
     let amount = currentInvestAmount;
     let totalSec = (currentMode === 'timer') ? selectedTimerSeconds : 60;
@@ -293,6 +363,7 @@ function placeOrder(direction) {
         updateBalanceUI(data.balance);
         activeTrades.push(data.trade);
         updateTradeBadges();
+        updateActiveTradesDrawerLive();
 
         let toast = document.getElementById('tradeOpenToast');
         if (toast) {
@@ -319,7 +390,7 @@ function showResultBubble(res) {
 }
 
 // -------------------------------------------------------------
-// ৫. ক্যানভাস রেন্ডার (মিডিয়াম ক্যান্ডেল ও টাইম-বক্স ছাড়া স্ক্রিনশট ৮৭৪ মার্কার)
+// ৫. ক্যানভাস রেন্ডার লুপ (কটেক্স সাইজ ক্যান্ডেল ও টাইম-বক্স ছাড়া মার্কার)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -365,8 +436,8 @@ function render() {
     let rawMaxP = Math.max(...prices);
     let rawRange = rawMaxP - rawMinP;
 
-    // প্রাকৃতিক ব্যালেন্সড স্কেলিং বাফার
-    let activeVol = (ASSET_BASE_PRICES[activeAssetKey] ? (ASSET_BASE_PRICES[activeAssetKey] * 0.00015) : 1.0);
+    // কটেক্সের মতো সুষম স্কেলিং প্যাডিং
+    let activeVol = (ASSET_BASE_PRICES[activeAssetKey] ? (ASSET_BASE_PRICES[activeAssetKey] * 0.00018) : 1.0);
     let pad = Math.max(rawRange * 0.18, activeVol);
 
     let minP = rawMinP - pad;
@@ -395,7 +466,7 @@ function render() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // মিডিয়াম ক্যান্ডেলস্টিক রেন্ডার
+    // কটেক্সের মতো মাঝারি ও স্পষ্ট ক্যান্ডেলস্টিক আঁকা
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -467,9 +538,7 @@ function render() {
     ctx.font = 'bold 10px monospace';
     ctx.fillText(candleTimerStr, pillX + 10, pillY + 14);
 
-    // -------------------------------------------------------------
-    // ট্রেড মার্কার (কোনো শেষ সময় বক্স থাকবে না - শুধু অ্যারো ও লাইন)
-    // -------------------------------------------------------------
+    // ট্রেড মার্কার (কোনো বাড়তি কালো বক্স ছাড়া নিখুঁত অ্যারো ও লাইন)
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let candle = candles.find(c => c.time === tr.candleTime);
         let cIdx = candle ? candles.indexOf(candle) : candles.findIndex(c => c.time <= tr.entryTime && tr.entryTime < c.time + 60);
@@ -480,7 +549,6 @@ function render() {
         let isUp = (tr.direction === 'UP');
         let tradeColor = isUp ? '#00e676' : '#eb5757';
 
-        // অনুভূমিক ড্যাশ লাইন
         ctx.setLineDash([3, 3]);
         ctx.strokeStyle = tradeColor;
         ctx.lineWidth = 1.3;
@@ -490,7 +558,6 @@ function render() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // ১. সার্কেল + অ্যারো আইকন
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(entryX, entryY, 7.5, 0, Math.PI * 2);
@@ -500,7 +567,6 @@ function render() {
         ctx.font = 'bold 9px sans-serif';
         ctx.fillText(isUp ? '↑' : '↓', entryX - 2.8, entryY + 3.2);
 
-        // ২. সাথে সংযুক্ত ছোট সাদা ডট
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(entryX + 9, entryY, 5.5, 0, Math.PI * 2);
@@ -509,7 +575,6 @@ function render() {
         ctx.lineWidth = 1.2;
         ctx.stroke();
 
-        // ৩. শেষ প্রান্তে ছোট ডট (কোনো টাইম বক্স নেই)
         ctx.fillStyle = tradeColor;
         ctx.beginPath();
         ctx.arc(expX, entryY, 4, 0, Math.PI * 2);
@@ -526,11 +591,6 @@ function connectWS() {
         ws.onmessage = (event) => {
             let msg = JSON.parse(event.data);
             if (msg.type === 'TICK') {
-                for (let k in msg.assets) {
-                    let el = document.getElementById(`price-tag-${k}`);
-                    if (el) el.innerText = msg.assets[k].price;
-                }
-
                 if (!isLoadingAsset && candles.length > 0 && msg.assets[activeAssetKey]) {
                     let item = msg.assets[activeAssetKey];
                     targetLivePrice = parseFloat(item.price);
@@ -552,6 +612,7 @@ function connectWS() {
             } else if (msg.type === 'TRADE_SETTLED') {
                 activeTrades = activeTrades.filter(t => t.id !== msg.result.tradeId);
                 updateTradeBadges();
+                updateActiveTradesDrawerLive();
                 showResultBubble(msg.result);
             }
         };
@@ -598,7 +659,7 @@ function selectAsset(key) {
     });
 }
 
-// মোডাল হ্যান্ডলারস
+// মোডাল ও হেল্পার ফাংশনসমূহ
 function openMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'flex'; }
 function closeMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'none'; }
 function openHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'flex'; }
@@ -654,22 +715,6 @@ function switchSupportTab(tab) {
     }
 }
 
-function previewUserScreenshot(e) {
-    let file = e.target.files[0];
-    if (!file) return;
-    let reader = new FileReader();
-    reader.onload = function(evt) {
-        document.getElementById('previewImgElem').src = evt.target.result;
-        document.getElementById('screenshotPreviewBox').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-}
-
-function removeAttachedImage() {
-    document.getElementById('ticketScreenshot').value = "";
-    document.getElementById('screenshotPreviewBox').style.display = 'none';
-}
-
 function submitSupportTicket() {
     let category = document.getElementById('ticketCategory').value;
     let message = document.getElementById('ticketMessage').value.trim();
@@ -684,7 +729,6 @@ function submitSupportTicket() {
     .then(d => {
         alert(d.message);
         document.getElementById('ticketMessage').value = "";
-        removeAttachedImage();
         switchSupportTab('tickets');
     });
 }
@@ -806,7 +850,6 @@ function selectTimer(sec, display) {
 }
 
 function changeLanguage(lang) { localStorage.setItem('app_lang', lang); }
-function changeTimezone(offset) { currentTimezoneOffset = parseFloat(offset); localStorage.setItem('app_tz', offset); }
 function setAppTheme(theme) {
     localStorage.setItem('app_theme', theme);
     let btnDark = document.getElementById('btnThemeDark');
@@ -841,10 +884,8 @@ function setDepMethod(method, number, note) {
 
 function submitDepositForm() {
     let amtElem = document.getElementById('depAmountInput');
-    let sElem = document.getElementById('depSenderInput');
     let trxElem = document.getElementById('depTrxInput');
     let amount = amtElem ? amtElem.value : "";
-    let sender = sElem ? sElem.value : "";
     let trx = trxElem ? trxElem.value : "";
 
     if (!amount || !trx) return alert("Please enter amount and TrxID!");
@@ -852,14 +893,13 @@ function submitDepositForm() {
     fetch('/api/deposit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'demo_user', method: selectedDepMethod, amount, senderNumber: sender, trxId: trx })
+        body: JSON.stringify({ username: 'demo_user', method: selectedDepMethod, amount, senderNumber: '', trxId: trx })
     })
     .then(r => r.json())
     .then(d => {
         alert(d.message);
         if (d.success) {
             if (amtElem) amtElem.value = '';
-            if (sElem) sElem.value = '';
             if (trxElem) trxElem.value = '';
             closeDepositModal();
         }
