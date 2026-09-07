@@ -20,7 +20,14 @@ let users = {
 
 let userGroups = ["Standard", "VIP", "Premium", "New Traders"];
 
-// স্ক্রিনশট ৯৪৮-৯৫৭ অনুযায়ী ১০টি নির্দিষ্ট OTC অ্যাসেট
+// গ্লোবাল রিস্ক ম্যানেজমেন্ট সেটিংস
+let RISK_CONFIG = {
+  maxTradeAmount: 100.00,        // একক ট্রেডে সর্বোচ্চ ইনভেস্ট
+  maxAssetExposure: 500.00,      // প্রতি কয়েনে একমুখী সর্বোচ্চ এক্সপোজার সীমা
+  dynamicPayoutEnabled: true     // অসম ভলিউমে স্বয়ংক্রিয় পেআউট অ্যাডজাস্টমেন্ট
+};
+
+// ১০টি অফিসিয়াল OTC পেয়ার
 let ASSETS = {
   'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00035, payout1m: 77, payout5m: 77, change24h: -1.27, trend: 'NORMAL', trendUntil: 0 },
   'GBP_JPY': { name: 'GBP/JPY (OTC)', ticker: 'GBP_JPY', price: 191.450, basePrice: 191.450, decimals: 3, vol: 0.045, payout1m: 77, payout5m: 80, change24h: 0.21, trend: 'NORMAL', trendUntil: 0 },
@@ -39,7 +46,7 @@ let recentTradeResults = [];
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// কটেক্স স্টাইলের হ্যামার, ডোজি ও লং উইক সহ ২৪ ঘণ্টার ১,৪৪০টি ক্যান্ডেল জেনারেশন
+// কটেক্স স্টাইলের হ্যামার ও ডোজি সহ ২৪ ঘণ্টার ১,৪৪০ ক্যান্ডেল তৈরি
 function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
   currentCandleMinute = Math.floor(nowSec / 60) * 60;
@@ -57,11 +64,10 @@ function init24HourMarket() {
       let o = cur;
       let c = parseFloat((o + delta).toFixed(meta.decimals));
 
-      // হ্যামার, ডোজি ও সাধারণ ক্যান্ডেলের প্রাকৃতিক অনুপাত
-      let upperWick = Math.random() * meta.vol * 0.4;
-      let lowerWick = Math.random() * meta.vol * 0.4;
-      if (randShape > 0.85) lowerWick += meta.vol * 0.6; // বুলিশ হ্যামার
-      else if (randShape < 0.15) upperWick += meta.vol * 0.6; // শুটিং স্টার
+      let upperWick = Math.random() * meta.vol * 0.35;
+      let lowerWick = Math.random() * meta.vol * 0.35;
+      if (randShape > 0.85) lowerWick += meta.vol * 0.55;
+      else if (randShape < 0.15) upperWick += meta.vol * 0.55;
 
       let h = parseFloat((Math.max(o, c) + upperWick + 0.01 * meta.vol).toFixed(meta.decimals));
       let l = parseFloat((Math.min(o, c) - lowerWick - 0.01 * meta.vol).toFixed(meta.decimals));
@@ -77,7 +83,7 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
-// প্রতি সেকেন্ডে টিক ও মসৃণ ট্রেন্ড এক্সিকিউশন
+// প্রতি সেকেন্ডের ইঞ্জিন ও ট্রেড সেটেলমেন্ট
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -89,17 +95,15 @@ setInterval(() => {
   for (let key in ASSETS) {
     let meta = ASSETS[key];
     
-    // অ্যাডমিন ট্রেন্ড কন্ট্রোল (ভিডিও ৯৭৫ অনুযায়ী মসৃণভাবে নিচের দিকে বা ওপরে যাবে)
     let trendDrift = 0;
     if (now < meta.trendUntil) {
-      if (meta.trend === 'UP') trendDrift = meta.vol * 0.28; // প্রাকৃতিক মসৃণ ঊর্ধ্বগতি
-      else if (meta.trend === 'DOWN') trendDrift = -meta.vol * 0.28; // প্রাকৃতিক মসৃণ নিম্নগতি
+      if (meta.trend === 'UP') trendDrift = meta.vol * 0.28;
+      else if (meta.trend === 'DOWN') trendDrift = -meta.vol * 0.28;
     } else {
       meta.trend = 'NORMAL';
       trendDrift = -(meta.price - meta.basePrice) * 0.0008;
     }
 
-    // প্রতি সেকেন্ডে মসৃণ ওঠানামা (কোনো জাম্প নেই)
     let delta = (Math.random() - 0.495) * (meta.vol * 0.22) + trendDrift;
     meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
 
@@ -118,7 +122,7 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // মাল্টি-টাইমফ্রেম (1m, 5m, 10m, 30m, 1h) ট্রেড সেটেলমেন্ট
+  // মাল্টি-টাইমফ্রেম ট্রেড সেটেলমেন্ট
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
@@ -157,7 +161,7 @@ setInterval(() => {
     }
   }
 
-  // লাইভ টিক ও রিয়েল-টাইম এক্সপোজার বিলবোর্ড ক্যালকুলেশন
+  // রিয়েল-টাইম অর্ডারবুক এক্সপোজার বিলবোর্ড
   let billboard = {};
   for (let key in ASSETS) {
     let upVol = 0, downVol = 0, upCount = 0, downCount = 0;
@@ -192,7 +196,7 @@ setInterval(() => {
   });
 }, 1000);
 
-// API Routes
+// API রুটস
 app.get('/api/assets', (req, res) => res.json({ success: true, assets: ASSETS }));
 
 app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
@@ -205,22 +209,40 @@ app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
 
 app.get('/api/active-trades', (req, res) => res.json({ success: true, trades: activeServerTrades, results: recentTradeResults }));
 
-// মাল্টি-টাইমফ্রেম ট্রেড প্লেসমেন্ট (1m, 5m, 10m, 30m, 1h)
+// ঝুঁকি যাচাই সহ ট্রেড প্লেসমেন্ট (Trade Placement with Risk Management)
 app.post('/api/trade', (req, res) => {
   const { username, amount, direction, accountType, durationSec, asset, candleTime, clientEntryPrice } = req.body;
   let user = users["85857047"];
   let tradeAmount = Number(amount) || 1;
-  let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
 
-  if (targetBal < tradeAmount) return res.json({ success: false, message: "Insufficient balance!" });
+  // ১. ম্যাক্সিমাম ইনভেস্টমেন্ট ক্যাপ যাচাই
+  if (tradeAmount > RISK_CONFIG.maxTradeAmount) {
+    return res.json({ success: false, message: `সর্বোচ্চ ট্রেড লিমিট $${RISK_CONFIG.maxTradeAmount}! এর বেশি ট্রেড নেওয়া সম্ভব নয়।` });
+  }
+
+  let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
+  if (targetBal < tradeAmount) return res.json({ success: false, message: "অপর্যাপ্ত অ্যাকাউন্ট ব্যালেন্স!" });
+
+  let cleanAsset = (asset || "EUR_USD").replace('/', '_');
+  let selectedAsset = ASSETS[cleanAsset] || ASSETS['EUR_USD'];
+
+  // ২. ম্যাক্সিমাম এক্সপোজার লিমিট প্রটেকশন (হাউস রিস্ক গার্ড)
+  let currentDirVolume = activeServerTrades
+    .filter(t => t.asset === cleanAsset && t.direction === direction)
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  if (currentDirVolume + tradeAmount > RISK_CONFIG.maxAssetExposure) {
+    return res.json({
+      success: false,
+      message: `এই মুহূর্তে ${selectedAsset.name}-এ সর্বোচ্চ এক্সপোজার লিমিট পূর্ণ। কিছুক্ষণ পর পুনরায় চেষ্টা করুন।`
+    });
+  }
 
   if (accountType === 'live') user.liveBalance -= tradeAmount;
   else user.demoBalance -= tradeAmount;
 
-  let cleanAsset = (asset || "EUR_USD").replace('/', '_');
-  let selectedAsset = ASSETS[cleanAsset] || ASSETS['EUR_USD'];
   let nowSec = Math.floor(Date.now() / 1000);
-  let dur = Number(durationSec) || 60; // 60s, 300s, 600s, 1800s, 3600s
+  let dur = Number(durationSec) || 60;
   let entryP = clientEntryPrice ? parseFloat(clientEntryPrice) : selectedAsset.price;
 
   let newTrade = {
@@ -258,7 +280,7 @@ app.get('/api/user/info', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// অ্যাডমিন প্যানেল API
+// অ্যাডমিন রিস্ক ম্যানেজমেন্ট ও ড্যাশবোর্ড API
 // -------------------------------------------------------------
 app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
@@ -279,10 +301,19 @@ app.get(['/api/admin/overview', '/api/admin/data'], (req, res) => {
     users,
     groups: userGroups,
     assets: ASSETS,
+    riskConfig: RISK_CONFIG,
     activeTrades: activeServerTrades,
     billboard,
     serverTime: Date.now()
   });
+});
+
+app.post('/api/admin/update-risk-config', (req, res) => {
+  const { maxTradeAmount, maxAssetExposure, dynamicPayoutEnabled } = req.body;
+  if (maxTradeAmount) RISK_CONFIG.maxTradeAmount = parseFloat(maxTradeAmount);
+  if (maxAssetExposure) RISK_CONFIG.maxAssetExposure = parseFloat(maxAssetExposure);
+  if (dynamicPayoutEnabled !== undefined) RISK_CONFIG.dynamicPayoutEnabled = Boolean(dynamicPayoutEnabled);
+  res.json({ success: true, message: "রিস্ক ম্যানেজমেন্ট কনফিগারেশন সফলভাবে আপডেট হয়েছে!", config: RISK_CONFIG });
 });
 
 app.post('/api/admin/set-otc-trend', (req, res) => {
@@ -317,4 +348,4 @@ app.post('/api/admin/adjust-balance', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Quotex Candlestick Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Broker Management Engine running on port ${PORT}`));
