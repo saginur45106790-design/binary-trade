@@ -10,7 +10,6 @@ let panOffset = 0;
 let remainingCountdown = 60;
 
 // ফিক্সড ১ মিনিটের ক্যান্ডেল
-let activeTfSeconds = 60;
 let activeAssetKey = 'EUR_USD';
 let activeDecimals = 5;
 let currentPayout = 77;
@@ -27,7 +26,6 @@ let initialPinchDistance = null;
 let currentMode = 'timer';
 let selectedTimerSeconds = 60; // 1m
 let selectedTimerDisplay = '00:01:00';
-let selectedTimeValue = '';
 
 let currentInvestAmount = 1;
 let selectedDepMethod = 'Bkash';
@@ -56,11 +54,11 @@ function generateEmergencyFallbackCandles(basePrice = 1.08540, decimals = 5) {
     let nowSec = Math.floor(Date.now() / 60000) * 60;
     for (let i = 1440; i > 0; i--) {
         let t = nowSec - (i * 60);
-        let delta = (Math.random() - 0.495) * 0.0003;
+        let delta = (Math.random() - 0.495) * 0.00015;
         let o = cur;
         let c = parseFloat((o + delta).toFixed(decimals));
-        let h = parseFloat((Math.max(o, c) + Math.random() * 0.0002).toFixed(decimals));
-        let l = parseFloat((Math.min(o, c) - Math.random() * 0.0002).toFixed(decimals));
+        let h = parseFloat((Math.max(o, c) + Math.random() * 0.00010).toFixed(decimals));
+        let l = parseFloat((Math.min(o, c) - Math.random() * 0.00010).toFixed(decimals));
         list.push({ time: t, open: o, high: h, low: l, close: c });
         cur = c;
     }
@@ -188,7 +186,6 @@ function updateTradeBadges() {
     if (b1) b1.innerText = count;
 }
 
-// ব্রিফকেস লাইভ ট্রেড ড্রয়ার
 function openActiveTradesDrawer() {
     let m = document.getElementById('activeTradesModal');
     if (m) {
@@ -441,7 +438,7 @@ function updateBalanceUI(val) {
     }
 }
 
-// মাল্টি-টাইমফ্রেম ট্রেড প্লেসিং (1m, 5m, 10m, 30m, 1h)
+// ট্রেড প্লেসিং
 function placeOrder(direction) {
     let amount = currentInvestAmount;
     let totalSec = selectedTimerSeconds || 60;
@@ -556,7 +553,7 @@ function render() {
         return height - padY - ((p - minP) / range) * (height - padY * 2);
     }
 
-    // ব্যাকগ্রাউন্ড গ্রিড ও প্রাইস স্কেল
+    // ব্যাকগ্রাউন্ড গ্রিড
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#7a8ba1';
@@ -573,7 +570,7 @@ function render() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // কটেক্সের মতো মাঝারি, হ্যামার ও উইক সহ স্পষ্ট ক্যান্ডেলস্টিক
+    // কটেক্সের মতো মাঝারি, হ্যামার ও উইক সহ স্বাভাবিক ক্যান্ডেলস্টিক
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -737,7 +734,6 @@ function connectWS() {
 }
 connectWS();
 
-// মোডাল ও টাইমার ডায়ালগ
 function toggleTimePopup() { let p = document.getElementById('timeSelectPopup'); if (p) p.style.display = (p.style.display !== 'block') ? 'block' : 'none'; }
 function selectTimer(sec, display) {
     selectedTimerSeconds = sec;
@@ -754,8 +750,33 @@ function openMainMenuModal() { let m = document.getElementById('mainMenuModal');
 function closeMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'none'; }
 function openHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'flex'; }
 function closeHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'none'; }
-function openTournamentsModal() { let m = document.getElementById('tournamentsModal'); if (m) m.style.display = 'flex'; }
-function closeTournamentsModal() { let m = document.getElementById('tournamentsModal'); if (m) m.style.display = 'none'; }
+function openTournamentsModal() {
+    let m = document.getElementById('tournamentsModal');
+    if (m) m.style.display = 'flex';
+    fetch('/api/tournaments').then(r => r.json()).then(d => {
+        let box = document.getElementById('tournamentsListContainer');
+        if (!box) return;
+        let html = '';
+        d.tournaments.forEach(t => {
+            html += `
+                <div class="tournament-card-item">
+                    <span class="tour-pill-badge">${t.status}</span>
+                    <div class="tour-content-row">
+                        <span class="tour-name">${t.title}</span>
+                        <div class="tour-prize-block"><div style="font-size:10px; color:#7e92aa; font-weight:700;">PRIZE POOL</div><div class="tour-prize-val">${t.prizePool}</div></div>
+                    </div>
+                    <div class="tour-specs-row">
+                        <div class="tour-spec-item"><b>${t.entryFee}</b><span>Entry fee</span></div>
+                        <div class="tour-spec-item"><b>${t.duration}</b><span>Duration</span></div>
+                    </div>
+                    <button class="btn-tour-details" onclick="alert('Joining ${t.title}...')">Details</button>
+                </div>
+            `;
+        });
+        box.innerHTML = html;
+    });
+}
+function closeTournamentsModal() { document.getElementById('tournamentsModal').style.display = 'none'; }
 function openDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'flex'; }
 function closeDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'none'; }
 function resetPan() { panOffset = 0; }

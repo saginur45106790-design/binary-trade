@@ -20,25 +20,24 @@ let users = {
 
 let userGroups = ["Standard", "VIP", "Premium", "New Traders"];
 
-// গ্লোবাল রিস্ক ম্যানেজমেন্ট সেটিংস
 let RISK_CONFIG = {
-  maxTradeAmount: 100.00,        // একক ট্রেডে সর্বোচ্চ ইনভেস্ট
-  maxAssetExposure: 500.00,      // প্রতি কয়েনে একমুখী সর্বোচ্চ এক্সপোজার সীমা
-  dynamicPayoutEnabled: true     // অসম ভলিউমে স্বয়ংক্রিয় পেআউট অ্যাডজাস্টমেন্ট
+  maxTradeAmount: 100.00,
+  maxAssetExposure: 500.00,
+  dynamicPayoutEnabled: true
 };
 
 // ১০টি অফিসিয়াল OTC পেয়ার
 let ASSETS = {
-  'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00035, payout1m: 77, payout5m: 77, change24h: -1.27, trend: 'NORMAL', trendUntil: 0 },
+  'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00030, payout1m: 77, payout5m: 77, change24h: -1.27, trend: 'NORMAL', trendUntil: 0 },
   'GBP_JPY': { name: 'GBP/JPY (OTC)', ticker: 'GBP_JPY', price: 191.450, basePrice: 191.450, decimals: 3, vol: 0.045, payout1m: 77, payout5m: 80, change24h: 0.21, trend: 'NORMAL', trendUntil: 0 },
-  'GBP_USD': { name: 'GBP/USD (OTC)', ticker: 'GBP_USD', price: 1.31210, basePrice: 1.31210, decimals: 5, vol: 0.00040, payout1m: 92, payout5m: 83, change24h: 0.00, trend: 'NORMAL', trendUntil: 0 },
-  'EUR_AUD': { name: 'EUR/AUD (OTC)', ticker: 'EUR_AUD', price: 1.62480, basePrice: 1.62480, decimals: 5, vol: 0.00045, payout1m: 94, payout5m: 95, change24h: -0.61, trend: 'NORMAL', trendUntil: 0 },
-  'ETH':     { name: 'Ethereum (OTC)', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, vol: 1.80, payout1m: 81, payout5m: 67, change24h: 4.75, trend: 'NORMAL', trendUntil: 0 },
-  'SOL':     { name: 'Solana (OTC)', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, vol: 0.45, payout1m: 81, payout5m: 64, change24h: -10.94, trend: 'NORMAL', trendUntil: 0 },
-  'BNB':     { name: 'Binance Coin (OTC)', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, vol: 0.65, payout1m: 89, payout5m: 75, change24h: 2.33, trend: 'NORMAL', trendUntil: 0 },
-  'BTC':     { name: 'Bitcoin (OTC)', ticker: 'BTC', price: 68525.50, basePrice: 68525.50, decimals: 2, vol: 5.20, payout1m: 75, payout5m: 82, change24h: 1.29, trend: 'NORMAL', trendUntil: 0 },
-  'SILVER':  { name: 'Silver (OTC)', ticker: 'SILVER', price: 28.520, basePrice: 28.520, decimals: 3, vol: 0.030, payout1m: 88, payout5m: 77, change24h: 0.11, trend: 'NORMAL', trendUntil: 0 },
-  'GOLD':    { name: 'Gold (OTC)', ticker: 'GOLD', price: 2350.40, basePrice: 2350.40, decimals: 2, vol: 0.90, payout1m: 92, payout5m: 79, change24h: 0.03, trend: 'NORMAL', trendUntil: 0 }
+  'GBP_USD': { name: 'GBP/USD (OTC)', ticker: 'GBP_USD', price: 1.31210, basePrice: 1.31210, decimals: 5, vol: 0.00035, payout1m: 92, payout5m: 83, change24h: 0.00, trend: 'NORMAL', trendUntil: 0 },
+  'EUR_AUD': { name: 'EUR/AUD (OTC)', ticker: 'EUR_AUD', price: 1.62480, basePrice: 1.62480, decimals: 5, vol: 0.00040, payout1m: 94, payout5m: 95, change24h: -0.61, trend: 'NORMAL', trendUntil: 0 },
+  'ETH':     { name: 'Ethereum (OTC)', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, vol: 1.60, payout1m: 81, payout5m: 67, change24h: 4.75, trend: 'NORMAL', trendUntil: 0 },
+  'SOL':     { name: 'Solana (OTC)', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, vol: 0.40, payout1m: 81, payout5m: 64, change24h: -10.94, trend: 'NORMAL', trendUntil: 0 },
+  'BNB':     { name: 'Binance Coin (OTC)', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, vol: 0.60, payout1m: 89, payout5m: 75, change24h: 2.33, trend: 'NORMAL', trendUntil: 0 },
+  'BTC':     { name: 'Bitcoin (OTC)', ticker: 'BTC', price: 68525.50, basePrice: 68525.50, decimals: 2, vol: 4.80, payout1m: 75, payout5m: 82, change24h: 1.29, trend: 'NORMAL', trendUntil: 0 },
+  'SILVER':  { name: 'Silver (OTC)', ticker: 'SILVER', price: 28.520, basePrice: 28.520, decimals: 3, vol: 0.025, payout1m: 88, payout5m: 77, change24h: 0.11, trend: 'NORMAL', trendUntil: 0 },
+  'GOLD':    { name: 'Gold (OTC)', ticker: 'GOLD', price: 2350.40, basePrice: 2350.40, decimals: 2, vol: 0.80, payout1m: 92, payout5m: 79, change24h: 0.03, trend: 'NORMAL', trendUntil: 0 }
 };
 
 let activeServerTrades = [];
@@ -60,14 +59,14 @@ function init24HourMarket() {
       let t = currentCandleMinute - (i * 60);
       let randShape = Math.random();
       let drift = -(cur - meta.basePrice) * 0.001;
-      let delta = (Math.random() - 0.495) * meta.vol * 0.7 + drift;
+      let delta = (Math.random() - 0.495) * meta.vol * 0.6 + drift;
       let o = cur;
       let c = parseFloat((o + delta).toFixed(meta.decimals));
 
-      let upperWick = Math.random() * meta.vol * 0.35;
-      let lowerWick = Math.random() * meta.vol * 0.35;
-      if (randShape > 0.85) lowerWick += meta.vol * 0.55;
-      else if (randShape < 0.15) upperWick += meta.vol * 0.55;
+      let upperWick = Math.random() * meta.vol * 0.3;
+      let lowerWick = Math.random() * meta.vol * 0.3;
+      if (randShape > 0.85) lowerWick += meta.vol * 0.5;
+      else if (randShape < 0.15) upperWick += meta.vol * 0.5;
 
       let h = parseFloat((Math.max(o, c) + upperWick + 0.01 * meta.vol).toFixed(meta.decimals));
       let l = parseFloat((Math.min(o, c) - lowerWick - 0.01 * meta.vol).toFixed(meta.decimals));
@@ -83,7 +82,7 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
-// প্রতি সেকেন্ডের ইঞ্জিন ও ট্রেড সেটেলমেন্ট
+// প্রতি সেকেন্ডের ইঞ্জিন (স্বাভাবিক গতির ট্রেন্ড ও কোনো স্পাইক ছাড়া)
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -95,17 +94,20 @@ setInterval(() => {
   for (let key in ASSETS) {
     let meta = ASSETS[key];
     
+    // ট্রেন্ড গতি: পুরো ৬০ সেকেন্ডে মাত্র ১টি স্বাভাবিক ক্যান্ডেল বডি তৈরি করবে
     let trendDrift = 0;
     if (now < meta.trendUntil) {
-      if (meta.trend === 'UP') trendDrift = meta.vol * 0.28;
-      else if (meta.trend === 'DOWN') trendDrift = -meta.vol * 0.28;
+      // (meta.vol * 0.35) পুরো ৬০ সেকেন্ডে ধীরে ধীরে ভাগ করে নেওয়া হয়েছে
+      if (meta.trend === 'UP') trendDrift = (meta.vol * 0.35) / 60.0;
+      else if (meta.trend === 'DOWN') trendDrift = -(meta.vol * 0.35) / 60.0;
     } else {
       meta.trend = 'NORMAL';
-      trendDrift = -(meta.price - meta.basePrice) * 0.0008;
+      trendDrift = -(meta.price - meta.basePrice) * 0.0005 / 60.0;
     }
 
-    let delta = (Math.random() - 0.495) * (meta.vol * 0.22) + trendDrift;
-    meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
+    // স্বাভাবিক মাইক্রো-টিক নয়েজ (লাফালাফি ছাড়া মসৃণ মুভমেন্ট)
+    let tickNoise = (Math.random() - 0.495) * (meta.vol * 0.04);
+    meta.price = parseFloat((meta.price + trendDrift + tickNoise).toFixed(meta.decimals));
 
     let list = candleHistories[key];
     let lastCandle = list[list.length - 1];
@@ -122,7 +124,7 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // মাল্টি-টাইমফ্রেম ট্রেড সেটেলমেন্ট
+  // সক্রিয় ট্রেডগুলোর অটো-সেটেলমেন্ট
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
@@ -196,7 +198,7 @@ setInterval(() => {
   });
 }, 1000);
 
-// API রুটস
+// API Routes
 app.get('/api/assets', (req, res) => res.json({ success: true, assets: ASSETS }));
 
 app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
@@ -209,34 +211,20 @@ app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
 
 app.get('/api/active-trades', (req, res) => res.json({ success: true, trades: activeServerTrades, results: recentTradeResults }));
 
-// ঝুঁকি যাচাই সহ ট্রেড প্লেসমেন্ট (Trade Placement with Risk Management)
 app.post('/api/trade', (req, res) => {
   const { username, amount, direction, accountType, durationSec, asset, candleTime, clientEntryPrice } = req.body;
   let user = users["85857047"];
   let tradeAmount = Number(amount) || 1;
 
-  // ১. ম্যাক্সিমাম ইনভেস্টমেন্ট ক্যাপ যাচাই
   if (tradeAmount > RISK_CONFIG.maxTradeAmount) {
-    return res.json({ success: false, message: `সর্বোচ্চ ট্রেড লিমিট $${RISK_CONFIG.maxTradeAmount}! এর বেশি ট্রেড নেওয়া সম্ভব নয়।` });
+    return res.json({ success: false, message: `সর্বোচ্চ ট্রেড লিমিট $${RISK_CONFIG.maxTradeAmount}!` });
   }
 
   let targetBal = accountType === 'live' ? user.liveBalance : user.demoBalance;
-  if (targetBal < tradeAmount) return res.json({ success: false, message: "অপর্যাপ্ত অ্যাকাউন্ট ব্যালেন্স!" });
+  if (targetBal < tradeAmount) return res.json({ success: false, message: "অপর্যাপ্ত ব্যালেন্স!" });
 
   let cleanAsset = (asset || "EUR_USD").replace('/', '_');
   let selectedAsset = ASSETS[cleanAsset] || ASSETS['EUR_USD'];
-
-  // ২. ম্যাক্সিমাম এক্সপোজার লিমিট প্রটেকশন (হাউস রিস্ক গার্ড)
-  let currentDirVolume = activeServerTrades
-    .filter(t => t.asset === cleanAsset && t.direction === direction)
-    .reduce((sum, t) => sum + Number(t.amount), 0);
-
-  if (currentDirVolume + tradeAmount > RISK_CONFIG.maxAssetExposure) {
-    return res.json({
-      success: false,
-      message: `এই মুহূর্তে ${selectedAsset.name}-এ সর্বোচ্চ এক্সপোজার লিমিট পূর্ণ। কিছুক্ষণ পর পুনরায় চেষ্টা করুন।`
-    });
-  }
 
   if (accountType === 'live') user.liveBalance -= tradeAmount;
   else user.demoBalance -= tradeAmount;
@@ -279,9 +267,7 @@ app.get('/api/user/info', (req, res) => {
   res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
 });
 
-// -------------------------------------------------------------
-// অ্যাডমিন রিস্ক ম্যানেজমেন্ট ও ড্যাশবোর্ড API
-// -------------------------------------------------------------
+// অ্যাডমিন প্যানেল API
 app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
 app.get(['/api/admin/overview', '/api/admin/data'], (req, res) => {
@@ -308,21 +294,13 @@ app.get(['/api/admin/overview', '/api/admin/data'], (req, res) => {
   });
 });
 
-app.post('/api/admin/update-risk-config', (req, res) => {
-  const { maxTradeAmount, maxAssetExposure, dynamicPayoutEnabled } = req.body;
-  if (maxTradeAmount) RISK_CONFIG.maxTradeAmount = parseFloat(maxTradeAmount);
-  if (maxAssetExposure) RISK_CONFIG.maxAssetExposure = parseFloat(maxAssetExposure);
-  if (dynamicPayoutEnabled !== undefined) RISK_CONFIG.dynamicPayoutEnabled = Boolean(dynamicPayoutEnabled);
-  res.json({ success: true, message: "রিস্ক ম্যানেজমেন্ট কনফিগারেশন সফলভাবে আপডেট হয়েছে!", config: RISK_CONFIG });
-});
-
 app.post('/api/admin/set-otc-trend', (req, res) => {
   const { asset, direction, durationMinutes } = req.body;
   if (ASSETS[asset]) {
     let mins = Math.max(1, parseInt(durationMinutes) || 5);
     ASSETS[asset].trend = direction || 'NORMAL';
     ASSETS[asset].trendUntil = Date.now() + (mins * 60 * 1000);
-    return res.json({ success: true, message: `${ASSETS[asset].name} ট্রেন্ড ${direction} এ ${mins} মিনিটের জন্য সেট করা হয়েছে।` });
+    return res.json({ success: true, message: `${ASSETS[asset].name} ট্রেন্ড ${direction} এ ${mins} মিনিটের জন্য মসৃণভাবে সেট করা হয়েছে।` });
   }
   res.json({ success: false, message: "অ্যাসেট পাওয়া যায়নি।" });
 });
@@ -348,4 +326,4 @@ app.post('/api/admin/adjust-balance', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Broker Management Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Smooth Quotex Candlestick Engine running on port ${PORT}`));
