@@ -4,34 +4,81 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Pocket Trade Pro | Multi-Featured Terminal</title>
-  <link rel="stylesheet" href="style.css?v=50.0">
+  <link rel="stylesheet" href="style.css?v=52.0">
 </head>
 <body>
   <div class="app-root">
 
-    <div id="authViewPage" class="app-view-page" style="display:none;">
-      <div class="page-top-bar">
-        <b style="font-size:16px;">Pocket Option Pro</b>
-        <span onclick="closeViewPage('authViewPage')" style="cursor:pointer; font-size:18px;">✕</span>
+    <div id="landingPage" class="app-view-page" style="display:flex; z-index:300; background:radial-gradient(circle at 50% 20%, #172a45 0%, #0a0f18 100%);">
+      <div class="landing-header" style="height:56px; display:flex; justify-content:space-between; align-items:center; padding:0 16px; border-bottom:1px solid rgba(255,255,255,0.06);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="28" height="28" viewBox="0 0 32 32">
+            <path fill="#eb5757" d="M16 2L4 9v14l12 7 12-7V9L16 2zm0 4.2l8 4.6v9.4l-8 4.6-8-4.6v-9.4l8-4.6z"/>
+            <path fill="#2a66e4" d="M16 11l5 3v6l-5 3-5-3v-6l5-3z"/>
+          </svg>
+          <b style="font-size:17px; letter-spacing:0.5px; color:#fff;">POCKET OPTION</b>
+        </div>
+        <button class="btn-sm-outline" onclick="openAuthModal('log')" style="background:transparent; border:1px solid rgba(255,255,255,0.25); color:#fff; padding:6px 14px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">Login</button>
       </div>
-      <div class="page-content" style="max-width:400px; margin:auto;">
+
+      <div class="page-content" style="display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:30px 20px;">
+        <span style="background:rgba(0,112,243,0.15); color:#38bdf8; border:1px solid rgba(0,112,243,0.3); font-size:11px; font-weight:800; padding:4px 10px; border-radius:14px; margin-bottom:14px; text-transform:uppercase;">Next-Gen Financial Trading</span>
+        <h1 style="font-size:28px; font-weight:900; line-height:1.25; margin-bottom:12px; color:#fff;">A unique platform for trading</h1>
+        <p style="font-size:13px; color:#8ca2ba; line-height:1.6; max-width:320px; margin-bottom:26px;">
+          Start trading financial markets with institutional OTC instruments, lightning-fast execution, and seamless 2X turnover bonus benefits.
+        </p>
+        
+        <button class="btn-block-action" onclick="openAuthModal('reg')" style="max-width:320px; background:linear-gradient(135deg, #0070f3, #0051b3); font-size:15px; padding:14px; box-shadow:0 8px 24px rgba(0,112,243,0.35);">
+          Get Started — Free Account
+        </button>
+
+        <div style="margin-top:20px;">
+          <a href="#" onclick="enterQuickDemo()" style="color:#8ca2ba; font-size:12px; text-decoration:underline;">Explore Demo Terminal ($11,068.77)</a>
+        </div>
+      </div>
+    </div>
+
+    <div id="authViewPage" class="app-view-page" style="display:none; z-index:350; background:rgba(10,15,24,0.95); backdrop-filter:blur(10px);">
+      <div class="page-top-bar">
+        <b id="authModalHeaderTitle" style="font-size:15px;">Account Gateway</b>
+        <span onclick="closeViewPage('authViewPage')" style="cursor:pointer; font-size:20px;">✕</span>
+      </div>
+      <div class="page-content" style="max-width:380px; margin:auto; width:100%; display:flex; flex-direction:column; justify-content:center;">
+        
         <div class="card-box" id="authBoxLogin">
-          <h3 style="margin-bottom:12px;">Login to Account</h3>
-          <input type="text" id="authLogEmail" class="input-control" placeholder="Email or User ID">
-          <input type="password" id="authLogPass" class="input-control" placeholder="Password">
-          <button class="btn-block-action" onclick="submitLogin()">Login</button>
-          <p style="text-align:center; font-size:12px; margin-top:12px; color:var(--text-muted);">
-            Don't have an account? <a href="#" onclick="switchAuthTab('reg')" style="color:var(--accent-blue);">Register</a>
+          <h3 style="margin-bottom:6px;">Welcome Back</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">Enter your credentials to access your trading account.</p>
+          
+          <label style="font-size:11px; color:var(--text-muted);">Email or User ID</label>
+          <input type="text" id="authLogEmail" class="input-control" placeholder="name@example.com or ID">
+          
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Password</label>
+          <input type="password" id="authLogPass" class="input-control" placeholder="••••••••">
+          
+          <button class="btn-block-action" style="background:var(--accent-blue);" onclick="submitLogin()">Sign In</button>
+          
+          <p style="text-align:center; font-size:12px; margin-top:14px; color:var(--text-muted);">
+            Don't have an account? <a href="#" onclick="switchAuthTab('reg')" style="color:var(--accent-blue); font-weight:700;">Sign Up</a>
           </p>
         </div>
+
         <div class="card-box" id="authBoxReg" style="display:none;">
-          <h3 style="margin-bottom:12px;">Create Account</h3>
-          <input type="email" id="authRegEmail" class="input-control" placeholder="Email Address">
-          <input type="text" id="authRegPhone" class="input-control" placeholder="Mobile Number">
-          <input type="password" id="authRegPass" class="input-control" placeholder="Password">
-          <button class="btn-block-action" onclick="submitRegister()">Register Now</button>
-          <p style="text-align:center; font-size:12px; margin-top:12px; color:var(--text-muted);">
-            Already have an account? <a href="#" onclick="switchAuthTab('log')" style="color:var(--accent-blue);">Login</a>
+          <h3 style="margin-bottom:6px;">Create Trading Account</h3>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">Sign up in seconds and receive $11,068.77 demo funds.</p>
+          
+          <label style="font-size:11px; color:var(--text-muted);">Email Address</label>
+          <input type="email" id="authRegEmail" class="input-control" placeholder="name@example.com">
+          
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Mobile Number</label>
+          <input type="text" id="authRegPhone" class="input-control" placeholder="01700000000">
+
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Create Password</label>
+          <input type="password" id="authRegPass" class="input-control" placeholder="••••••••">
+          
+          <button class="btn-block-action" onclick="submitRegister()">Sign Up Now</button>
+          
+          <p style="text-align:center; font-size:12px; margin-top:14px; color:var(--text-muted);">
+            Already registered? <a href="#" onclick="switchAuthTab('log')" style="color:var(--accent-blue); font-weight:700;">Sign In</a>
           </p>
         </div>
       </div>
@@ -39,12 +86,12 @@
 
     <header class="top-bar">
       <div class="account-pill" onclick="switchAccountType()">
-        <span class="svg-icon" style="color:var(--accent-blue);">
+        <span class="svg-icon" style="color:#38bdf8;">
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </span>
         <span id="accountModeText" style="color:var(--accent-yellow);">DEMO</span>
         <span id="accountBalanceText" style="font-weight:800;">$11,068.77</span>
-        <span style="font-size:9px;">▼</span>
+        <span style="font-size:9px; color:var(--text-muted);">▼</span>
       </div>
 
       <div class="top-right">
@@ -130,7 +177,7 @@
     <div id="profilePage" class="app-view-page">
       <div class="page-top-bar">
         <b>User Profile</b>
-        <span onclick="closeViewPage('profilePage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <span onclick="closeViewPage('profilePage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content">
         <div class="card-box" style="display:flex; justify-content:space-between; align-items:center;">
@@ -145,30 +192,35 @@
           <label style="font-size:11px; color:var(--text-muted);">Full Name</label>
           <input type="text" id="profNameInput" class="input-control" value="MD Sajib Hossain">
           
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Email Address</label>
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Email Address (Gmail)</label>
           <input type="text" id="profEmailInput" class="input-control" value="teachsajib@gmail.com">
           
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Phone Number</label>
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Mobile Number</label>
           <input type="text" id="profPhoneInput" class="input-control" value="01700000000">
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Date of Birth</label>
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Date of Birth</label>
           <input type="date" id="profDobInput" class="input-control" value="2000-01-01">
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Address</label>
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Address</label>
           <input type="text" id="profAddressInput" class="input-control" value="Dhaka, Bangladesh">
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Zip Code</label>
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Zip Code</label>
           <input type="text" id="profZipInput" class="input-control" value="1200">
 
           <button class="btn-block-action" onclick="saveProfileDetails()">Save Profile Details</button>
         </div>
 
         <div class="card-box" id="nidSubmitSection">
-          <h4 style="margin-bottom:8px;">Identity Verification (NID Card)</h4>
-          <p style="font-size:12px; color:var(--text-muted); margin-bottom:10px;">Upload front & back side photos of your NID card.</p>
+          <h4 style="margin-bottom:6px;">Identity Verification (NID Card)</h4>
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Upload clear front & back side photos of your National ID card.</p>
+          
+          <label style="font-size:11px; color:var(--text-muted);">NID Front Side Photo</label>
           <input type="file" id="nidFrontFile" class="input-control" accept="image/*">
-          <input type="file" id="nidBackFile" class="input-control" accept="image/*" style="margin-top:6px;">
-          <button class="btn-block-action" style="background:var(--accent-blue);" onclick="submitNidPhotos()">Submit NID for Verification</button>
+          
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">NID Back Side Photo</label>
+          <input type="file" id="nidBackFile" class="input-control" accept="image/*">
+
+          <button class="btn-block-action" style="background:var(--accent-blue);" onclick="submitNidPhotos()">Submit NID Documents</button>
         </div>
       </div>
     </div>
@@ -176,15 +228,15 @@
     <div id="supportChatPage" class="app-view-page">
       <div class="page-top-bar">
         <b>Live Support Desk (24h History)</b>
-        <span onclick="closeViewPage('supportChatPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <span onclick="closeViewPage('supportChatPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content chat-window">
         <div class="chat-body" id="chatMessagesContainer"></div>
         <div class="chat-input-bar">
           <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="sendChatImage(event)">
-          <span onclick="document.getElementById('chatImgInput').click()" style="cursor:pointer; font-size:18px;">📷</span>
-          <input type="text" id="chatTextInput" placeholder="Type your message..." style="flex:1; background:none; border:none; color:var(--text-main); outline:none;">
-          <button onclick="sendChatMessage()" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:6px; font-weight:700;">Send</button>
+          <span onclick="document.getElementById('chatImgInput').click()" style="cursor:pointer; font-size:20px; padding:0 4px;">📷</span>
+          <input type="text" id="chatTextInput" placeholder="Write message to support..." style="flex:1; background:none; border:none; color:var(--text-main); outline:none; font-size:13px;">
+          <button onclick="sendChatMessage()" style="background:var(--accent-blue); border:none; color:#fff; padding:8px 14px; border-radius:6px; font-weight:700;">Send</button>
         </div>
       </div>
     </div>
@@ -192,33 +244,50 @@
     <div id="trophyBonusPage" class="app-view-page">
       <div class="page-top-bar">
         <b>Trading Tasks & Bonus Rewards</b>
-        <span onclick="closeViewPage('trophyBonusPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <span onclick="closeViewPage('trophyBonusPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content">
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
-          Claim free bonus cash! To withdraw bonus rewards, a 2X turnover requirement must be fulfilled.
-        </p>
+        <div class="card-box" style="background:rgba(0,112,243,0.1); border-color:rgba(0,112,243,0.3);">
+          <b style="color:var(--accent-blue); font-size:13px;">Special Notice on Bonus Claims:</b>
+          <p style="font-size:11px; color:var(--text-muted); margin-top:4px; line-height:1.5;">
+            Claiming a bonus activates a 2X turnover requirement on the free bonus amount. Real trades without claiming bonuses have zero turnover restrictions.
+          </p>
+        </div>
         <div id="bonusTasksList"></div>
       </div>
     </div>
 
     <div id="menuPage" class="app-view-page">
       <div class="page-top-bar">
-        <b>Menu Navigation</b>
-        <span onclick="closeViewPage('menuPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <b>Terminal Menu</b>
+        <span onclick="closeViewPage('menuPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content">
-        <div class="card-box" style="margin-bottom:14px;">
+        <div class="card-box" style="margin-bottom:14px; background:linear-gradient(135deg, #172a45, #121c2c);">
           <h4 id="menuEmail">teachsajib@gmail.com</h4>
-          <small id="menuUserId" style="color:var(--text-muted);">ID: 85857047</small>
+          <small id="menuUserId" style="color:var(--text-muted); display:block; margin:2px 0 6px;">ID: 85857047</small>
+          <span style="font-size:11px; color:var(--accent-green); font-weight:800;">● STANDARD ACCOUNT: +0% PROFIT</span>
         </div>
-        <div class="card-box" style="padding:4px 10px;">
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('depositPage')">💳 Deposit</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('withdrawPage')">🏦 Withdrawal</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('paymentsHistoryPage')">🧾 Payments</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('tradesHistoryPage')">📊 Trades</div>
-          <div style="padding:12px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700;" onclick="openViewPage('settingsPage')">⚙️ Settings</div>
-          <div style="padding:12px 0; color:var(--accent-red); cursor:pointer; font-weight:700;" onclick="openViewPage('authViewPage')">🚪 Logout</div>
+
+        <div class="card-box" style="padding:0 14px;">
+          <div style="padding:14px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700; display:flex; justify-content:space-between;" onclick="openViewPage('depositPage')">
+            <span>💳 Deposit</span> ➔
+          </div>
+          <div style="padding:14px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700; display:flex; justify-content:space-between;" onclick="openViewPage('withdrawPage')">
+            <span>🏦 Withdrawal</span> ➔
+          </div>
+          <div style="padding:14px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700; display:flex; justify-content:space-between;" onclick="openViewPage('paymentsHistoryPage')">
+            <span>🧾 Payments</span> ➔
+          </div>
+          <div style="padding:14px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700; display:flex; justify-content:space-between;" onclick="openViewPage('tradesHistoryPage')">
+            <span>📊 Trades</span> ➔
+          </div>
+          <div style="padding:14px 0; border-bottom:1px solid var(--bg-card-border); cursor:pointer; font-weight:700; display:flex; justify-content:space-between;" onclick="openViewPage('settingsPage')">
+            <span>⚙️ Settings</span> ➔
+          </div>
+          <div style="padding:14px 0; color:var(--accent-red); cursor:pointer; font-weight:700; display:flex; justify-content:space-between;" onclick="handleUserLogout()">
+            <span>🚪 Logout</span> ➔
+          </div>
         </div>
       </div>
     </div>
@@ -226,102 +295,126 @@
     <div id="depositPage" class="app-view-page">
       <div class="page-top-bar">
         <b>Deposit Funds</b>
-        <span onclick="closeViewPage('depositPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <span onclick="closeViewPage('depositPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content">
         <div class="card-box" style="text-align:center; background:rgba(0,112,243,0.12); border-color:var(--accent-blue);">
-          <span style="font-size:12px; color:var(--text-muted);">Live Exchange Rate</span>
-          <h3 id="depDollarRateDisplay" style="color:var(--accent-blue); margin-top:2px;">1 USD = 125.00 BDT</h3>
+          <span style="font-size:11px; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Live Platform Exchange Rate</span>
+          <h2 id="depDollarRateDisplay" style="color:var(--accent-blue); margin-top:2px; font-weight:900;">1 USD = 125.00 BDT</h2>
         </div>
 
         <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Select Payment Gateway</label>
+          <label style="font-size:12px; font-weight:700;">Select Payment Method</label>
           <select id="depMethodSelect" class="input-control" onchange="onDepMethodChange()">
-            <option value="Binance">⭐ Binance Pay (USDT / BTC) - Recommended [Fast Pay]</option>
+            <option value="Binance">⭐ Binance Pay (USDT / BTC) — Recommended [Fast Pay]</option>
             <option value="bKash">bKash Personal (Send Money)</option>
             <option value="Nagad">Nagad Personal (Send Money)</option>
           </select>
         </div>
 
-        <div class="card-box" id="depMethodInfoBox">
-          <span id="depTargetLabel" style="font-size:12px; color:var(--text-muted);">Send to Address / Number:</span>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
-            <b id="depTargetAddress" style="font-size:14px;">01700000000</b>
-            <button onclick="copyToClipboard('depTargetAddress')" style="background:var(--accent-blue); border:none; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:700;">Copy</button>
+        <div class="card-box" id="binanceCoinSelectBox" style="display:block;">
+          <label style="font-size:11px; color:var(--text-muted);">Choose Crypto Asset</label>
+          <select id="cryptoAssetChoice" class="input-control" onchange="onCryptoChoiceChange()">
+            <option value="USDT_TRC20">USDT (TRC20 Network)</option>
+            <option value="USDT_BEP20">USDT (BEP20 BSC Network)</option>
+            <option value="BTC_BEP20">Bitcoin (BTC - BEP20 Network)</option>
+            <option value="BTC_MAIN">Bitcoin (BTC - Native Network)</option>
+          </select>
+        </div>
+
+        <div class="card-box">
+          <span id="depTargetLabel" style="font-size:11px; color:var(--text-muted); display:block;">Deposit Address (USDT TRC20):</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px; background:var(--bg-base); padding:10px; border-radius:6px; border:1px solid var(--bg-card-border);">
+            <b id="depTargetAddress" style="font-size:13px; word-break:break-all; font-family:monospace;">TX9...TRC20_USDT_ADDR</b>
+            <button onclick="copyToClipboard('depTargetAddress')" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-left:8px;">Copy</button>
           </div>
         </div>
 
         <div class="card-box">
-          <label style="font-size:11px; color:var(--text-muted);">Deposit Amount ($ USD)</label>
-          <input type="number" id="depAmountInput" class="input-control" placeholder="e.g. 20" min="5">
+          <label style="font-size:11px; color:var(--text-muted);">Deposit Amount (USD $)</label>
+          <input type="number" id="depAmountInput" class="input-control" placeholder="e.g. 25" min="5">
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Transaction ID (TrxID)</label>
-          <input type="text" id="depTrxInput" class="input-control" placeholder="Transaction ID">
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Transaction ID (TrxID / Hash)</label>
+          <input type="text" id="depTrxInput" class="input-control" placeholder="Enter transaction ID">
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Payment Screenshot</label>
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Payment Screenshot</label>
           <input type="file" id="depScreenshotFile" class="input-control" accept="image/*">
 
-          <button class="btn-block-action" onclick="submitDepositOrder()">Submit Deposit</button>
+          <button class="btn-block-action" onclick="submitDepositOrder()">Submit Deposit Now</button>
         </div>
 
-        <h4>Deposit History</h4>
-        <div id="depHistoryTable" style="margin-top:8px;"></div>
+        <h4 style="margin:16px 0 8px;">My Deposit History</h4>
+        <div id="depHistoryTable"></div>
       </div>
     </div>
 
     <div id="withdrawPage" class="app-view-page">
       <div class="page-top-bar">
         <b>Withdraw Funds</b>
-        <span onclick="closeViewPage('withdrawPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <span onclick="closeViewPage('withdrawPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content">
         <div class="turnover-warning-box" id="turnoverWarnBox">
-          ⚠️ <b>Withdrawal Restricted!</b> Complete your 2X Turnover requirement first.
+          ⚠️ <b>Withdrawal Blocked:</b> You must complete your 2X Turnover requirement on bonus funds before withdrawing.
         </div>
 
         <div class="card-box" style="display:flex; justify-content:space-between;">
-          <div><small style="color:var(--text-muted);">Real Balance</small><h3 id="wRealBal">$10.00</h3></div>
-          <div><small style="color:var(--text-muted);">Free Bonus Balance</small><h3 id="wBonusBal">$0.00</h3></div>
+          <div>
+            <small style="color:var(--text-muted); font-weight:700;">Real Balance</small>
+            <h3 id="wRealBal" style="color:var(--accent-green); margin-top:2px;">$10.00</h3>
+          </div>
+          <div style="text-align:right;">
+            <small style="color:var(--text-muted); font-weight:700;">Bonus Balance</small>
+            <h3 id="wBonusBal" style="color:var(--accent-yellow); margin-top:2px;">$0.00</h3>
+          </div>
         </div>
 
         <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Withdraw Method</label>
-          <select id="withMethodSelect" class="input-control">
-            <option value="bKash">bKash</option>
-            <option value="Nagad">Nagad</option>
-            <option value="Binance">Binance (USDT - BEP20 / TRC20)</option>
+          <label style="font-size:12px; font-weight:700;">Select Withdrawal Gateway</label>
+          <select id="withMethodSelect" class="input-control" onchange="onWithMethodChange()">
+            <option value="bKash">bKash (MFS)</option>
+            <option value="Nagad">Nagad (MFS)</option>
+            <option value="Binance">Binance Pay (USDT - BEP20 / TRC20)</option>
           </select>
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Amount ($ USD)</label>
+          <div id="withCryptoNetworkBox" style="display:none; margin-top:10px;">
+            <label style="font-size:11px; color:var(--text-muted);">Crypto Network</label>
+            <select id="withNetworkSelect" class="input-control">
+              <option value="TRC20">USDT - TRC20</option>
+              <option value="BEP20">USDT - BEP20 (Binance Smart Chain)</option>
+            </select>
+          </div>
+
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;">Withdrawal Amount (USD $)</label>
           <input type="number" id="withAmountInput" class="input-control" placeholder="Minimum $10">
 
-          <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Phone / Wallet Address</label>
-          <input type="text" id="withAccountDetails" class="input-control" placeholder="Enter details">
+          <label style="font-size:11px; color:var(--text-muted); margin-top:10px; display:block;" id="withDetailsLabel">bKash Mobile Number</label>
+          <input type="text" id="withAccountDetails" class="input-control" placeholder="01700000000">
 
-          <button class="btn-block-action" style="background:var(--accent-blue);" onclick="submitWithdrawOrder()">Submit Withdrawal</button>
+          <button class="btn-block-action" style="background:var(--accent-blue);" onclick="submitWithdrawOrder()">Submit Withdrawal Request</button>
         </div>
 
-        <h4>Withdrawal History</h4>
-        <div id="withHistoryTable" style="margin-top:8px;"></div>
+        <h4 style="margin:16px 0 8px;">My Withdrawal History</h4>
+        <div id="withHistoryTable"></div>
       </div>
     </div>
 
     <div id="settingsPage" class="app-view-page">
       <div class="page-top-bar">
-        <b>Global Settings</b>
-        <span onclick="closeViewPage('settingsPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <b>Platform Settings</b>
+        <span onclick="closeViewPage('settingsPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content">
         <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Theme Mode</label>
+          <label style="font-size:12px; font-weight:700;">Theme Appearance</label>
           <select id="themeSelect" class="input-control" onchange="applyThemeMode(this.value)">
-            <option value="dark">Dark Theme (ডার্ক)</option>
-            <option value="light">White Theme (লাইট)</option>
+            <option value="dark">Dark Theme (ডার্ক প্রফেশনাল থিম)</option>
+            <option value="light">White Theme (লাইট ক্লিন থিম)</option>
           </select>
         </div>
 
         <div class="card-box">
-          <label style="font-size:12px; font-weight:700;">Language (ভাষা)</label>
+          <label style="font-size:12px; font-weight:700;">Platform Language (ভাষা)</label>
           <select id="langSelect" class="input-control" onchange="applyLanguage(this.value)">
             <option value="en">English (US)</option>
             <option value="bn">বাংলা (Bengali)</option>
@@ -334,8 +427,8 @@
         </div>
 
         <div class="card-box">
-          <h4>Official Partner Program</h4>
-          <p style="font-size:12px; color:var(--text-muted); margin:4px 0 8px;">Join our official channel for signals and updates.</p>
+          <h4>Join Official Partner Channel</h4>
+          <p style="font-size:12px; color:var(--text-muted); margin:4px 0 10px;">Connect with our VIP trading signals, insights, and community updates.</p>
           <button class="btn-block-action" onclick="openPartnerTelegram()">Join Now Site Partner</button>
         </div>
       </div>
@@ -343,41 +436,64 @@
 
     <div id="notifPage" class="app-view-page">
       <div class="page-top-bar">
-        <b>Notifications</b>
-        <span onclick="closeViewPage('notifPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <b>System Notifications</b>
+        <span onclick="closeViewPage('notifPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content" id="notificationsList"></div>
+    </div>
+
+    <div id="paymentsHistoryPage" class="app-view-page">
+      <div class="page-top-bar">
+        <b>All Payments History</b>
+        <span onclick="closeViewPage('paymentsHistoryPage')" style="cursor:pointer; font-size:20px;">✕</span>
+      </div>
+      <div class="page-content" id="allPaymentsHistoryBox"></div>
+    </div>
+
+    <div id="tradesHistoryPage" class="app-view-page">
+      <div class="page-top-bar">
+        <b>Lifetime Trades History</b>
+        <span onclick="closeViewPage('tradesHistoryPage')" style="cursor:pointer; font-size:20px;">✕</span>
+      </div>
+      <div class="page-content" id="allTradesHistoryBox"></div>
     </div>
 
     <div id="assetSelectPage" class="app-view-page">
       <div class="page-top-bar">
         <b>Select OTC Market</b>
-        <span onclick="closeViewPage('assetSelectPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <span onclick="closeViewPage('assetSelectPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content" id="otcAssetsList"></div>
     </div>
 
     <div id="activeTradesPage" class="app-view-page">
       <div class="page-top-bar">
-        <b>Active Running Trades</b>
-        <span onclick="closeViewPage('activeTradesPage')" style="cursor:pointer; font-size:18px;">✕</span>
+        <b>Running Active Trades</b>
+        <span onclick="closeViewPage('activeTradesPage')" style="cursor:pointer; font-size:20px;">✕</span>
       </div>
       <div class="page-content" id="activeTradesContainer"></div>
     </div>
 
-    <div id="paymentsHistoryPage" class="app-view-page">
-      <div class="page-top-bar"><b>Payments History</b><span onclick="closeViewPage('paymentsHistoryPage')">✕</span></div>
-      <div class="page-content" id="allPaymentsHistoryBox"></div>
-    </div>
-    <div id="tradesHistoryPage" class="app-view-page">
-      <div class="page-top-bar"><b>Trades Lifetime</b><span onclick="closeViewPage('tradesHistoryPage')">✕</span></div>
-      <div class="page-content" id="allTradesHistoryBox"></div>
+    <div id="timerSelectModal" class="app-view-page" style="background:rgba(0,0,0,0.7); justify-content:flex-end;">
+      <div style="background:var(--bg-card); width:100%; border-radius:14px 14px 0 0; padding:16px; border-top:1px solid var(--bg-card-border);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <b>Select Expiration Time</b>
+          <span onclick="closeViewPage('timerSelectModal')" style="cursor:pointer; font-size:18px;">✕</span>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <button class="btn-sm-outline" style="background:var(--bg-base); color:#fff; border:1px solid var(--bg-card-border); padding:10px; border-radius:6px; font-weight:700;" onclick="selectExpirationTime(60, '00:01:00')">1 Minute</button>
+          <button class="btn-sm-outline" style="background:var(--bg-base); color:#fff; border:1px solid var(--bg-card-border); padding:10px; border-radius:6px; font-weight:700;" onclick="selectExpirationTime(300, '00:05:00')">5 Minutes</button>
+          <button class="btn-sm-outline" style="background:var(--bg-base); color:#fff; border:1px solid var(--bg-card-border); padding:10px; border-radius:6px; font-weight:700;" onclick="selectExpirationTime(600, '00:10:00')">10 Minutes</button>
+          <button class="btn-sm-outline" style="background:var(--bg-base); color:#fff; border:1px solid var(--bg-card-border); padding:10px; border-radius:6px; font-weight:700;" onclick="selectExpirationTime(1800, '00:30:00')">30 Minutes</button>
+          <button class="btn-sm-outline" style="background:var(--bg-base); color:#fff; border:1px solid var(--bg-card-border); padding:10px; border-radius:6px; font-weight:700;" onclick="selectExpirationTime(3600, '01:00:00')">1 Hour</button>
+        </div>
+      </div>
     </div>
 
   </div>
 
   <div id="toastMessage" class="toast-msg">Action Completed</div>
 
-  <script src="script.js?v=50.0"></script>
+  <script src="script.js?v=52.0"></script>
 </body>
 </html>
