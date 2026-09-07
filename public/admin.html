@@ -3,81 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Admin | OTC Trend & Payout Controller</title>
+    <title>Master Admin Console</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: #0c1017; color: #e2e8f0; padding: 12px; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 16px; border-bottom: 1px solid #1e293b; margin-bottom: 16px; }
-        .header h1 { font-size: 17px; font-weight: 800; color: #fff; }
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 16px; border-bottom: 1px solid #1e293b; margin-bottom: 14px; }
+        .header h1 { font-size: 16px; font-weight: 800; color: #fff; }
         .badge-live { background: #00b074; color: #fff; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-
-        .tabs { display: flex; gap: 6px; background: #131b26; padding: 4px; border-radius: 8px; margin-bottom: 14px; overflow-x: auto; }
-        .tab-btn { flex: 1; min-width: 90px; background: none; border: none; color: #8fa0b5; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; }
+        
+        .tabs { display: flex; gap: 6px; background: #131b26; padding: 4px; border-radius: 8px; margin-bottom: 14px; }
+        .tab-btn { flex: 1; background: none; border: none; color: #8fa0b5; padding: 8px 4px; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; text-align: center; }
         .tab-btn.active { background: #0070f3; color: #fff; }
 
-        .card { background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
-        .card-head { font-size: 14px; font-weight: 800; margin-bottom: 12px; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .section-box { display: none; background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+        .section-box.active { display: block; }
 
-        /* OTC কার্ডস */
-        .otc-ctrl-card {
-            background: #0c1017;
-            border: 1px solid #1e2d40;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 10px;
-        }
-        .otc-head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .otc-title { font-size: 14px; font-weight: 800; color: #fff; }
-        .otc-trend-status { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; }
-        .otc-trend-status.up { background: rgba(0, 230, 118, 0.15); color: #00e676; border: 1px solid #00e676; }
-        .otc-trend-status.down { background: rgba(235, 87, 87, 0.15); color: #eb5757; border: 1px solid #eb5757; }
-        .otc-trend-status.normal { background: #1e293b; color: #8fa0b5; }
+        .search-input { width: 100%; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; outline: none; margin-bottom: 12px; }
+        .user-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .u-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+        .u-meta { font-size: 12px; color: #8fa0b5; line-height: 1.5; margin-bottom: 8px; }
+        .u-bal-row { display: flex; justify-content: space-between; background: #131b26; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
 
-        .otc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-        .form-row { margin-bottom: 8px; }
-        .form-row label { display: block; font-size: 11px; color: #8fa0b5; margin-bottom: 3px; font-weight: 600; }
-        .form-input, .form-select { width: 100%; background: #131b26; border: 1px solid #233348; color: #fff; padding: 8px 10px; border-radius: 6px; font-size: 12px; outline: none; }
-
-        .btn-apply-trend {
-            width: 100%;
-            background: #0070f3;
-            color: #fff;
-            border: none;
-            padding: 9px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .btn-group-trend { display: flex; gap: 6px; margin-bottom: 8px; }
-        .btn-t-dir { flex: 1; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 6px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; }
-        .btn-t-dir.active-up { background: #00b074; color: #fff; border-color: #00b074; }
-        .btn-t-dir.active-down { background: #eb5757; color: #fff; border-color: #eb5757; }
+        .otc-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+        .otc-title-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
+        .btn-trend-row { display: flex; gap: 6px; margin-bottom: 8px; }
+        .btn-t { flex: 1; background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 7px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; }
+        .btn-t.up { background: #00b074; color: #fff; }
+        .btn-t.down { background: #eb5757; color: #fff; }
+        
+        .input-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .input-row input { flex: 1; background: #131b26; border: 1px solid #233348; color: #fff; padding: 7px 10px; border-radius: 4px; font-size: 12px; }
+        .btn-save { background: #0070f3; color: #fff; border: none; padding: 7px 14px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; }
 
         .toast-msg { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00b074; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; z-index: 100; }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>⚡ OTC Market & Trend Controller <span class="badge-live">ONLINE</span></h1>
+        <h1>⚡ Admin Control Console <span class="badge-live">LIVE</span></h1>
         <button onclick="loadAdminData()" style="background:#233348; color:#fff; border:none; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">🔄 Refresh</button>
     </div>
 
-    <div class="card">
-        <div class="card-head">
-            <span>Official OTC Assets Management</span>
-            <span style="font-size:11px; color:#8fa0b5;">Total 10 Pairs</span>
-        </div>
-        <div id="otcAdminCardsContainer">লোড হচ্ছে...</div>
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('otc')">OTC Trend Control</button>
+        <button class="tab-btn" onclick="switchTab('users')">Users & Search</button>
+    </div>
+
+    <div class="section-box active" id="sec-otc">
+        <div style="font-size:13px; font-weight:800; margin-bottom:12px;">📈 Set Direction (UP / DOWN) & Duration:</div>
+        <div id="otcCardsContainer">লোড হচ্ছে...</div>
+    </div>
+
+    <div class="section-box" id="sec-users">
+        <div style="font-size:13px; font-weight:800; margin-bottom:10px;">👥 Registered Users Directory:</div>
+        <input type="text" id="userSearchInput" class="search-input" placeholder="🔍 Search User by ID, Name, or Email..." oninput="filterUsers()">
+        <div id="usersListContainer">লোড হচ্ছে...</div>
     </div>
 
     <div id="toast" class="toast-msg"></div>
 
     <script>
-        let adminAssets = {};
-        let serverCurrentTime = Date.now();
+        let adminData = { users: {}, assets: {} };
 
         function showToast(msg) {
             let t = document.getElementById('toast');
@@ -86,107 +72,108 @@
             setTimeout(() => { t.style.display = 'none'; }, 3000);
         }
 
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.section-box').forEach(s => s.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('sec-' + tab).classList.add('active');
+        }
+
         function loadAdminData() {
             fetch('/api/admin/data')
             .then(r => r.json())
             .then(d => {
-                adminAssets = d.assets || {};
-                serverCurrentTime = d.serverTime || Date.now();
-                renderAdminOtcCards();
+                adminData = d;
+                renderOtcControls();
+                filterUsers();
             });
         }
 
-        function renderAdminOtcCards() {
-            let container = document.getElementById('otcAdminCardsContainer');
+        function renderOtcControls() {
+            let box = document.getElementById('otcCardsContainer');
             let html = '';
-
-            for (let k in adminAssets) {
-                let item = adminAssets[k];
-                let isTrending = (serverCurrentTime < item.trendUntil && item.trend !== 'NORMAL');
-                let remMin = isTrending ? Math.ceil((item.trendUntil - serverCurrentTime) / 60000) : 0;
-
-                let statusBadge = isTrending 
-                    ? `<span class="otc-trend-status ${item.trend.toLowerCase()}">${item.trend === 'UP' ? '▲ Bullish UP' : '▼ Bearish DOWN'} (${remMin}m left)</span>`
-                    : `<span class="otc-trend-status normal">⚪ Normal Trend</span>`;
+            for (let k in adminData.assets) {
+                let a = adminData.assets[k];
+                let isTrending = (adminData.serverTime < a.trendUntil && a.trend !== 'NORMAL');
+                let remMin = isTrending ? Math.ceil((a.trendUntil - adminData.serverTime) / 60000) : 0;
 
                 html += `
-                    <div class="otc-ctrl-card">
-                        <div class="otc-head-row">
-                            <div>
-                                <span class="otc-title">${item.name}</span>
-                                <span style="font-size:11px; color:#8fa0b5; margin-left:6px;">Live: ${item.price.toFixed(item.decimals)}</span>
-                            </div>
-                            ${statusBadge}
+                    <div class="otc-card">
+                        <div class="otc-title-row">
+                            <span>${a.name}</span>
+                            <span style="font-size:11px; color:${isTrending ? (a.trend === 'UP' ? '#00e676' : '#eb5757') : '#8fa0b5'};">
+                                ${isTrending ? `${a.trend} (${remMin}m left)` : 'Normal'}
+                            </span>
                         </div>
-
-                        <div class="form-row">
-                            <label>Set Direction & Duration (ক্যান্ডেল সেই দিকে যাবে):</label>
-                            <div class="btn-group-trend">
-                                <button class="btn-t-dir ${item.trend === 'UP' ? 'active-up' : ''}" onclick="applyOtcTrend('${k}', 'UP')">▲ UP (Bullish)</button>
-                                <button class="btn-t-dir ${item.trend === 'DOWN' ? 'active-down' : ''}" onclick="applyOtcTrend('${k}', 'DOWN')">▼ DOWN (Bearish)</button>
-                                <button class="btn-t-dir" onclick="applyOtcTrend('${k}', 'NORMAL')">⚪ Normal</button>
-                            </div>
+                        <div class="btn-trend-row">
+                            <button class="btn-t up" onclick="setTrend('${k}', 'UP')">▲ Make UP</button>
+                            <button class="btn-t down" onclick="setTrend('${k}', 'DOWN')">▼ Make DOWN</button>
+                            <button class="btn-t" onclick="setTrend('${k}', 'NORMAL')">⚪ Normal</button>
                         </div>
-
-                        <div class="otc-form-grid">
-                            <div class="form-row">
-                                <label>Duration (Minutes):</label>
-                                <input type="number" id="dur_${k}" class="form-input" value="5" min="1" max="120">
-                            </div>
-                            <div class="form-row">
-                                <label>Apply Trend:</label>
-                                <button class="btn-apply-trend" onclick="applyOtcTrend('${k}', null)">Apply Direction</button>
-                            </div>
+                        <div class="input-row">
+                            <input type="number" id="dur_${k}" placeholder="Minutes" value="5" min="1">
+                            <input type="number" id="p1_${k}" placeholder="1m %" value="${a.payout1m}">
+                            <input type="number" id="p5_${k}" placeholder="5m %" value="${a.payout5m}">
+                            <button class="btn-save" onclick="savePayout('${k}')">Save</button>
                         </div>
-
-                        <div class="otc-form-grid" style="border-top:1px solid #1e293b; padding-top:8px;">
-                            <div class="form-row">
-                                <label>Profit 1+ min (%):</label>
-                                <input type="number" id="p1m_${k}" class="form-input" value="${item.payout1m}" min="10" max="98">
-                            </div>
-                            <div class="form-row">
-                                <label>Profit 5+ min (%):</label>
-                                <input type="number" id="p5m_${k}" class="form-input" value="${item.payout5m}" min="10" max="98">
-                            </div>
-                        </div>
-                        <button class="btn-apply-trend" style="background:#00b074;" onclick="saveOtcPayout('${k}')">Save Payout %</button>
                     </div>
                 `;
             }
-
-            container.innerHTML = html;
+            box.innerHTML = html;
         }
 
-        function applyOtcTrend(assetKey, dir) {
-            let dur = document.getElementById(`dur_${assetKey}`).value;
-            let direction = dir || (adminAssets[assetKey].trend === 'UP' ? 'UP' : 'DOWN');
-
+        function setTrend(asset, direction) {
+            let dur = document.getElementById('dur_' + asset)?.value || 5;
             fetch('/api/admin/set-otc-trend', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ asset: assetKey, direction, durationMinutes: dur })
-            })
-            .then(r => r.json())
-            .then(d => {
-                showToast(d.message);
+                body: JSON.stringify({ asset, direction, durationMinutes: dur })
+            }).then(r => r.json()).then(res => {
+                showToast(res.message);
                 loadAdminData();
             });
         }
 
-        function saveOtcPayout(assetKey) {
-            let p1 = document.getElementById(`p1m_${assetKey}`).value;
-            let p5 = document.getElementById(`p5m_${assetKey}`).value;
-
+        function savePayout(asset) {
+            let p1 = document.getElementById('p1_' + asset).value;
+            let p5 = document.getElementById('p5_' + asset).value;
             fetch('/api/admin/set-otc-payout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ asset: assetKey, payout1m: p1, payout5m: p5 })
-            })
-            .then(r => r.json())
-            .then(d => {
-                showToast(d.message);
+                body: JSON.stringify({ asset, payout1m: p1, payout5m: p5 })
+            }).then(r => r.json()).then(res => {
+                showToast(res.message);
                 loadAdminData();
             });
+        }
+
+        function filterUsers() {
+            let q = document.getElementById('userSearchInput')?.value.trim().toLowerCase() || '';
+            let box = document.getElementById('usersListContainer');
+            let html = '';
+
+            for (let id in adminData.users) {
+                let u = adminData.users[id];
+                if (u.id.includes(q) || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) {
+                    html += `
+                        <div class="user-card">
+                            <div class="u-top">
+                                <span>${u.name} (ID: ${u.id})</span>
+                                <span style="font-size:11px; color:#38bdf8;">${u.group}</span>
+                            </div>
+                            <div class="u-meta">
+                                <div>📧 ${u.email}</div>
+                                <div>📱 ${u.phone}</div>
+                            </div>
+                            <div class="u-bal-row">
+                                <span style="color:#00e676;">Live: $${u.liveBalance.toFixed(2)}</span>
+                                <span style="color:#f5a623;">Demo: $${u.demoBalance.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            box.innerHTML = html || '<p style="color:#8fa0b5; text-align:center; padding:15px;">No users found</p>';
         }
 
         loadAdminData();
