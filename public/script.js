@@ -1,18 +1,16 @@
 const canvas = document.getElementById('tradeCanvas');
 const ctx = canvas.getContext('2d');
 
-let raw5sBars = [];
 let candles = [];
 let activeTrades = [];
 let currentAccount = 'demo';
 let demoBalance = 11068.77;
 let liveBalance = 10.00;
 let panOffset = 0;
+let remainingCountdown = 60;
 
-// টাইমফ্রেম সিস্টেম (ডিফল্ট ১ মিনিট = ৬০ সেকেন্ড)
+// ফিক্সড ১ মিনিটের ক্যান্ডেল
 let activeTfSeconds = 60;
-let activeTfLabel = '1m';
-
 let activeAssetKey = 'EUR_USD';
 let activeDecimals = 5;
 let currentPayout = 77;
@@ -21,13 +19,13 @@ let isLoadingAsset = false;
 let renderLivePrice = 1.08540;
 let targetLivePrice = 1.08540;
 
-// কটেক্স ও পকেট অপশন স্ট্যান্ডার্ড ক্যান্ডেল সাইজ
+// কটেক্স স্ট্যান্ডার্ড সুষম ক্যান্ডেল সাইজ
 let candleWidth = 14;
 let candleSpacing = 5;
 let initialPinchDistance = null;
 
 let currentMode = 'timer';
-let selectedTimerSeconds = 60;
+let selectedTimerSeconds = 60; // 1m
 let selectedTimerDisplay = '00:01:00';
 let selectedTimeValue = '';
 
@@ -51,82 +49,26 @@ const FLAG_ICONS = {
     'GOLD':    { flag1: '🪙', flag2: '🇺🇸' }
 };
 
-// তাৎক্ষণিক ব্যাকআপ ক্যান্ডেল তৈরি (চার্ট যেন কখনো ব্ল্যাক না হয়)
+// তাৎক্ষণিক লোড বাফার (চার্ট কখনোই কালো হবে না)
 function generateEmergencyFallbackCandles(basePrice = 1.08540, decimals = 5) {
     let list = [];
     let cur = basePrice;
-    let nowSec = Math.floor(Date.now() / 5000) * 5;
-    for (let i = 400; i > 0; i--) {
-        let t = nowSec - (i * 5);
-        let delta = (Math.random() - 0.495) * 0.00015;
+    let nowSec = Math.floor(Date.now() / 60000) * 60;
+    for (let i = 1440; i > 0; i--) {
+        let t = nowSec - (i * 60);
+        let delta = (Math.random() - 0.495) * 0.0003;
         let o = cur;
         let c = parseFloat((o + delta).toFixed(decimals));
-        let h = parseFloat((Math.max(o, c) + Math.random() * 0.00008).toFixed(decimals));
-        let l = parseFloat((Math.min(o, c) - Math.random() * 0.00008).toFixed(decimals));
+        let h = parseFloat((Math.max(o, c) + Math.random() * 0.0002).toFixed(decimals));
+        let l = parseFloat((Math.min(o, c) - Math.random() * 0.0002).toFixed(decimals));
         list.push({ time: t, open: o, high: h, low: l, close: c });
         cur = c;
     }
     return list;
 }
-raw5sBars = generateEmergencyFallbackCandles();
-candles = resampleBars(raw5sBars, activeTfSeconds);
+candles = generateEmergencyFallbackCandles();
 
-// -------------------------------------------------------------
-// ⏱️ ভিডিও ৯৬৮ অনুযায়ী টাইমফ্রেম রি-স্যাম্পলিং ফাংশন
-// -------------------------------------------------------------
-function resampleBars(baseBars, intervalSec) {
-    if (!baseBars || baseBars.length === 0) return [];
-    if (intervalSec <= 5) return baseBars.map(b => ({ ...b }));
-
-    let resampled = [];
-    let currBucket = null;
-
-    for (let i = 0; i < baseBars.length; i++) {
-        let b = baseBars[i];
-        let bucketTime = Math.floor(b.time / intervalSec) * intervalSec;
-
-        if (currBucket === null || currBucket.time !== bucketTime) {
-            if (currBucket !== null) resampled.push(currBucket);
-            currBucket = {
-                time: bucketTime,
-                open: b.open,
-                high: b.high,
-                low: b.low,
-                close: b.close
-            };
-        } else {
-            if (b.high > currBucket.high) currBucket.high = b.high;
-            if (b.low < currBucket.low) currBucket.low = b.low;
-            currBucket.close = b.close;
-        }
-    }
-    if (currBucket !== null) resampled.push(currBucket);
-    return resampled;
-}
-
-function setCandleTimeframe(seconds, label) {
-    activeTfSeconds = seconds;
-    activeTfLabel = label;
-
-    let badge = document.getElementById('activeTfBadgeLabel');
-    if (badge) badge.innerText = label;
-
-    document.querySelectorAll('.tf-choice-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.innerText.trim().toLowerCase() === label.toLowerCase());
-    });
-
-    // ক্যান্ডেল রি-স্যাম্পল ও ড্রপডাউন বন্ধ
-    candles = resampleBars(raw5sBars, activeTfSeconds);
-    let menu = document.getElementById('timeframeMenu');
-    if (menu) menu.style.display = 'none';
-}
-
-function toggleTimeframeDialog() {
-    let menu = document.getElementById('timeframeMenu');
-    if (menu) menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
-}
-
-// ঘড়ি ও কাউন্টডাউন
+// ঘড়ি ও লাইভ কাউন্টডাউন
 function syncClock() {
     try {
         let now = new Date();
@@ -139,6 +81,9 @@ function syncClock() {
         
         let clock = document.getElementById('liveUtcClock');
         if (clock) clock.innerHTML = `<span class="live-dot"></span> ${hh}:${mm}:${ss} UTC+6`;
+
+        let sec = Math.floor(now.getTime() / 1000);
+        remainingCountdown = 60 - (sec % 60);
 
         updateActiveTradesDrawerLive();
     } catch (e) {}
@@ -159,19 +104,18 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// হিস্ট্রি সিঙ্ক
+// হিস্ট্রি সিঙ্ক (১,৪৪০টি ১-মিনিটের ক্যান্ডেল)
 function fullSyncFromServer() {
     fetch(`/api/history?asset=${activeAssetKey}`)
     .then(r => r.json())
     .then(d => {
         if (d.success && d.history && d.history.length > 0) {
-            raw5sBars = d.history.map(c => ({ ...c }));
+            candles = d.history.map(c => ({ ...c }));
             activeDecimals = d.meta.decimals;
             currentPayout = d.meta.payout1m;
-            let lastP = raw5sBars[raw5sBars.length - 1].close;
+            let lastP = candles[candles.length - 1].close;
             targetLivePrice = lastP;
             renderLivePrice = lastP;
-            candles = resampleBars(raw5sBars, activeTfSeconds);
         }
     }).catch(() => {});
 
@@ -191,7 +135,7 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('focus', fullSyncFromServer);
 
-// টাচ স্ক্রোল
+// টাচ প্যান ও জুম
 let startX = 0;
 let isPanning = false;
 
@@ -497,12 +441,12 @@ function updateBalanceUI(val) {
     }
 }
 
-// ট্রেড প্লেস
+// মাল্টি-টাইমফ্রেম ট্রেড প্লেসিং (1m, 5m, 10m, 30m, 1h)
 function placeOrder(direction) {
     let amount = currentInvestAmount;
-    let totalSec = (currentMode === 'timer') ? selectedTimerSeconds : 60;
+    let totalSec = selectedTimerSeconds || 60;
     let last = candles[candles.length - 1];
-    let curTime = last ? last.time : Math.floor(Date.now() / 1000);
+    let curTime = last ? last.time : Math.floor(Date.now() / 60000) * 60;
     let curPrice = last ? last.close : renderLivePrice;
 
     fetch('/api/trade', {
@@ -554,7 +498,7 @@ function showResultBubble(res) {
 }
 
 // -------------------------------------------------------------
-// ক্যানভাস রেন্ডার লুপ (টাইমফ্রেম-সচেতন ক্যান্ডেল ও কাউন্টডাউন)
+// ক্যানভাস রেন্ডার লুপ (কটেক্স স্টাইল ক্যান্ডেলস্টিক)
 // -------------------------------------------------------------
 function render() {
     requestAnimationFrame(render);
@@ -629,7 +573,7 @@ function render() {
         ctx.fillText(pVal.toFixed(activeDecimals), width - 50, y + 4);
     }
 
-    // ক্যান্ডেলস্টিক রেন্ডার (ভিডিও ৯৬৮ ও কোটেক্স সাইজ)
+    // কটেক্সের মতো মাঝারি, হ্যামার ও উইক সহ স্পষ্ট ক্যান্ডেলস্টিক
     visibleCandles.forEach(c => {
         let isBull = c.close >= c.open;
         let color = isBull ? '#0faf59' : '#eb5757';
@@ -675,7 +619,7 @@ function render() {
         ctx.font = 'bold 10px monospace';
         ctx.fillText(last.close.toFixed(activeDecimals), width - 51, liveY + 4);
 
-        // ভার্টিক্যাল ড্যাশড এক্সপায়ারেশন লাইন
+        // ভার্টিক্যাল ড্যাশড লাইন
         let expX = baseRightX + (candleWidth + candleSpacing);
         ctx.setLineDash([4, 4]);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
@@ -685,25 +629,11 @@ function render() {
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // টাইমফ্রেম অনুযায়ী ডায়নামিক ক্যান্ডেল কাউন্টডাউন
-        let nowSec = Math.floor(Date.now() / 1000);
-        let remSec = activeTfSeconds - (nowSec % activeTfSeconds);
-        let candleTimerStr = '';
+        // ১ মিনিটের ডায়নামিক কাউন্টডাউন
+        let candleTimerStr = `00:${String(remainingCountdown).padStart(2, '0')}`;
+        if (remainingCountdown === 60) candleTimerStr = '01:00';
 
-        if (activeTfSeconds < 60) {
-            candleTimerStr = `00:${String(remSec).padStart(2, '0')}`;
-        } else if (activeTfSeconds < 3600) {
-            let m = Math.floor(remSec / 60);
-            let s = remSec % 60;
-            candleTimerStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        } else {
-            let h = Math.floor(remSec / 3600);
-            let m = Math.floor((remSec % 3600) / 60);
-            let s = remSec % 60;
-            candleTimerStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-        }
-
-        let pillW = 56;
+        let pillW = 54;
         let pillH = 20;
         let pillX = expX + 6;
         let pillY = liveY - (pillH / 2);
@@ -718,13 +648,13 @@ function render() {
 
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 10px monospace';
-        ctx.fillText(candleTimerStr, pillX + 8, pillY + 14);
+        ctx.fillText(candleTimerStr, pillX + 10, pillY + 14);
     }
 
     // ট্রেড মার্কার
     activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
         let candle = candles.find(c => c.time === tr.candleTime);
-        let cIdx = candle ? candles.indexOf(candle) : candles.findIndex(c => c.time <= tr.entryTime && tr.entryTime < c.time + activeTfSeconds);
+        let cIdx = candle ? candles.indexOf(candle) : candles.findIndex(c => c.time <= tr.entryTime && tr.entryTime < c.time + 60);
         if (cIdx === -1) cIdx = candles.length - 1;
 
         let entryX = getX(cIdx);
@@ -779,17 +709,19 @@ function connectWS() {
                     let item = msg.assets[activeAssetKey];
                     targetLivePrice = parseFloat(item.price);
 
-                    if (raw5sBars.length > 0 && item.candle5s) {
-                        let last = raw5sBars[raw5sBars.length - 1];
-                        if (last.time === item.candle5s.time) {
-                            last.high = Math.max(last.high, item.candle5s.high);
-                            last.low = Math.min(last.low, item.candle5s.low);
-                            last.close = item.candle5s.close;
-                        } else {
-                            raw5sBars.push({ ...item.candle5s });
-                            if (raw5sBars.length > 3500) raw5sBars.shift();
-                        }
-                        candles = resampleBars(raw5sBars, activeTfSeconds);
+                    let last = candles[candles.length - 1];
+                    if (item.candle.time - last.time > 60) {
+                        fullSyncFromServer();
+                        return;
+                    }
+
+                    if (last.time === item.candle.time) {
+                        last.high = Math.max(last.high, item.candle.high);
+                        last.low = Math.min(last.low, item.candle.low);
+                        last.close = item.candle.close;
+                    } else {
+                        candles.push({ ...item.candle });
+                        if (candles.length > 1440) candles.shift();
                     }
                 }
             } else if (msg.type === 'TRADE_SETTLED') {
@@ -805,12 +737,34 @@ function connectWS() {
 }
 connectWS();
 
+// মোডাল ও টাইমার ডায়ালগ
+function toggleTimePopup() { let p = document.getElementById('timeSelectPopup'); if (p) p.style.display = (p.style.display !== 'block') ? 'block' : 'none'; }
+function selectTimer(sec, display) {
+    selectedTimerSeconds = sec;
+    selectedTimerDisplay = display;
+    let val = document.getElementById('dockTimeValue');
+    if (val) val.innerText = display;
+    document.querySelectorAll('#gridTimerMode button').forEach(b => b.classList.remove('selected'));
+    if (event) event.target.classList.add('selected');
+    let p = document.getElementById('timeSelectPopup');
+    if (p) p.style.display = 'none';
+}
+
+function openMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'flex'; }
+function closeMainMenuModal() { let m = document.getElementById('mainMenuModal'); if (m) m.style.display = 'none'; }
+function openHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'flex'; }
+function closeHelpModal() { let m = document.getElementById('helpModal'); if (m) m.style.display = 'none'; }
+function openTournamentsModal() { let m = document.getElementById('tournamentsModal'); if (m) m.style.display = 'flex'; }
+function closeTournamentsModal() { let m = document.getElementById('tournamentsModal'); if (m) m.style.display = 'none'; }
+function openDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'flex'; }
+function closeDepositModal() { let m = document.getElementById('depositModal'); if (m) m.style.display = 'none'; }
+function resetPan() { panOffset = 0; }
+function closeResult() { let r = document.getElementById('resultBubble'); if (r) r.style.display = 'none'; }
+function closeToast() { let t = document.getElementById('tradeOpenToast'); if (t) t.style.display = 'none'; }
+function closeAllDrawers() {}
+
 // বুটস্ট্র্যাপ
 fitCanvas();
 loadOtcAssetsList();
 fullSyncFromServer();
 requestAnimationFrame(render);
-setTimeout(() => {
-    let loader = document.getElementById('chartLoader');
-    if (loader) loader.classList.remove('active');
-}, 500);

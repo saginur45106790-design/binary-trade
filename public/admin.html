@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Master Admin Console</title>
+    <title>Master Admin | Exposure Billboard & Control</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background: #0c1017; color: #e2e8f0; padding: 12px; }
@@ -18,11 +18,16 @@
         .section-box { display: none; background: #131b26; border: 1px solid #1e2d40; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
         .section-box.active { display: block; }
 
-        .search-input { width: 100%; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; outline: none; margin-bottom: 12px; }
-        .user-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .u-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; }
-        .u-meta { font-size: 12px; color: #8fa0b5; line-height: 1.5; margin-bottom: 8px; }
-        .u-bal-row { display: flex; justify-content: space-between; background: #131b26; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+        /* ৫ নম্বর পয়েন্ট: লাইভ বিলবোর্ড / সূচক কার্ডস */
+        .billboard-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 14px; }
+        .bb-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; }
+        .bb-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 800; color: #fff; margin-bottom: 8px; }
+        .bb-bars { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #1e293b; margin-bottom: 8px; }
+        .bb-bar-up { background: #00b074; transition: width 0.3s; }
+        .bb-bar-down { background: #eb5757; transition: width 0.3s; }
+        .bb-stats { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; }
+        .bb-up-txt { color: #00e676; }
+        .bb-down-txt { color: #eb5757; }
 
         .otc-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
         .otc-title-row { display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; margin-bottom: 8px; }
@@ -35,6 +40,12 @@
         .input-row input { flex: 1; background: #131b26; border: 1px solid #233348; color: #fff; padding: 7px 10px; border-radius: 4px; font-size: 12px; }
         .btn-save { background: #0070f3; color: #fff; border: none; padding: 7px 14px; border-radius: 4px; font-size: 11px; font-weight: 800; cursor: pointer; }
 
+        .search-input { width: 100%; background: #0c1017; border: 1px solid #233348; color: #fff; padding: 10px 12px; border-radius: 6px; font-size: 13px; outline: none; margin-bottom: 12px; }
+        .user-card { background: #0c1017; border: 1px solid #1e2d40; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .u-top { display: flex; justify-content: space-between; font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+        .u-meta { font-size: 12px; color: #8fa0b5; line-height: 1.5; margin-bottom: 8px; }
+        .u-bal-row { display: flex; justify-content: space-between; background: #131b26; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+
         .toast-msg { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #00b074; color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; z-index: 100; }
     </style>
 </head>
@@ -45,12 +56,18 @@
     </div>
 
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('otc')">OTC Trend Control</button>
+        <button class="tab-btn active" onclick="switchTab('billboard')">Live Billboard</button>
+        <button class="tab-btn" onclick="switchTab('otc')">OTC Trend Control</button>
         <button class="tab-btn" onclick="switchTab('users')">Users & Search</button>
     </div>
 
-    <div class="section-box active" id="sec-otc">
-        <div style="font-size:13px; font-weight:800; margin-bottom:12px;">📈 Set Direction (UP / DOWN) & Duration:</div>
+    <div class="section-box active" id="sec-billboard">
+        <div style="font-size:13px; font-weight:800; margin-bottom:10px;">📊 Real-time Order Exposure Billboard (প্রতি সেকেন্ডে আপ/ডাউন ভলিউম):</div>
+        <div class="billboard-grid" id="billboardContainer">লোড হচ্ছে...</div>
+    </div>
+
+    <div class="section-box" id="sec-otc">
+        <div style="font-size:13px; font-weight:800; margin-bottom:12px;">📈 Set Smooth Direction (UP / DOWN) & Duration:</div>
         <div id="otcCardsContainer">লোড হচ্ছে...</div>
     </div>
 
@@ -63,7 +80,7 @@
     <div id="toast" class="toast-msg"></div>
 
     <script>
-        let adminData = { users: {}, assets: {} };
+        let adminData = { users: {}, assets: {}, billboard: {} };
 
         function showToast(msg) {
             let t = document.getElementById('toast');
@@ -80,13 +97,46 @@
         }
 
         function loadAdminData() {
-            fetch('/api/admin/data')
+            fetch('/api/admin/overview')
             .then(r => r.json())
             .then(d => {
                 adminData = d;
+                renderBillboard();
                 renderOtcControls();
                 filterUsers();
             });
+        }
+        setInterval(loadAdminData, 3000); // প্রতি ৩ সেকেন্ডে বিলবোর্ড রিফ্রেশ
+
+        function renderBillboard() {
+            let box = document.getElementById('billboardContainer');
+            let html = '';
+
+            for (let k in adminData.assets) {
+                let a = adminData.assets[k];
+                let b = (adminData.billboard && adminData.billboard[k]) ? adminData.billboard[k] : { upVol: 0, downVol: 0, upCount: 0, downCount: 0 };
+                let totalVol = b.upVol + b.downVol;
+                let upPct = totalVol > 0 ? (b.upVol / totalVol) * 100 : 50;
+                let downPct = totalVol > 0 ? (b.downVol / totalVol) * 100 : 50;
+
+                html += `
+                    <div class="bb-card">
+                        <div class="bb-top">
+                            <span>${a.name}</span>
+                            <span style="color:#8fa0b5; font-size:11px;">Active Trades: ${b.upCount + b.downCount}</span>
+                        </div>
+                        <div class="bb-bars">
+                            <div class="bb-bar-up" style="width: ${upPct}%;"></div>
+                            <div class="bb-bar-down" style="width: ${downPct}%;"></div>
+                        </div>
+                        <div class="bb-stats">
+                            <span class="bb-up-txt">▲ UP: $${b.upVol.toFixed(2)} (${b.upCount})</span>
+                            <span class="bb-down-txt">▼ DOWN: $${b.downVol.toFixed(2)} (${b.downCount})</span>
+                        </div>
+                    </div>
+                `;
+            }
+            box.innerHTML = html;
         }
 
         function renderOtcControls() {
@@ -106,8 +156,8 @@
                             </span>
                         </div>
                         <div class="btn-trend-row">
-                            <button class="btn-t up" onclick="setTrend('${k}', 'UP')">▲ Make UP</button>
-                            <button class="btn-t down" onclick="setTrend('${k}', 'DOWN')">▼ Make DOWN</button>
+                            <button class="btn-t up" onclick="setTrend('${k}', 'UP')">▲ Smooth UP</button>
+                            <button class="btn-t down" onclick="setTrend('${k}', 'DOWN')">▼ Smooth DOWN</button>
                             <button class="btn-t" onclick="setTrend('${k}', 'NORMAL')">⚪ Normal</button>
                         </div>
                         <div class="input-row">

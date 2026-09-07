@@ -11,88 +11,104 @@ app.use(express.json({ limit: '30mb' }));
 app.use(express.urlencoded({ limit: '30mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ইউজার ডাটাবেস
 let users = {
-  "85857047": { id: "85857047", username: "demo_user", name: "MD Sajib Hossain", email: "teachsajib@gmail.com", phone: "+8801700000000", liveBalance: 10.00, demoBalance: 11068.77, group: "VIP", status: "Active" }
+  "85857047": { id: "85857047", username: "demo_user", name: "MD Sajib Hossain", email: "teachsajib@gmail.com", phone: "+8801700000000", liveBalance: 10.00, demoBalance: 11068.77, group: "VIP", status: "Active" },
+  "85857048": { id: "85857048", username: "user_85857048", name: "Rahim Ahmed", email: "trader_rahim@gmail.com", phone: "+8801811111111", liveBalance: 25.50, demoBalance: 10000.00, group: "Standard", status: "Active" },
+  "85857049": { id: "85857049", username: "user_85857049", name: "Karim Uddin", email: "karim_fx@gmail.com", phone: "+8801922222222", liveBalance: 50.00, demoBalance: 10000.00, group: "Premium", status: "Active" }
 };
 
 let userGroups = ["Standard", "VIP", "Premium", "New Traders"];
 
 // স্ক্রিনশট ৯৪৮-৯৫৭ অনুযায়ী ১০টি নির্দিষ্ট OTC অ্যাসেট
 let ASSETS = {
-  'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00030, payout1m: 77, payout5m: 77, change24h: -1.27, trend: 'NORMAL', trendUntil: 0 },
+  'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00035, payout1m: 77, payout5m: 77, change24h: -1.27, trend: 'NORMAL', trendUntil: 0 },
   'GBP_JPY': { name: 'GBP/JPY (OTC)', ticker: 'GBP_JPY', price: 191.450, basePrice: 191.450, decimals: 3, vol: 0.045, payout1m: 77, payout5m: 80, change24h: 0.21, trend: 'NORMAL', trendUntil: 0 },
-  'GBP_USD': { name: 'GBP/USD (OTC)', ticker: 'GBP_USD', price: 1.31210, basePrice: 1.31210, decimals: 5, vol: 0.00035, payout1m: 92, payout5m: 83, change24h: 0.00, trend: 'NORMAL', trendUntil: 0 },
-  'EUR_AUD': { name: 'EUR/AUD (OTC)', ticker: 'EUR_AUD', price: 1.62480, basePrice: 1.62480, decimals: 5, vol: 0.00040, payout1m: 94, payout5m: 95, change24h: -0.61, trend: 'NORMAL', trendUntil: 0 },
-  'ETH':     { name: 'Ethereum (OTC)', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, vol: 1.40, payout1m: 81, payout5m: 67, change24h: 4.75, trend: 'NORMAL', trendUntil: 0 },
-  'SOL':     { name: 'Solana (OTC)', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, vol: 0.40, payout1m: 81, payout5m: 64, change24h: -10.94, trend: 'NORMAL', trendUntil: 0 },
-  'BNB':     { name: 'Binance Coin (OTC)', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, vol: 0.60, payout1m: 89, payout5m: 75, change24h: 2.33, trend: 'NORMAL', trendUntil: 0 },
-  'BTC':     { name: 'Bitcoin (OTC)', ticker: 'BTC', price: 68525.50, basePrice: 68525.50, decimals: 2, vol: 4.80, payout1m: 75, payout5m: 82, change24h: 1.29, trend: 'NORMAL', trendUntil: 0 },
-  'SILVER':  { name: 'Silver (OTC)', ticker: 'SILVER', price: 28.520, basePrice: 28.520, decimals: 3, vol: 0.025, payout1m: 88, payout5m: 77, change24h: 0.11, trend: 'NORMAL', trendUntil: 0 },
-  'GOLD':    { name: 'Gold (OTC)', ticker: 'GOLD', price: 2350.40, basePrice: 2350.40, decimals: 2, vol: 0.80, payout1m: 92, payout5m: 79, change24h: 0.03, trend: 'NORMAL', trendUntil: 0 }
+  'GBP_USD': { name: 'GBP/USD (OTC)', ticker: 'GBP_USD', price: 1.31210, basePrice: 1.31210, decimals: 5, vol: 0.00040, payout1m: 92, payout5m: 83, change24h: 0.00, trend: 'NORMAL', trendUntil: 0 },
+  'EUR_AUD': { name: 'EUR/AUD (OTC)', ticker: 'EUR_AUD', price: 1.62480, basePrice: 1.62480, decimals: 5, vol: 0.00045, payout1m: 94, payout5m: 95, change24h: -0.61, trend: 'NORMAL', trendUntil: 0 },
+  'ETH':     { name: 'Ethereum (OTC)', ticker: 'ETH', price: 3422.00, basePrice: 3422.00, decimals: 2, vol: 1.80, payout1m: 81, payout5m: 67, change24h: 4.75, trend: 'NORMAL', trendUntil: 0 },
+  'SOL':     { name: 'Solana (OTC)', ticker: 'SOL', price: 177.50, basePrice: 177.50, decimals: 2, vol: 0.45, payout1m: 81, payout5m: 64, change24h: -10.94, trend: 'NORMAL', trendUntil: 0 },
+  'BNB':     { name: 'Binance Coin (OTC)', ticker: 'BNB', price: 591.20, basePrice: 591.20, decimals: 2, vol: 0.65, payout1m: 89, payout5m: 75, change24h: 2.33, trend: 'NORMAL', trendUntil: 0 },
+  'BTC':     { name: 'Bitcoin (OTC)', ticker: 'BTC', price: 68525.50, basePrice: 68525.50, decimals: 2, vol: 5.20, payout1m: 75, payout5m: 82, change24h: 1.29, trend: 'NORMAL', trendUntil: 0 },
+  'SILVER':  { name: 'Silver (OTC)', ticker: 'SILVER', price: 28.520, basePrice: 28.520, decimals: 3, vol: 0.030, payout1m: 88, payout5m: 77, change24h: 0.11, trend: 'NORMAL', trendUntil: 0 },
+  'GOLD':    { name: 'Gold (OTC)', ticker: 'GOLD', price: 2350.40, basePrice: 2350.40, decimals: 2, vol: 0.90, payout1m: 92, payout5m: 79, change24h: 0.03, trend: 'NORMAL', trendUntil: 0 }
 };
 
 let activeServerTrades = [];
 let recentTradeResults = [];
 let candleHistories = {};
-let currentCandle5s = Math.floor(Date.now() / 5000) * 5;
+let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// ২৪ ঘণ্টার ৫-সেকেন্ড রেজ্যুলুশন বেস ক্যান্ডেল তৈরি (১৭,২৮০টি বার)
-function initMarketEngine() {
+// কটেক্স স্টাইলের হ্যামার, ডোজি ও লং উইক সহ ২৪ ঘণ্টার ১,৪৪০টি ক্যান্ডেল জেনারেশন
+function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
-  currentCandle5s = Math.floor(nowSec / 5) * 5;
+  currentCandleMinute = Math.floor(nowSec / 60) * 60;
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
     let list = [];
     let cur = meta.price;
 
-    for (let i = 2880; i > 0; i--) {
-      let t = currentCandle5s - (i * 5);
+    for (let i = 1440; i > 0; i--) {
+      let t = currentCandleMinute - (i * 60);
+      let randShape = Math.random();
       let drift = -(cur - meta.basePrice) * 0.001;
-      let delta = (Math.random() - 0.495) * (meta.vol * 0.25) + drift;
+      let delta = (Math.random() - 0.495) * meta.vol * 0.7 + drift;
       let o = cur;
       let c = parseFloat((o + delta).toFixed(meta.decimals));
-      let h = parseFloat((Math.max(o, c) + Math.random() * meta.vol * 0.12).toFixed(meta.decimals));
-      let l = parseFloat((Math.min(o, c) - Math.random() * meta.vol * 0.12).toFixed(meta.decimals));
+
+      // হ্যামার, ডোজি ও সাধারণ ক্যান্ডেলের প্রাকৃতিক অনুপাত
+      let upperWick = Math.random() * meta.vol * 0.4;
+      let lowerWick = Math.random() * meta.vol * 0.4;
+      if (randShape > 0.85) lowerWick += meta.vol * 0.6; // বুলিশ হ্যামার
+      else if (randShape < 0.15) upperWick += meta.vol * 0.6; // শুটিং স্টার
+
+      let h = parseFloat((Math.max(o, c) + upperWick + 0.01 * meta.vol).toFixed(meta.decimals));
+      let l = parseFloat((Math.min(o, c) - lowerWick - 0.01 * meta.vol).toFixed(meta.decimals));
+
       list.push({ time: t, open: o, high: h, low: l, close: c });
       cur = c;
     }
 
     meta.price = cur;
-    list.push({ time: currentCandle5s, open: meta.price, high: meta.price, low: meta.price, close: meta.price });
+    list.push({ time: currentCandleMinute, open: meta.price, high: meta.price, low: meta.price, close: meta.price });
     candleHistories[key] = list;
   }
 }
-initMarketEngine();
+init24HourMarket();
 
-// প্রতি সেকেন্ডের টিক ও ট্রেন্ড এক্সিকিউশন
+// প্রতি সেকেন্ডে টিক ও মসৃণ ট্রেন্ড এক্সিকিউশন
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
-  let now5s = Math.floor(sec / 5) * 5;
-  let isNew5s = (now5s > currentCandle5s);
+  let nowMinute = Math.floor(sec / 60) * 60;
+  let remainingSec = 60 - (sec % 60);
+
+  let isNewMinute = (nowMinute > currentCandleMinute);
 
   for (let key in ASSETS) {
     let meta = ASSETS[key];
     
+    // অ্যাডমিন ট্রেন্ড কন্ট্রোল (ভিডিও ৯৭৫ অনুযায়ী মসৃণভাবে নিচের দিকে বা ওপরে যাবে)
     let trendDrift = 0;
     if (now < meta.trendUntil) {
-      if (meta.trend === 'UP') trendDrift = meta.vol * 0.35;
-      else if (meta.trend === 'DOWN') trendDrift = -meta.vol * 0.35;
+      if (meta.trend === 'UP') trendDrift = meta.vol * 0.28; // প্রাকৃতিক মসৃণ ঊর্ধ্বগতি
+      else if (meta.trend === 'DOWN') trendDrift = -meta.vol * 0.28; // প্রাকৃতিক মসৃণ নিম্নগতি
     } else {
       meta.trend = 'NORMAL';
       trendDrift = -(meta.price - meta.basePrice) * 0.0008;
     }
 
-    let delta = (Math.random() - 0.495) * (meta.vol * 0.2) + trendDrift;
+    // প্রতি সেকেন্ডে মসৃণ ওঠানামা (কোনো জাম্প নেই)
+    let delta = (Math.random() - 0.495) * (meta.vol * 0.22) + trendDrift;
     meta.price = parseFloat((meta.price + delta).toFixed(meta.decimals));
 
     let list = candleHistories[key];
     let lastCandle = list[list.length - 1];
 
-    if (isNew5s) {
-      list.push({ time: now5s, open: meta.price, high: meta.price, low: meta.price, close: meta.price });
-      if (list.length > 3500) list.shift();
+    if (isNewMinute) {
+      list.push({ time: nowMinute, open: meta.price, high: meta.price, low: meta.price, close: meta.price });
+      if (list.length > 1440) list.shift();
     } else {
       if (meta.price > lastCandle.high) lastCandle.high = meta.price;
       if (meta.price < lastCandle.low) lastCandle.low = meta.price;
@@ -100,9 +116,9 @@ setInterval(() => {
     }
   }
 
-  if (isNew5s) currentCandle5s = now5s;
+  if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // রানিং ট্রেড অটো-সেটেলমেন্ট
+  // মাল্টি-টাইমফ্রেম (1m, 5m, 10m, 30m, 1h) ট্রেড সেটেলমেন্ট
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
@@ -113,7 +129,7 @@ setInterval(() => {
       if (tr.direction === 'UP') isWin = (exitP > tr.entryPrice);
       else if (tr.direction === 'DOWN') isWin = (exitP < tr.entryPrice);
 
-      let payoutRate = ASSETS[tr.asset] ? ASSETS[tr.asset].payout1m : 90;
+      let payoutRate = ASSETS[tr.asset] ? (tr.durationSec >= 300 ? ASSETS[tr.asset].payout5m : ASSETS[tr.asset].payout1m) : 85;
       let profit = isWin ? parseFloat((tr.amount * (1 + payoutRate / 100)).toFixed(2)) : 0;
 
       if (isWin) {
@@ -141,12 +157,29 @@ setInterval(() => {
     }
   }
 
-  // লাইভ টিক ব্রডকাস্ট
-  let tickPayload = { type: 'TICK', serverTime: now, assets: {} };
+  // লাইভ টিক ও রিয়েল-টাইম এক্সপোজার বিলবোর্ড ক্যালকুলেশন
+  let billboard = {};
+  for (let key in ASSETS) {
+    let upVol = 0, downVol = 0, upCount = 0, downCount = 0;
+    activeServerTrades.filter(t => t.asset === key).forEach(t => {
+      if (t.direction === 'UP') { upVol += Number(t.amount); upCount++; }
+      else { downVol += Number(t.amount); downCount++; }
+    });
+    billboard[key] = { upVol, downVol, upCount, downCount, totalTrades: upCount + downCount };
+  }
+
+  let tickPayload = {
+    type: 'TICK',
+    countdown: remainingSec,
+    serverTime: now,
+    assets: {},
+    billboard
+  };
+
   for (let key in ASSETS) {
     tickPayload.assets[key] = {
       price: ASSETS[key].price.toFixed(ASSETS[key].decimals),
-      candle5s: candleHistories[key][candleHistories[key].length - 1],
+      candle: candleHistories[key][candleHistories[key].length - 1],
       payout1m: ASSETS[key].payout1m,
       payout5m: ASSETS[key].payout5m,
       change24h: ASSETS[key].change24h
@@ -159,10 +192,9 @@ setInterval(() => {
   });
 }, 1000);
 
-// এপিআই রুটস
+// API Routes
 app.get('/api/assets', (req, res) => res.json({ success: true, assets: ASSETS }));
 
-// হিস্ট্রি এপিআই (যেকোনো রিকোয়েস্টে শতভাগ নিশ্চয়তার সাথে ডাটা প্রদান)
 app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
   let asset = req.params.asset || req.query.asset || 'EUR_USD';
   asset = asset.replace('/', '_');
@@ -173,6 +205,7 @@ app.get(['/api/history', '/api/history/:asset*'], (req, res) => {
 
 app.get('/api/active-trades', (req, res) => res.json({ success: true, trades: activeServerTrades, results: recentTradeResults }));
 
+// মাল্টি-টাইমফ্রেম ট্রেড প্লেসমেন্ট (1m, 5m, 10m, 30m, 1h)
 app.post('/api/trade', (req, res) => {
   const { username, amount, direction, accountType, durationSec, asset, candleTime, clientEntryPrice } = req.body;
   let user = users["85857047"];
@@ -187,7 +220,7 @@ app.post('/api/trade', (req, res) => {
   let cleanAsset = (asset || "EUR_USD").replace('/', '_');
   let selectedAsset = ASSETS[cleanAsset] || ASSETS['EUR_USD'];
   let nowSec = Math.floor(Date.now() / 1000);
-  let dur = Number(durationSec) || 60;
+  let dur = Number(durationSec) || 60; // 60s, 300s, 600s, 1800s, 3600s
   let entryP = clientEntryPrice ? parseFloat(clientEntryPrice) : selectedAsset.price;
 
   let newTrade = {
@@ -198,8 +231,9 @@ app.post('/api/trade', (req, res) => {
     direction,
     accountType,
     entryPrice: entryP,
-    candleTime: candleTime || (Math.floor(nowSec / 5) * 5),
+    candleTime: candleTime || (Math.floor(nowSec / 60) * 60),
     entryTime: nowSec,
+    durationSec: dur,
     expireTime: nowSec + dur
   };
 
@@ -223,17 +257,30 @@ app.get('/api/user/info', (req, res) => {
   res.json({ liveBalance: user.liveBalance, demoBalance: user.demoBalance });
 });
 
-// অ্যাডমিন রাউটস
+// -------------------------------------------------------------
+// অ্যাডমিন প্যানেল API
+// -------------------------------------------------------------
 app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
 app.get(['/api/admin/overview', '/api/admin/data'], (req, res) => {
+  let billboard = {};
+  for (let key in ASSETS) {
+    let upVol = 0, downVol = 0, upCount = 0, downCount = 0;
+    activeServerTrades.filter(t => t.asset === key).forEach(t => {
+      if (t.direction === 'UP') { upVol += Number(t.amount); upCount++; }
+      else { downVol += Number(t.amount); downCount++; }
+    });
+    billboard[key] = { upVol, downVol, upCount, downCount, totalTrades: upCount + downCount };
+  }
+
   res.json({
     success: true,
     totalUsers: Object.keys(users).length,
-    totalDeposits: 10.00,
     users,
     groups: userGroups,
     assets: ASSETS,
+    activeTrades: activeServerTrades,
+    billboard,
     serverTime: Date.now()
   });
 });
@@ -270,4 +317,4 @@ app.post('/api/admin/adjust-balance', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Pro Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Quotex Candlestick Engine running on port ${PORT}`));

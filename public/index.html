@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Pocket Option Terminal</title>
-    <link rel="stylesheet" href="style.css?v=35.0">
+    <link rel="stylesheet" href="style.css?v=40.0">
 </head>
 <body>
     <div class="app-root">
@@ -32,47 +32,12 @@
 
             <div class="chart-meta-tags">
                 <div class="sub-menu-btn" onclick="openMainMenuModal()">•••</div>
-                
-                <div class="timeframe-pill-btn" onclick="toggleTimeframeDialog()">
-                    <span id="activeTfBadgeLabel">1m</span>
-                    <span style="font-size:8px; color:#8fa0b5;">▼</span>
-                </div>
-
                 <div class="briefcase-btn" onclick="openActiveTradesDrawer()">
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
                     <span class="sub-badge" id="openTradesBadge">0</span>
                 </div>
-
                 <div class="utc-clock" id="liveUtcClock">
                     <span class="live-dot"></span> 00:00:00 UTC+6
-                </div>
-            </div>
-
-            <div id="timeframeMenu" class="timeframe-dialog-menu">
-                <div class="tf-group-label">Seconds (সেকেন্ড)</div>
-                <div class="tf-btn-grid">
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(5, '5s')">5s</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(10, '10s')">10s</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(15, '15s')">15s</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(30, '30s')">30s</button>
-                </div>
-
-                <div class="tf-group-label">Minutes (মিনিট)</div>
-                <div class="tf-btn-grid">
-                    <button class="tf-choice-btn active" onclick="setCandleTimeframe(60, '1m')">1m</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(120, '2m')">2m</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(180, '3m')">3m</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(300, '5m')">5m</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(600, '10m')">10m</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(900, '15m')">15m</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(1800, '30m')">30m</button>
-                </div>
-
-                <div class="tf-group-label">Hours / Days (ঘণ্টা ও দিন)</div>
-                <div class="tf-btn-grid">
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(3600, '1h')">1h</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(14400, '4h')">4h</button>
-                    <button class="tf-choice-btn" onclick="setCandleTimeframe(86400, '1d')">1d</button>
                 </div>
             </div>
 
@@ -229,7 +194,7 @@
                 <span class="x-close" onclick="closeHelpModal()">✕</span>
             </div>
             <div class="help-center-items">
-                <div class="help-menu-block" onclick="alert('Opening FAQ database...')">
+                <div class="help-menu-block" onclick="alert('Opening FAQ...')">
                     <div class="help-item-name">FAQ</div>
                     <div class="help-item-sub">Open the database</div>
                 </div>
@@ -289,17 +254,16 @@
             <button id="tabTimeBtn" class="t-tab" onclick="switchPopupTab('time')">TIME</button>
         </div>
         <div class="time-grid" id="gridTimerMode">
-            <button onclick="selectTimer(5, '00:00:05')">00:05</button>
-            <button onclick="selectTimer(10, '00:00:10')">00:10</button>
-            <button onclick="selectTimer(15, '00:00:15')">00:15</button>
-            <button onclick="selectTimer(30, '00:00:30')">00:30</button>
-            <button onclick="selectTimer(60, '00:01:00')" class="selected">01:00</button>
-            <button onclick="selectTimer(120, '00:02:00')">02:00</button>
+            <button onclick="selectTimer(60, '00:01:00')" class="selected">01:00 (1m)</button>
+            <button onclick="selectTimer(300, '00:05:00')">05:00 (5m)</button>
+            <button onclick="selectTimer(600, '00:10:00')">10:00 (10m)</button>
+            <button onclick="selectTimer(1800, '00:30:00')">30:00 (30m)</button>
+            <button onclick="selectTimer(3600, '01:00:00')">01:00:00 (1h)</button>
         </div>
         <div class="time-grid" id="gridTimeMode" style="display: none;"></div>
         <button class="set-manually-btn" onclick="toggleTimePopup()">Done</button>
     </div>
 
-    <script src="script.js?v=35.0"></script>
+    <script src="script.js?v=40.0"></script>
 </body>
 </html>
