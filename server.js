@@ -11,7 +11,7 @@ app.use(express.json({ limit: '80mb' }));
 app.use(express.urlencoded({ limit: '80mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ১. গ্লোবাল প্ল্যাটফর্ম কনফিগারেশন ও গেটওয়ে সেটিংস
+// গ্লোবাল কনফিগারেশন
 let PLATFORM_CONFIG = {
   maintenanceMode: false,
   dollarRate: 125.00,
@@ -25,14 +25,13 @@ let PLATFORM_CONFIG = {
   announcementNotice: "📢 স্বাগতম Tredlo V12.0 এ! প্রথম ডিপোজিটে +৭০% বোনাস (কুপন: WELCOME70) উপভোগ করুন।"
 };
 
-// রিস্ক ম্যানেজমেন্ট সেটিংস
 let RISK_CONFIG = {
   maxTradeAmount: 100.00,
   maxAssetExposure: 500.00,
   sentimentRatio: { buyers: 55, sellers: 45 }
 };
 
-// ২. ইউজার ডাটাবেস (কেওয়াইসি, টার্নওভার, সিকিউরিটি ও স্ট্যাটাস সহ)
+// ইউজার ডাটাবেস
 let users = {
   "85857047": {
     id: "85857047",
@@ -55,8 +54,8 @@ let users = {
     currentTurnover: 0.00,
     hasActiveBonus: false,
     traderLevel: "Starter",
-    verificationStatus: "Unverified", // Unverified | Pending | Verified
-    accountStatus: "Active",          // Active | Suspended | Banned
+    verificationStatus: "Unverified",
+    accountStatus: "Active",
     nidFront: "",
     nidBack: "",
     registeredAt: "2026-09-08",
@@ -65,7 +64,7 @@ let users = {
   }
 };
 
-// ৩. ১০টি সম্পূর্ণ স্বতন্ত্র OTC অ্যাসেট (ভিন্ন প্রাইস, ভোলাটিলিটি ও চার্ট গতি)
+// ১০টি সম্পূর্ণ স্বতন্ত্র OTC পেয়ার
 let ASSETS = {
   'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', type: 'currency', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00030, payout1m: 92, payout5m: 85, change24h: -1.27, trend: 'NORMAL', trendUntil: 0, enabled: true },
   'GBP_JPY': { name: 'GBP/JPY (OTC)', ticker: 'GBP_JPY', type: 'currency', price: 191.450, basePrice: 191.450, decimals: 3, vol: 0.045, payout1m: 88, payout5m: 80, change24h: 0.21, trend: 'NORMAL', trendUntil: 0, enabled: true },
@@ -89,7 +88,6 @@ let notifications = [
   { id: 1, title: "Welcome to Tredlo Terminal", body: PLATFORM_CONFIG.announcementNotice, time: "Just now" }
 ];
 
-// ৪. লাইভ ট্রেডিং সিগন্যাল ডাটাবেস (ভিডিও পেজ ১৮)
 let liveSignals = [
   { id: "SIG-101", asset: "EUR_USD", company: "EUR/USD OTC", logo: "EUR", strategy: "RSI Divergence", direction: "HIGHER", timeframe: "5m", expirySec: 300, strength: "94%" },
   { id: "SIG-102", asset: "BTC", company: "Bitcoin OTC", logo: "BTC", strategy: "AI Trend Follow", direction: "LOWER", timeframe: "15m", expirySec: 900, strength: "89%" },
@@ -97,14 +95,12 @@ let liveSignals = [
   { id: "SIG-104", asset: "ETH", company: "Ethereum OTC", logo: "ETH", strategy: "Bollinger Bands", direction: "LOWER", timeframe: "30m", expirySec: 1800, strength: "87%" }
 ];
 
-// ৫. টুর্নামেন্ট হাব ডাটাবেস (ভিডিও পেজ ১৩)
 let platformTournaments = [
   { id: "TOUR-1", title: "THE CROWN SERIES", banner: "crown", prizePool: "$5,000", entryFee: "$2", participants: 474, status: "Active", duration: "2 Days Left" },
   { id: "TOUR-2", title: "Telegram Exclusive Battle", banner: "telegram", prizePool: "$2,500", entryFee: "Free", participants: 812, status: "Active", duration: "18 Hours Left" },
   { id: "TOUR-3", title: "Global Championship 2026", banner: "global", prizePool: "$10,000", entryFee: "$10", participants: 240, status: "Upcoming", duration: "Starts in 2 Days" }
 ];
 
-// ৬. গ্লোবাল লিডারবোর্ড ডাটা (ভিডিও পেজ ১৭)
 let globalLeaderboard = [
   { rank: 1, name: "Ayesha Sheikh", country: "🇦🇪", deals: 142, profit: "+$34,850.20" },
   { rank: 2, name: "Nada Al-Khalaf", country: "🇸🇦", deals: 98, profit: "+$29,448.50" },
@@ -113,7 +109,6 @@ let globalLeaderboard = [
   { rank: 5, name: "Shaima Khan", country: "🇵🇰", deals: 110, profit: "+$18,920.00" }
 ];
 
-// কুপন কোড ডাটাবেস
 let promoCoupons = {
   "WELCOME70": { bonusPct: 70, active: true, description: "+70% First Deposit Bonus" }
 };
@@ -121,7 +116,6 @@ let promoCoupons = {
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
-// ৭. ২৪ ঘণ্টার ১,৪৪০টি কটেক্স ক্যান্ডেল জেনারেশন
 function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
   currentCandleMinute = Math.floor(nowSec / 60) * 60;
@@ -160,7 +154,7 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
-// ৮. রিয়েল-টাইম মার্কেট টিক ও মসৃণ ট্রেন্ড ইঞ্জিন
+// প্রতি সেকেন্ডের ইঞ্জিন ও স্মুথ মার্কেট টিক
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -196,7 +190,6 @@ setInterval(() => {
       lastCandle.close = meta.price;
     }
 
-    // প্রাইস অ্যালার্ট লিসেনার
     priceAlerts.filter(a => !a.triggered && a.asset === key).forEach(a => {
       if ((a.condition === 'ABOVE' && meta.price >= a.targetPrice) || (a.condition === 'BELOW' && meta.price <= a.targetPrice)) {
         a.triggered = true;
@@ -207,7 +200,7 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // ৯. ট্রেড সেটেলমেন্ট ও ২X টার্নওভার ট্র্যাকিং
+  // ট্রেড সেটেলমেন্ট ও ২X টার্নওভার গণনা
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
@@ -268,7 +261,6 @@ setInterval(() => {
     }
   }
 
-  // লাইভ ব্রডকাস্ট পে-লোড
   let tickPayload = {
     type: 'TICK',
     countdown: remainingSec,
@@ -291,7 +283,7 @@ setInterval(() => {
   wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(payloadStr); });
 }, 1000);
 
-// ১০. অথেন্টিকেশন এপিআই (লগইন ও রেজিস্ট্রেশন)
+// অথেন্টিকেশন এপিআই
 app.post('/api/auth/register', (req, res) => {
   const { email, password, phone } = req.body;
   if (!email || !password) return res.json({ success: false, message: "Email and password required!" });
@@ -348,7 +340,7 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ success: false, message: "Invalid credentials provided!" });
 });
 
-// ১১. প্রোফাইল, কেওয়াইসি ও অ্যাকাউন্ট সিকিউরিটি
+// প্রোফাইল ও কেওয়াইসি
 app.get('/api/user/:id', (req, res) => {
   let u = users[req.params.id] || users["85857047"];
   res.json({ success: true, user: u });
@@ -394,7 +386,7 @@ app.post('/api/user/statement', (req, res) => {
   res.json({ success: true, trades: myTrades, deposits: myDeposits, generatedAt: new Date().toLocaleString() });
 });
 
-// ১২. ট্রেডিং ও অর্ডার এক্সিকিউশন
+// ট্রেডিং
 app.post('/api/trade', (req, res) => {
   const { userId, amount, direction, accountType, durationSec, asset } = req.body;
   let u = users[userId] || users["85857047"];
@@ -431,7 +423,7 @@ app.post('/api/trade', (req, res) => {
   res.json({ success: true, trade, balance: (accountType === 'live' ? u.liveBalance : u.demoBalance).toFixed(2) });
 });
 
-// ১৩. ডিপোজিট ও উইথড্রয়াল প্রসেসিং
+// ডিপোজিট ও উইথড্রয়াল
 app.post('/api/wallet/deposit', (req, res) => {
   const { userId, method, amount, trxId, screenshot, promoCode } = req.body;
   let amt = parseFloat(amount);
@@ -486,7 +478,7 @@ app.post('/api/wallet/withdraw', (req, res) => {
   res.json({ success: true, message: "Withdrawal request placed!", balance: u.liveBalance.toFixed(2) });
 });
 
-// ১৪. সিগন্যালস ও অ্যালার্টস এপিআই
+// সিগন্যালস, অ্যালার্টস ও টুর্নামেন্টস
 app.get('/api/signals/list', (req, res) => res.json({ success: true, signals: liveSignals }));
 app.post('/api/alerts/create', (req, res) => {
   const { asset, targetPrice, condition } = req.body;
@@ -495,7 +487,6 @@ app.post('/api/alerts/create', (req, res) => {
 });
 app.get('/api/alerts/list', (req, res) => res.json({ success: true, alerts: priceAlerts }));
 
-// ১৫. টুর্নামেন্টস ও লিডারবোর্ড এপিআই
 app.get('/api/tournaments/list', (req, res) => res.json({ success: true, tournaments: platformTournaments }));
 app.post('/api/tournaments/join', (req, res) => {
   const { tournamentId, userId } = req.body;
@@ -508,11 +499,9 @@ app.post('/api/tournaments/join', (req, res) => {
 });
 app.get('/api/leaderboard', (req, res) => res.json({ success: true, leaderboard: globalLeaderboard }));
 
-// ১৬. রিওয়ার্ডস, কুপন ও বোনাস টাস্ক
 app.post('/api/rewards/redeem', (req, res) => {
   const { userId, code } = req.body;
   if (promoCoupons[code] && promoCoupons[code].active) {
-    let u = users[userId] || users["85857047"];
     return res.json({ success: true, message: `Promo code ${code} activated! +${promoCoupons[code].bonusPct}% Bonus will apply on your next deposit.` });
   }
   res.json({ success: false, message: "Invalid or expired promo code!" });
@@ -526,10 +515,14 @@ app.post('/api/bonus/claim', (req, res) => {
   u.liveBalance += free;
   u.hasActiveBonus = true;
   u.requiredTurnover += (free * 2.0);
+
+  let balanceSync = JSON.stringify({ type: 'BALANCE_UPDATE', userId: u.id, liveBalance: u.liveBalance.toFixed(2), demoBalance: u.demoBalance.toFixed(2) });
+  wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(balanceSync); });
+
   res.json({ success: true, message: `Bonus claimed! $${free} added. 2X Turnover ($${u.requiredTurnover.toFixed(2)}) activated.`, user: u });
 });
 
-// ১৭. লাইভ সাপোর্ট মেসেঞ্জার (২৪ ঘণ্টার মেমোরি)
+// লাইভ সাপোর্ট মেসেঞ্জার
 app.get('/api/support/messages', (req, res) => {
   let cutoff = Date.now() - (24 * 60 * 60 * 1000);
   chatMessages = chatMessages.filter(m => m.timestamp >= cutoff);
@@ -554,7 +547,6 @@ app.post('/api/support/send', (req, res) => {
   res.json({ success: true, message: msg });
 });
 
-// ১৮. অ্যানালিটিক্স ও ট্রেডিং স্ট্যাটস
 app.get('/api/analytics/:userId', (req, res) => {
   let userId = req.params.userId || "85857047";
   let myTrades = lifetimeTrades.filter(t => t.userId === userId);
@@ -578,7 +570,7 @@ app.get('/api/analytics/:userId', (req, res) => {
 });
 
 // -------------------------------------------------------------
-// ১৯. অ্যাডমিন মাস্টার ড্যাশবোর্ড API (১২টি মডিউল ও ৭২টি অপশন)
+// অ্যাডমিন মাস্টার ড্যাশবোর্ড API (স্ক্রিনশট ১০১৩)
 // -------------------------------------------------------------
 app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
@@ -614,7 +606,6 @@ app.get('/api/admin/overview', (req, res) => {
   });
 });
 
-// ইউজার অ্যাকাউন্ট ব্যান/সাসপেন্ড ও ব্যালেন্স অ্যাডজাস্টমেন্ট
 app.post('/api/admin/user-status', (req, res) => {
   const { userId, status } = req.body;
   if (users[userId]) {
@@ -624,6 +615,7 @@ app.post('/api/admin/user-status', (req, res) => {
   res.json({ success: false, message: "User not found!" });
 });
 
+// লাইভ ব্যালেন্স অ্যাডজাস্টমেন্ট ও তাৎক্ষণিক WebSocket ব্রডকাস্ট
 app.post('/api/admin/adjust-balance', (req, res) => {
   const { userId, amount, actionType } = req.body;
   let u = users[userId];
@@ -631,10 +623,13 @@ app.post('/api/admin/adjust-balance', (req, res) => {
   let val = parseFloat(amount) || 0;
   if (actionType === 'add') u.liveBalance += val;
   else u.liveBalance = Math.max(0, u.liveBalance - val);
+
+  let balanceSync = JSON.stringify({ type: 'BALANCE_UPDATE', userId: u.id, liveBalance: u.liveBalance.toFixed(2), demoBalance: u.demoBalance.toFixed(2) });
+  wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(balanceSync); });
+
   res.json({ success: true, message: `User balance updated: $${u.liveBalance.toFixed(2)}` });
 });
 
-// গ্লোবাল নোটিশ ব্যানার আপডেট
 app.post('/api/admin/update-announcement', (req, res) => {
   const { noticeText } = req.body;
   if (noticeText) {
@@ -645,7 +640,6 @@ app.post('/api/admin/update-announcement', (req, res) => {
   res.json({ success: false, message: "Text required!" });
 });
 
-// গেটওয়ে, ডিপোজিট, উইথড্র ও কেওয়াইসি অ্যাকশন
 app.post('/api/admin/action-deposit', (req, res) => {
   const { id, action } = req.body;
   let dep = depositHistory.find(d => d.id === id);
@@ -653,7 +647,11 @@ app.post('/api/admin/action-deposit', (req, res) => {
     dep.status = action === 'approve' ? 'Approved' : 'Rejected';
     if (action === 'approve') {
       let u = users[dep.userId];
-      if (u) u.liveBalance += (dep.amount + (dep.bonusAmount || 0));
+      if (u) {
+        u.liveBalance += (dep.amount + (dep.bonusAmount || 0));
+        let balanceSync = JSON.stringify({ type: 'BALANCE_UPDATE', userId: u.id, liveBalance: u.liveBalance.toFixed(2), demoBalance: u.demoBalance.toFixed(2) });
+        wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(balanceSync); });
+      }
     }
     return res.json({ success: true, message: `Deposit marked as ${dep.status}!` });
   }
@@ -667,7 +665,11 @@ app.post('/api/admin/action-withdraw', (req, res) => {
     w.status = action === 'approve' ? 'Approved' : 'Rejected';
     if (action === 'reject') {
       let u = users[w.userId];
-      if (u) u.liveBalance += w.amount;
+      if (u) {
+        u.liveBalance += w.amount;
+        let balanceSync = JSON.stringify({ type: 'BALANCE_UPDATE', userId: u.id, liveBalance: u.liveBalance.toFixed(2), demoBalance: u.demoBalance.toFixed(2) });
+        wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(balanceSync); });
+      }
     }
     return res.json({ success: true, message: `Withdrawal marked as ${w.status}!` });
   }
@@ -685,7 +687,6 @@ app.post('/api/admin/action-kyc', (req, res) => {
   res.json({ success: false, message: "User not found!" });
 });
 
-// সিগন্যাল তৈরি ও ডিলিট
 app.post('/api/admin/signals/create', (req, res) => {
   const { asset, strategy, direction, timeframe } = req.body;
   let sig = {
@@ -709,7 +710,6 @@ app.post('/api/admin/signals/delete', (req, res) => {
   res.json({ success: true, message: "Signal removed!" });
 });
 
-// মসৃণ ট্রেন্ড ও পেআউট কনফিগারেশন
 app.post('/api/admin/set-trend', (req, res) => {
   const { asset, direction, minutes } = req.body;
   if (ASSETS[asset]) {
@@ -739,7 +739,6 @@ app.post('/api/admin/config-update', (req, res) => {
   res.json({ success: true, message: "Platform configuration saved!", config: PLATFORM_CONFIG });
 });
 
-// কমন হিস্ট্রি রুটস
 app.get('/api/history', (req, res) => {
   let asset = (req.query.asset || 'EUR_USD').replace('/', '_');
   res.json({ success: true, history: candleHistories[asset] || candleHistories['EUR_USD'], meta: ASSETS[asset] || ASSETS['EUR_USD'] });
@@ -750,4 +749,4 @@ app.get('/api/trades/lifetime', (req, res) => res.json({ trades: lifetimeTrades 
 app.get('/api/notifications', (req, res) => res.json({ notifications, announcement: PLATFORM_CONFIG.announcementNotice }));
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => console.log(`Trading Engine running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Production Trading Engine running on port ${PORT}`));
