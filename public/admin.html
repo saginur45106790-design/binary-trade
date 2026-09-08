@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Master Dashboard</title>
+  <title>Admin Master Dashboard | Tredlo Controller</title>
   <style>
     :root {
       --bg-dark: #070c14;
@@ -16,15 +16,15 @@
       --text-main: #e2e8f0;
       --text-muted: #8ca2ba;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: var(--bg-dark); color: var(--text-main); padding: 14px; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg-dark); color: var(--text-main); padding: 14px; }
 
-    /* হেডার: স্ক্রিনশট ১০১৩ অনুযায়ী */
+    /* ১. ড্যাশবোর্ড হেডার (স্ক্রিনশট ১০১৩) */
     .admin-top-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
     .brand-title {
       font-size: 19px;
@@ -51,19 +51,36 @@
       gap: 4px;
     }
 
-    /* স্ক্রিনশট ১০১৩ অনুযায়ী ২ কলামের প্রিমিয়াম গ্রিড কার্ডস */
+    /* ফিনান্সিয়াল কুইক স্ট্যাটস স্ট্রিপ */
+    .platform-stats-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .stat-chip {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .stat-chip small { font-size: 10px; color: var(--text-muted); font-weight: 700; display: block; }
+    .stat-chip b { font-size: 13px; margin-top: 2px; display: block; }
+
+    /* স্ক্রিনশট ১০১৩-এর হুবহু ২ কলামের গ্রিড কার্ডস */
     .dashboard-cards-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 18px;
     }
 
     .admin-feature-card {
       background: linear-gradient(145deg, #111b2b, #0b1320);
       border: 1px solid var(--border-card);
       border-radius: 18px;
-      padding: 22px 14px 18px;
+      padding: 20px 12px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -83,48 +100,37 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       color: #cbd5e1;
     }
-    .card-svg-icon svg { width: 36px; height: 36px; fill: currentColor; }
+    .card-svg-icon svg { width: 34px; height: 34px; fill: currentColor; }
 
     .card-action-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 800;
       color: #ffffff;
       margin-bottom: 8px;
+      line-height: 1.2;
     }
 
     .card-status-badge {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 900;
-      padding: 4px 12px;
-      border-radius: 14px;
+      padding: 3px 10px;
+      border-radius: 12px;
       border: 1px solid;
     }
-    .badge-gold {
-      background: rgba(245, 166, 35, 0.12);
-      color: var(--accent-gold);
-      border-color: rgba(245, 166, 35, 0.4);
-    }
-    .badge-blue {
-      background: rgba(0, 112, 243, 0.15);
-      color: #38bdf8;
-      border-color: rgba(0, 112, 243, 0.4);
-    }
-    .badge-green {
-      background: rgba(0, 230, 118, 0.15);
-      color: var(--accent-green);
-      border-color: rgba(0, 230, 118, 0.4);
-    }
+    .badge-gold { background: rgba(245, 166, 35, 0.12); color: var(--accent-gold); border-color: rgba(245, 166, 35, 0.4); }
+    .badge-blue { background: rgba(0, 112, 243, 0.15); color: #38bdf8; border-color: rgba(0, 112, 243, 0.4); }
+    .badge-green { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border-color: rgba(0, 230, 118, 0.4); }
 
-    /* স্ক্রিনশট ১০১৩ অনুযায়ী গ্লোবাল নোটিশ ব্যানার কার্ড (গোল্ডেন বর্ডার) */
+    /* গ্লোবাল নোটিশ ব্যানার কার্ড (স্ক্রিনশট ১০১৩ গোল্ডেন বর্ডার) */
     .global-announcement-card {
       background: #0d1522;
       border: 2px solid var(--accent-gold);
       border-radius: 18px;
       padding: 16px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       box-shadow: 0 0 20px rgba(245, 166, 35, 0.15);
     }
     .announcement-head {
@@ -134,33 +140,33 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .announcement-input-box {
       background: #080d14;
       border: 1px solid var(--border-card);
-      border-radius: 10px;
-      padding: 10px 14px;
+      border-radius: 8px;
+      padding: 10px 12px;
       color: #fff;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       width: 100%;
       outline: none;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .btn-update-announcement {
       width: 100%;
-      height: 46px;
+      height: 44px;
       background: linear-gradient(135deg, #f5a623, #d98200);
       color: #0c121e;
       border: none;
-      border-radius: 10px;
-      font-size: 14px;
+      border-radius: 8px;
+      font-size: 13px;
       font-weight: 900;
       cursor: pointer;
     }
 
-    /* বটম-শীট রিভিউ মোডাল (স্ক্রিনশট ১০১৩ কার্ডে ক্লিক করলে ওপেন হবে) */
+    /* বটম-শীট মোডাল */
     .admin-detail-sheet {
       display: none;
       position: fixed;
@@ -219,6 +225,11 @@
 
     .thumb-document-img { width: 85px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-card); cursor: pointer; margin-top: 6px; }
 
+    /* বিলবোর্ড বার */
+    .bb-bar-wrap { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #1a2536; margin: 8px 0; }
+    .bb-up { background: var(--accent-green); transition: width 0.3s; }
+    .bb-down { background: var(--accent-red); transition: width 0.3s; }
+
     /* চ্যাট উইন্ডো */
     .admin-chat-stream { height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
     .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 12px; line-height: 1.4; }
@@ -252,6 +263,21 @@
     <a href="/" class="btn-user-site">
       User Site ➔
     </a>
+  </div>
+
+  <div class="platform-stats-strip">
+    <div class="stat-chip">
+      <small>Total Deposits</small>
+      <b style="color:var(--accent-green);" id="dispTotalDep">$0.00</b>
+    </div>
+    <div class="stat-chip">
+      <small>Total Payouts</small>
+      <b style="color:#38bdf8;" id="dispTotalWith">$0.00</b>
+    </div>
+    <div class="stat-chip">
+      <small>Trade Volume</small>
+      <b style="color:var(--accent-gold);" id="dispTotalVol">$0.00</b>
+    </div>
   </div>
 
   <div class="dashboard-cards-grid">
@@ -302,6 +328,38 @@
       <div class="card-action-title">User Database</div>
       <div class="card-status-badge badge-blue" id="badgeUserCount">1 User</div>
     </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('signalsSheet')">
+      <div class="card-svg-icon" style="color:#f43f5e;">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      </div>
+      <div class="card-action-title">Trading Signals</div>
+      <div class="card-status-badge badge-green">4 Active</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('tournamentsSheet')">
+      <div class="card-svg-icon" style="color:var(--accent-gold);">
+        <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+      </div>
+      <div class="card-action-title">Tournaments Hub</div>
+      <div class="card-status-badge badge-gold">3 Active</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('orderbookSheet')">
+      <div class="card-svg-icon" style="color:#10b981;">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+      </div>
+      <div class="card-action-title">Orderbook Billboard</div>
+      <div class="card-status-badge badge-green">Real-time</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('gatewaySheet')">
+      <div class="card-svg-icon" style="color:#eab308;">
+        <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+      </div>
+      <div class="card-action-title">Gateway Settings</div>
+      <div class="card-status-badge badge-blue">Rates & MFS</div>
+    </div>
   </div>
 
   <div class="global-announcement-card">
@@ -310,39 +368,14 @@
       Global Notice & Announcement Banner
     </div>
     <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:6px; font-weight:700;">Top Announcement Notice Text</label>
-    <input type="text" id="announcementNoticeInput" class="announcement-input-box" value="📢 স্বাগতম Tredlo V11.0 এ! প্রথম ডিপোজিটে ৫০% বোনাস উপভোগ করুন।">
+    <input type="text" id="announcementNoticeInput" class="announcement-input-box" value="📢 স্বাগতম Tredlo V12.0 এ! প্রথম ডিপোজিটে +৭০% বোনাস (কুপন: WELCOME70) উপভোগ করুন।">
     <button class="btn-update-announcement" onclick="updateGlobalNotice()">Update Announcement Banner</button>
-  </div>
-
-  <div class="global-announcement-card" style="border-color:var(--border-card);">
-    <div class="announcement-head" style="color:#fff;">
-      ⚙️ Gateway Settings & Exchange Rates
-    </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
-      <div>
-        <label style="font-size:11px; color:var(--text-muted);">1 USD = (BDT)</label>
-        <input type="number" id="cfgDollarRate" class="announcement-input-box" style="margin-top:4px;">
-      </div>
-      <div>
-        <label style="font-size:11px; color:var(--text-muted);">Telegram Partner Link</label>
-        <input type="text" id="cfgTeleLink" class="announcement-input-box" style="margin-top:4px;">
-      </div>
-      <div>
-        <label style="font-size:11px; color:var(--text-muted);">bKash Personal</label>
-        <input type="text" id="cfgBkash" class="announcement-input-box" style="margin-top:4px;">
-      </div>
-      <div>
-        <label style="font-size:11px; color:var(--text-muted);">Nagad Personal</label>
-        <input type="text" id="cfgNagad" class="announcement-input-box" style="margin-top:4px;">
-      </div>
-    </div>
-    <button class="btn-update-announcement" style="background:var(--accent-blue);" onclick="saveGatewayConfig()">Save Gateway Settings</button>
   </div>
 
   <div id="kycSheet" class="admin-detail-sheet">
     <div class="sheet-inner">
       <div class="sheet-title-bar">
-        <h3>KYC / NID Review</h3>
+        <h3>KYC / NID Identity Review</h3>
         <span class="btn-sheet-close" onclick="closeAdminSheet('kycSheet')">✕</span>
       </div>
       <div class="sheet-body-scroll" id="kycListContent"></div>
@@ -362,7 +395,7 @@
   <div id="withdrawSheet" class="admin-detail-sheet">
     <div class="sheet-inner">
       <div class="sheet-title-bar">
-        <h3>Withdrawal Review & Payout</h3>
+        <h3>Withdrawal Review & Compliance</h3>
         <span class="btn-sheet-close" onclick="closeAdminSheet('withdrawSheet')">✕</span>
       </div>
       <div class="sheet-body-scroll" id="withdrawListContent"></div>
@@ -372,7 +405,7 @@
   <div id="chatSheet" class="admin-detail-sheet">
     <div class="sheet-inner">
       <div class="sheet-title-bar">
-        <h3>Support Messenger (24h History)</h3>
+        <h3>Support Messenger (24h Memory)</h3>
         <span class="btn-sheet-close" onclick="closeAdminSheet('chatSheet')">✕</span>
       </div>
       <div class="sheet-body-scroll">
@@ -388,11 +421,11 @@
   <div id="usersSheet" class="admin-detail-sheet">
     <div class="sheet-inner">
       <div class="sheet-title-bar">
-        <h3>User Directory & Control</h3>
+        <h3>User Directory & Account Controls</h3>
         <span class="btn-sheet-close" onclick="closeAdminSheet('usersSheet')">✕</span>
       </div>
       <div class="sheet-body-scroll">
-        <input type="text" id="userSearchTerm" class="announcement-input-box" placeholder="🔍 Search by User ID, Name, or Email..." oninput="renderUsersList()">
+        <input type="text" id="userSearchTerm" class="announcement-input-box" placeholder="🔍 Search User ID, Name, or Email..." oninput="renderUsersList()">
         <div id="usersListContent"></div>
       </div>
     </div>
@@ -418,7 +451,97 @@
         <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Duration (Minutes)</label>
         <input type="number" id="trendMinutesChoice" class="announcement-input-box" value="5" min="1" max="120" style="margin-top:4px;">
 
-        <button class="btn-update-announcement" style="background:#00b074; margin-top:6px;" onclick="applySmoothTrend()">Apply Smooth Trend</button>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+          <div>
+            <label style="font-size:11px; color:var(--text-muted);">1m Payout %</label>
+            <input type="number" id="trendP1Choice" class="announcement-input-box" value="92" style="margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--text-muted);">5m Payout %</label>
+            <input type="number" id="trendP5Choice" class="announcement-input-box" value="85" style="margin-top:4px;">
+          </div>
+        </div>
+
+        <button class="btn-update-announcement" style="background:#00b074; margin-top:8px;" onclick="applySmoothTrend()">Apply Trend & Payouts</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="signalsSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Live Signals Engine</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('signalsSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <div class="review-record-card" style="border-color:var(--accent-blue);">
+          <b style="color:#38bdf8; display:block; margin-bottom:8px;">Broadcast New Trade Signal</b>
+          <select id="sigAssetInput" class="announcement-input-box">
+            <option value="EUR_USD">EUR/USD (OTC)</option>
+            <option value="BTC">Bitcoin (OTC)</option>
+            <option value="GOLD">Gold (OTC)</option>
+            <option value="ETH">Ethereum (OTC)</option>
+          </select>
+          <select id="sigStrategyInput" class="announcement-input-box">
+            <option value="RSI Divergence">RSI Divergence</option>
+            <option value="AI Trend Follow">AI Trend Follow</option>
+            <option value="MACD Crossover">MACD Crossover</option>
+            <option value="Bollinger Bands">Bollinger Bands</option>
+          </select>
+          <select id="sigDirInput" class="announcement-input-box">
+            <option value="HIGHER">HIGHER (Green ▲)</option>
+            <option value="LOWER">LOWER (Red ▼)</option>
+          </select>
+          <button class="btn-update-announcement" style="background:var(--accent-blue);" onclick="createSignalAction()">Broadcast Signal to Users</button>
+        </div>
+        <h4>Active Signals</h4>
+        <div id="adminSignalsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tournamentsSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Tournaments Manager</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('tournamentsSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <div id="adminTournamentsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="orderbookSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Live Orderbook Exposure Billboard</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('orderbookSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="orderbookBillboardContainer"></div>
+    </div>
+  </div>
+
+  <div id="gatewaySheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Gateway Rates, Numbers & Crypto</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('gatewaySheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <label style="font-size:11px; color:var(--text-muted);">1 USD = (BDT Exchange Rate)</label>
+        <input type="number" id="cfgDollarRate" class="announcement-input-box" style="margin-top:4px;">
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">bKash Personal Number</label>
+        <input type="text" id="cfgBkash" class="announcement-input-box" style="margin-top:4px;">
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Nagad Personal Number</label>
+        <input type="text" id="cfgNagad" class="announcement-input-box" style="margin-top:4px;">
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Official Telegram Partner Link</label>
+        <input type="text" id="cfgTeleLink" class="announcement-input-box" style="margin-top:4px;">
+
+        <button class="btn-update-announcement" style="background:var(--accent-blue); margin-top:8px;" onclick="saveGatewayConfig()">Save Gateway Settings</button>
       </div>
     </div>
   </div>
@@ -430,7 +553,7 @@
   <div id="adminToast" class="admin-toast">Saved!</div>
 
   <script>
-    let adminState = { config: {}, users: {}, deposits: [], withdrawals: [], assets: {}, counts: {} };
+    let adminState = { config: {}, users: {}, deposits: [], withdrawals: [], assets: {}, counts: {}, signals: [], tournaments: [] };
 
     function showToast(msg) {
       let t = document.getElementById('adminToast');
@@ -449,6 +572,9 @@
       if (id === 'chatSheet') renderChatMessages();
       if (id === 'usersSheet') renderUsersList();
       if (id === 'trendSheet') renderTrendAssets();
+      if (id === 'signalsSheet') renderSignals();
+      if (id === 'tournamentsSheet') renderTournaments();
+      if (id === 'orderbookSheet') renderOrderbook();
     }
 
     function closeAdminSheet(id) {
@@ -467,12 +593,16 @@
       .then(r => r.json())
       .then(d => {
         adminState = d;
-        // ব্যাজ কাউন্টস আপডেট (স্ক্রিনশট ১০১৩)
+        // কার্ড ব্যাজ কাউন্টস আপডেট (স্ক্রিনশট ১০১৩)
         document.getElementById('badgeKycCount').innerText = `${d.counts.pendingKyc} Pending`;
         document.getElementById('badgeDepositCount').innerText = `${d.counts.pendingDeposits} Pending`;
         document.getElementById('badgeWithdrawCount').innerText = `${d.counts.pendingWithdrawals} Pending`;
         document.getElementById('badgeChatCount').innerText = `${d.counts.supportMessages} Messages`;
         document.getElementById('badgeUserCount').innerText = `${d.counts.totalUsers} Users`;
+
+        document.getElementById('dispTotalDep').innerText = `$${d.counts.totalDepositsVolume}`;
+        document.getElementById('dispTotalWith').innerText = `$${d.counts.totalWithdrawalsVolume}`;
+        document.getElementById('dispTotalVol').innerText = `$${d.counts.totalVolume}`;
 
         document.getElementById('announcementNoticeInput').value = d.config.announcementNotice || '';
         document.getElementById('cfgDollarRate').value = d.config.dollarRate || 125;
@@ -563,6 +693,7 @@
               <span style="color:var(--accent-gold);">${dep.status}</span>
             </div>
             <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${dep.userId}</b> | TrxID: <b style="color:#38bdf8;">${dep.trxId}</b></p>
+            ${dep.bonusAmount ? `<p style="color:#00e676; font-size:11px;">+ Promo Bonus: $${dep.bonusAmount.toFixed(2)}</p>` : ''}
             ${dep.screenshot ? `<img src="${dep.screenshot}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Payment Slip">` : ''}
             <div class="btn-action-row">
               <button class="btn-action btn-approve" onclick="actionDep('${dep.id}', 'approve')">Approve & Credit Balance</button>
@@ -587,6 +718,8 @@
       let box = document.getElementById('withdrawListContent');
       let html = '';
       adminState.withdrawals.filter(w => w.status === 'Pending').forEach(w => {
+        let user = adminState.users[w.userId] || {};
+        let turnoverMsg = user.hasActiveBonus ? `Turnover Remaining: $${(user.requiredTurnover - user.currentTurnover).toFixed(2)}` : 'Turnover Fulfilled';
         html += `
           <div class="review-record-card">
             <div class="review-top">
@@ -594,6 +727,7 @@
               <span style="color:var(--accent-gold);">${w.status}</span>
             </div>
             <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${w.userId}</b> | Target: <b style="color:#38bdf8;">${w.accountDetails}</b></p>
+            <p style="color:${user.hasActiveBonus ? '#f5a623' : '#00e676'}; font-size:11px; font-weight:700;">${turnoverMsg}</p>
             <div class="btn-action-row">
               <button class="btn-action btn-approve" onclick="actionWith('${w.id}', 'approve')">Approve Payout</button>
               <button class="btn-action btn-reject" onclick="actionWith('${w.id}', 'reject')">Reject & Refund Balance</button>
@@ -646,7 +780,7 @@
       });
     }
 
-    // ৭. ইউজার ডিরেক্টরি, ব্যালেন্স ক্রেডিট ও অ্যাকাউন্ট ব্যান/সাসপেন্ড
+    // ৭. ইউজার ডিরেক্টরি, ব্যালেন্স কন্ট্রোল ও অ্যাকাউন্ট ব্যান
     function renderUsersList() {
       let q = (document.getElementById('userSearchTerm')?.value || '').trim().toLowerCase();
       let box = document.getElementById('usersListContent');
@@ -661,15 +795,15 @@
             <div class="review-record-card">
               <div class="review-top">
                 <span>${u.name} (ID: ${u.id})</span>
-                <span style="color:${u.accountStatus === 'Active' ? 'var(--accent-green)' : 'var(--accent-red)'};">${u.accountStatus || 'Active'}</span>
+                <span style="color:${u.accountStatus === 'Active' ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:900;">${u.accountStatus || 'Active'}</span>
               </div>
-              <p style="color:var(--text-muted); font-size:11px;">📧 ${u.email} | 📱 ${u.phone}</p>
+              <p style="color:var(--text-muted); font-size:11px;">📧 ${u.email} | 📱 ${u.phone} | 📍 ${u.city || 'Bangladesh'}</p>
               <div style="margin:6px 0; font-size:12px; font-weight:800;">
-                Live Bal: <b style="color:var(--accent-green);">$${u.liveBalance.toFixed(2)}</b> | Bonus: $${u.bonusBalance.toFixed(2)}
+                Live: <b style="color:var(--accent-green);">$${u.liveBalance.toFixed(2)}</b> | Demo: $${u.demoBalance.toFixed(2)} | Bonus: $${u.bonusBalance.toFixed(2)}
               </div>
               
               <div style="display:flex; gap:6px; margin:6px 0;">
-                <input type="number" id="bal_amt_${u.id}" placeholder="Amount" style="width:70px; background:#000; border:1px solid var(--border-card); color:#fff; padding:4px; font-size:11px; border-radius:4px;">
+                <input type="number" id="bal_amt_${u.id}" placeholder="Amount" style="width:75px; background:#000; border:1px solid var(--border-card); color:#fff; padding:4px; font-size:11px; border-radius:4px;">
                 <button onclick="creditUserBal('${u.id}', 'add')" style="background:var(--accent-green); border:none; color:#000; padding:4px 8px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">+ Add $</button>
                 <button onclick="creditUserBal('${u.id}', 'deduct')" style="background:var(--accent-red); border:none; color:#fff; padding:4px 8px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">- Cut $</button>
               </div>
@@ -704,7 +838,7 @@
       }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); });
     }
 
-    // ৮. ট্রেন্ড
+    // ৮. ট্রেন্ড ও পেআউট কনফিগারেশন
     function renderTrendAssets() {
       let sel = document.getElementById('trendAssetChoice');
       if (sel.options.length === 0) {
@@ -715,15 +849,113 @@
     }
 
     function applySmoothTrend() {
+      let asset = document.getElementById('trendAssetChoice').value;
+      let dir = document.getElementById('trendDirChoice').value;
+      let mins = document.getElementById('trendMinutesChoice').value;
+      let p1 = document.getElementById('trendP1Choice').value;
+      let p5 = document.getElementById('trendP5Choice').value;
+
       fetch('/api/admin/set-trend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          asset: document.getElementById('trendAssetChoice').value,
-          direction: document.getElementById('trendDirChoice').value,
-          minutes: document.getElementById('trendMinutesChoice').value
-        })
-      }).then(r => r.json()).then(d => { showToast(d.message); closeAdminSheet('trendSheet'); });
+        body: JSON.stringify({ asset, direction: dir, minutes: mins })
+      })
+      .then(() => {
+        return fetch('/api/admin/set-payout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ asset, payout1m: p1, payout5m: p5 })
+        });
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); closeAdminSheet('trendSheet'); fetchAdminOverview(); });
+    }
+
+    // ৯. সিগন্যাল তৈরি ও ম্যানেজমেন্ট
+    function renderSignals() {
+      let box = document.getElementById('adminSignalsList');
+      let html = '';
+      adminState.signals.forEach(s => {
+        html += `
+          <div class="review-record-card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b>${s.company}</b>
+              <small style="color:${s.direction === 'HIGHER' ? '#00e676' : '#eb5757'}; font-weight:800; display:block;">${s.direction} • ${s.strategy} (${s.timeframe})</small>
+            </div>
+            <button onclick="deleteSignalAction('${s.id}')" style="background:var(--accent-red); border:none; color:#fff; padding:6px 12px; border-radius:4px; font-weight:800; cursor:pointer;">Delete</button>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    function createSignalAction() {
+      let asset = document.getElementById('sigAssetInput').value;
+      let strategy = document.getElementById('sigStrategyInput').value;
+      let direction = document.getElementById('sigDirInput').value;
+
+      fetch('/api/admin/signals/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asset, strategy, direction, timeframe: '5m' })
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); fetchAdminOverview(); renderSignals(); });
+    }
+
+    function deleteSignalAction(id) {
+      fetch('/api/admin/signals/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signalId: id })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderSignals(); });
+    }
+
+    // ১০. টুর্নামেন্টস ম্যানেজার
+    function renderTournaments() {
+      let box = document.getElementById('adminTournamentsList');
+      let html = '';
+      adminState.tournaments.forEach(t => {
+        html += `
+          <div class="review-record-card">
+            <div class="review-top"><span>${t.title}</span><span style="color:var(--accent-gold);">${t.status}</span></div>
+            <p style="color:var(--text-muted); font-size:11px;">Prize Pool: ${t.prizePool} | Fee: ${t.entryFee} | Participants: ${t.participants}</p>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    // ১১. অর্ডারবুক বিলবোর্ড
+    function renderOrderbook() {
+      let box = document.getElementById('orderbookBillboardContainer');
+      let html = '';
+      for (let k in adminState.assets) {
+        let a = adminState.assets[k];
+        let upVol = 0, downVol = 0, upCount = 0, downCount = 0;
+        (adminState.trades || []).filter(t => t.asset === k).forEach(t => {
+          if (t.direction === 'UP') { upVol += Number(t.amount); upCount++; }
+          else { downVol += Number(t.amount); downCount++; }
+        });
+        let total = upVol + downVol;
+        let upPct = total > 0 ? (upVol / total) * 100 : 50;
+        let downPct = total > 0 ? (downVol / total) * 100 : 50;
+
+        html += `
+          <div class="review-record-card">
+            <div class="review-top"><span>${a.name}</span><small style="color:var(--text-muted);">Deals: ${upCount + downCount}</small></div>
+            <div class="bb-bar-wrap">
+              <div class="bb-up" style="width:${upPct}%;"></div>
+              <div class="bb-down" style="width:${downPct}%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800;">
+              <span style="color:var(--accent-green);">▲ UP: $${upVol.toFixed(2)} (${upCount})</span>
+              <span style="color:var(--accent-red);">▼ DOWN: $${downVol.toFixed(2)} (${downCount})</span>
+            </div>
+          </div>
+        `;
+      }
+      box.innerHTML = html;
     }
 
     fetchAdminOverview();

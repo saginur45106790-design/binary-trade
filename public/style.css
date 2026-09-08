@@ -1,9 +1,9 @@
 :root {
-  --bg-dark: #0a0f18;
+  --bg-dark: #070c14;
   --bg-viewport: #0c121c;
-  --bg-card: #141d2b;
-  --bg-subcard: #0f1724;
-  --border-subtle: #1c2a3c;
+  --bg-card: #0f1726;
+  --bg-subcard: #131d2e;
+  --border-subtle: #1c2b42;
   --border-focus: #0070f3;
   --text-pure: #ffffff;
   --text-muted: #8ca2ba;
@@ -52,7 +52,6 @@ html, body {
   position: relative;
 }
 
-/* ১০০% ভেক্টর SVG আইকন বেস */
 .svg-icon {
   width: 18px;
   height: 18px;
@@ -65,7 +64,7 @@ html, body {
 .svg-icon.lg { width: 22px; height: 22px; }
 .svg-icon.sm { width: 14px; height: 14px; }
 
-/* টপ হেডার (স্ক্রিনশট ৯৮৬ ও ৯৮৭ অনুযায়ী) */
+/* টপ হেডার */
 .top-header {
   height: 48px;
   flex-shrink: 0;
@@ -128,7 +127,7 @@ html, body {
   cursor: pointer;
 }
 
-/* চার্ট এরিয়া */
+/* চার্ট ভিউপোর্ট ও সেন্টিমেন্ট বার */
 .chart-container {
   flex: 1;
   min-height: 0;
@@ -137,6 +136,22 @@ html, body {
   overflow: hidden;
 }
 #tradeCanvas { width: 100%; height: 100%; display: block; touch-action: none; }
+
+.sentiment-bar-vertical {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 120px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 5;
+}
+.sentiment-buyers { background: var(--accent-green); width: 100%; transition: height 0.3s; }
+.sentiment-sellers { background: var(--accent-red); width: 100%; transition: height 0.3s; }
 
 .chart-tools-row {
   position: absolute;
@@ -238,7 +253,7 @@ html, body {
 .btn-up-down.up { background: var(--accent-green); }
 .btn-up-down.down { background: var(--accent-red); }
 
-/* ফুটার নেভিগেশন (১০০% SVG) */
+/* ফুটার নেভিগেশন */
 .footer-tab-bar {
   height: 50px;
   flex-shrink: 0;
@@ -261,7 +276,7 @@ html, body {
 }
 .tab-icon-item.active { color: var(--accent-blue); }
 
-/* বটম-শীট স্লাইডিং মোডাল (স্ক্রিনশট ৯৮৮ ও ৯৮৭ অনুযায়ী আসল লুক) */
+/* স্লাইডিং বটম-শীট মোডাল */
 .modal-overlay-sheet {
   display: none;
   position: fixed;
@@ -284,10 +299,7 @@ html, body {
   overflow: hidden;
   animation: slideUpSheet 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
-@keyframes slideUpSheet {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
-}
+@keyframes slideUpSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 .sheet-head {
   height: 50px;
@@ -307,7 +319,6 @@ html, body {
   flex: 1;
 }
 
-/* কার্ডস ও ইনপুটস (স্ক্রিনশট ৯৮৭ স্টাইল) */
 .data-card-wrapper {
   background: var(--bg-subcard);
   border: 1px solid var(--border-subtle);
@@ -315,16 +326,8 @@ html, body {
   padding: 14px;
   margin-bottom: 12px;
 }
-.floating-input-group {
-  margin-bottom: 12px;
-}
-.floating-input-group label {
-  display: block;
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 700;
-  margin-bottom: 4px;
-}
+.floating-input-group { margin-bottom: 12px; }
+.floating-input-group label { display: block; font-size: 11px; color: var(--text-muted); font-weight: 700; margin-bottom: 4px; }
 .pocket-input {
   width: 100%;
   background: var(--bg-dark);
@@ -350,37 +353,17 @@ html, body {
   cursor: pointer;
 }
 
-/* প্রোফাইল স্ক্রিন (স্ক্রিনশট ৯৮৭-এর হুবহু লেআউট) */
-.user-avatar-badge-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 14px;
-}
-.avatar-circle-blue {
-  width: 54px;
-  height: 54px;
-  border-radius: 50%;
-  background: var(--accent-blue);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
+/* প্রোফাইল ও কেওয়াইসি */
+.user-avatar-badge-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.avatar-circle-blue { width: 54px; height: 54px; border-radius: 50%; background: var(--accent-blue); display: flex; align-items: center; justify-content: center; color: #fff; }
 .user-meta-details h4 { font-size: 15px; font-weight: 800; color: #fff; }
 .user-meta-details small { font-size: 11px; color: var(--text-muted); display: block; margin: 2px 0 4px; }
-.verify-badge-pill {
-  font-size: 11px;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
+.verify-badge-pill { font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px; }
 .verify-badge-pill.verified { color: var(--accent-green); }
 .verify-badge-pill.unverified { color: var(--accent-gold); }
 .verify-badge-pill.pending { color: #38bdf8; }
 
-/* মেনু শিট আইটেমস (স্ক্রিনশট ৯৮৮-এর মতো ১০০% SVG মেনু) */
+/* মেনু ড্রয়ার */
 .menu-action-row {
   display: flex;
   justify-content: space-between;
@@ -391,45 +374,46 @@ html, body {
   font-size: 14px;
   font-weight: 700;
 }
-.menu-action-left {
+.menu-action-left { display: flex; align-items: center; gap: 12px; }
+
+/* সিগন্যাল কার্ডস (ভিডিও পেজ ১৮) */
+.signal-item-card {
+  background: var(--bg-subcard);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.sig-head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sig-badge-higher { background: rgba(0,176,116,0.15); color: var(--accent-green); border: 1px solid var(--accent-green); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; }
+.sig-badge-lower { background: rgba(235,87,87,0.15); color: var(--accent-red); border: 1px solid var(--accent-red); font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; }
+
+/* টুর্নামেন্ট কার্ডস (ভিডিও পেজ ১৩) */
+.tournament-item-card {
+  background: linear-gradient(145deg, #131d2e, #0f1726);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.tour-badge-active { background: var(--accent-green); color: #fff; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 10px; }
+
+/* লিডারবোর্ড রো (ভিডিও পেজ ১৭) */
+.leader-row-item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 4px;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 /* চ্যাট মেসেঞ্জার */
-.chat-window-box {
-  display: flex;
-  flex-direction: column;
-  height: 380px;
-}
-.chat-stream {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-bottom: 8px;
-}
-.chat-bubble-msg {
-  max-width: 80%;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 12px;
-  line-height: 1.4;
-}
+.chat-window-box { display: flex; flex-direction: column; height: 380px; }
+.chat-stream { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 8px; }
+.chat-bubble-msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 12px; line-height: 1.4; }
 .chat-bubble-msg.user { background: var(--accent-blue); color: #fff; align-self: flex-end; }
 .chat-bubble-msg.admin { background: var(--bg-subcard); border: 1px solid var(--border-subtle); color: #fff; align-self: flex-start; }
-
-.chat-footer-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--bg-subcard);
-  padding: 8px;
-  border-radius: 8px;
-  border: 1px solid var(--border-subtle);
-}
+.chat-footer-bar { display: flex; align-items: center; gap: 8px; background: var(--bg-subcard); padding: 8px; border-radius: 8px; border: 1px solid var(--border-subtle); }
 
 .toast-popup {
   display: none;
