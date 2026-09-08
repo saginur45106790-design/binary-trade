@@ -5,24 +5,16 @@ let raw5sBars = [];
 let candles = [];
 let activeTrades = [];
 let currentAccount = 'demo';
+let isGuestDemo = false; // পয়েন্ট ৪: গেস্ট মোড ফ্ল্যাগ
+
 let currentUser = {
   id: "85857047",
   name: "MD Sajib Hossain",
   displayName: "Sajib Trader",
   email: "teachsajib@gmail.com",
   phone: "01700000000",
-  dob: "2005-01-01",
-  country: "Bangladesh",
-  city: "Rajshahi",
-  address: "Akkelpur, Rajshahi",
-  zip: "1200",
   liveBalance: 10.00,
   demoBalance: 11068.77,
-  bonusBalance: 0.00,
-  requiredTurnover: 0.00,
-  currentTurnover: 0.00,
-  hasActiveBonus: false,
-  traderLevel: "Starter",
   verificationStatus: "Unverified"
 };
 
@@ -31,30 +23,13 @@ let activeDecimals = 5;
 let currentPayout = 92;
 let panOffset = 0;
 let remainingCountdown = 60;
-let selectedTimerSeconds = 60;
-let selectedCandleSeconds = 60;
 
 let renderLivePrice = 1.08540;
 let targetLivePrice = 1.08540;
 let candleWidth = 13;
 let candleSpacing = 5;
 let initialPinchDistance = null;
-
 let allAssets = {};
-let favoriteAssets = JSON.parse(localStorage.getItem('fav_assets') || '["EUR_USD", "BTC", "GOLD"]');
-
-const FLAG_ICONS = {
-  'EUR_USD': { flag1: '🇪🇺', flag2: '🇺🇸' },
-  'GBP_JPY': { flag1: '🇬🇧', flag2: '🇯🇵' },
-  'GBP_USD': { flag1: '🇬🇧', flag2: '🇺🇸' },
-  'EUR_AUD': { flag1: '🇪🇺', flag2: '🇦🇺' },
-  'ETH':     { flag1: '🔷', flag2: '🇺🇸' },
-  'SOL':     { flag1: '🟣', flag2: '🇺🇸' },
-  'BNB':     { flag1: '🟡', flag2: '🇺🇸' },
-  'BTC':     { flag1: '₿', flag2: '🇺🇸' },
-  'SILVER':  { flag1: '🥈', flag2: '🇺🇸' },
-  'GOLD':    { flag1: '🪙', flag2: '🇺🇸' }
-};
 
 function showToast(msg) {
   let t = document.getElementById('toastMessage');
@@ -68,30 +43,29 @@ function showToast(msg) {
 function copyToClipboard(elemId) {
   let el = document.getElementById(elemId);
   if (el) {
-    let txt = el.innerText || el.textContent;
-    navigator.clipboard.writeText(txt.replace('(Copy ID)', '').trim());
+    navigator.clipboard.writeText(el.innerText.trim());
     showToast("Copied to clipboard!");
   }
 }
 
-// ২৬টি পেজ ও বটম-শীট রাউটিং
+// পয়েন্ট ৪: গেস্ট ডেমো প্রটেকশন ফাংশন
+function openSheetProtected(id) {
+  if (isGuestDemo) {
+    let lockModal = document.getElementById('guestLockModal');
+    let lockMsg = document.getElementById('guestLockMsgText');
+    if (lockModal) {
+      if (lockMsg) lockMsg.innerText = "Please create an account or log in to access this feature!";
+      lockModal.style.display = 'flex';
+      return;
+    }
+  }
+  openSheet(id);
+}
+
 function openSheet(id) {
   closeAllSheets();
   let el = document.getElementById(id);
   if (el) el.style.display = 'flex';
-
-  if (id === 'depositSheet') loadDepositData();
-  if (id === 'withdrawSheet') loadWithdrawData();
-  if (id === 'chatSheet') loadChatHistory();
-  if (id === 'trophySheet') renderBonusTasks();
-  if (id === 'notifSheet') loadNotifications();
-  if (id === 'tradesHistorySheet') loadAllTrades();
-  if (id === 'profileSheet') refreshProfileUI();
-  if (id === 'signalsSheet') loadSignals();
-  if (id === 'tournamentsSheet') loadTournaments();
-  if (id === 'leaderboardSheet') loadLeaderboard();
-  if (id === 'priceAlertsSheet') loadPriceAlerts();
-  if (id === 'analyticsSheet') loadAnalytics();
   if (id === 'activeTradesSheet') updateActiveTradesDrawerLive();
 }
 
@@ -104,7 +78,7 @@ function closeAllSheets() {
   document.querySelectorAll('.modal-overlay-sheet').forEach(m => m.style.display = 'none');
 }
 
-// অথেন্টিকেশন
+// পয়েন্ট ১ ও ২: লগইন ও রেজিস্ট্রেশন হ্যান্ডলার
 function openAuthModal(tab) {
   let authModal = document.getElementById('authModal');
   if (authModal) authModal.style.display = 'flex';
@@ -140,11 +114,11 @@ function submitLogin() {
   .then(d => {
     if (d.success) {
       currentUser = d.user;
+      isGuestDemo = false;
       localStorage.setItem('auth_user_id', d.userId);
       showToast("Login Successful!");
       closeSheet('authModal');
       closeSheet('landingModal');
-      refreshProfileUI();
       updateBalanceUI();
     } else {
       alert(d.message);
@@ -153,25 +127,31 @@ function submitLogin() {
 }
 
 function submitRegister() {
+  let name = document.getElementById('authRegName').value.trim();
   let email = document.getElementById('authRegEmail').value.trim();
   let phone = document.getElementById('authRegPhone').value.trim();
   let pass = document.getElementById('authRegPass').value;
-  if (!email || !pass) return alert("Fill all fields!");
+  let confirmPass = document.getElementById('authRegConfirmPass').value;
+  let isEighteen = document.getElementById('authRegAgeCheck').checked;
+
+  if (!name || !email || !phone || !pass || !confirmPass) return alert("Please fill all required fields!");
+  if (pass !== confirmPass) return alert("Passwords do not match!");
+  if (!isEighteen) return alert("You must agree to the 18+ age condition!");
 
   fetch('/api/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, phone, password: pass })
+    body: JSON.stringify({ name, email, phone, password: pass, confirmPassword: confirmPass, isEighteen })
   })
   .then(r => r.json())
   .then(d => {
     if (d.success) {
       currentUser = d.user;
+      isGuestDemo = false;
       localStorage.setItem('auth_user_id', d.userId);
-      showToast("Account Created!");
+      showToast("Account Created Successfully!");
       closeSheet('authModal');
       closeSheet('landingModal');
-      refreshProfileUI();
       updateBalanceUI();
     } else {
       alert(d.message);
@@ -179,24 +159,19 @@ function submitRegister() {
   });
 }
 
+// পয়েন্ট ৩: এক্সপ্লোর ডেমো অ্যাক্টিভেশন
 function enterQuickDemo() {
+  isGuestDemo = true;
   closeSheet('landingModal');
   selectAccountType('demo');
-  showToast("Demo Activated ($11,068.77)");
+  showToast("Demo Terminal Activated ($11,068.77)");
 }
 
-function handleUserLogout() {
-  localStorage.removeItem('auth_user_id');
-  location.reload();
-}
-
-// অ্যাকাউন্ট স্যুইচ
 function selectAccountType(type) {
   currentAccount = type;
   let modeTxt = document.getElementById('accountModeText');
   let radioLive = document.getElementById('radioLiveAcc');
   let radioDemo = document.getElementById('radioDemoAcc');
-
   if (type === 'live') {
     if (modeTxt) { modeTxt.innerText = "REAL"; modeTxt.style.color = "var(--accent-green)"; }
     if (radioLive) radioLive.checked = true;
@@ -220,41 +195,12 @@ function updateBalanceUI() {
   if (switchDemo) switchDemo.innerText = '$' + currentUser.demoBalance.toFixed(2);
 }
 
-// টাইমফ্রেম রিস্যাম্পলিং
-function selectCandlePeriod(sec, label) {
-  selectedCandleSeconds = sec;
-  let lbl = document.getElementById('chartTfLabel');
-  if (lbl) lbl.innerText = label;
-  candles = resampleBars(raw5sBars, selectedCandleSeconds);
-  closeSheet('timeframeModal');
-  showToast(`Timeframe: ${label}`);
+function handleUserLogout() {
+  localStorage.removeItem('auth_user_id');
+  location.reload();
 }
 
-function resampleBars(baseBars, intervalSec) {
-  if (!baseBars || baseBars.length === 0) return [];
-  if (intervalSec <= 5) return baseBars.map(b => ({ ...b }));
-
-  let resampled = [];
-  let currBucket = null;
-
-  for (let i = 0; i < baseBars.length; i++) {
-    let b = baseBars[i];
-    let bucketTime = Math.floor(b.time / intervalSec) * intervalSec;
-
-    if (currBucket === null || currBucket.time !== bucketTime) {
-      if (currBucket !== null) resampled.push(currBucket);
-      currBucket = { time: bucketTime, open: b.open, high: b.high, low: b.low, close: b.close };
-    } else {
-      if (b.high > currBucket.high) currBucket.high = b.high;
-      if (b.low < currBucket.low) currBucket.low = b.low;
-      currBucket.close = b.close;
-    }
-  }
-  if (currBucket !== null) resampled.push(currBucket);
-  return resampled;
-}
-
-// অ্যাসেট সিলেকশন
+// পয়েন্ট ৪: বিভিন্ন ওটিসি কারেন্সি সিলেক্ট করে ট্রেড নেওয়ার সুবিধা
 function loadAssets() {
   fetch('/api/assets')
   .then(r => r.json())
@@ -270,50 +216,23 @@ function renderOtcList(filterQuery = '') {
   let box = document.getElementById('otcAssetsList');
   if (!box) return;
   let html = '';
-  let keys = Object.keys(allAssets);
-  keys.sort((a, b) => favoriteAssets.includes(b) - favoriteAssets.includes(a));
-
-  keys.forEach(k => {
+  for (let k in allAssets) {
     let item = allAssets[k];
-    if (!item.enabled) return;
-    if (filterQuery && !item.name.toLowerCase().includes(filterQuery.toLowerCase())) return;
-
-    let isFav = favoriteAssets.includes(k);
-    let isPos = item.change24h >= 0;
-    let flags = FLAG_ICONS[k] || { flag1: '🌐', flag2: '🇺🇸' };
-
+    if (filterQuery && !item.name.toLowerCase().includes(filterQuery.toLowerCase())) continue;
     html += `
       <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="selectAsset('${k}')">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="color:${isFav ? '#f5a623' : '#64748b'}; font-size:16px; cursor:pointer;" onclick="toggleFavorite(event, '${k}')">★</span>
-          <span style="font-size:16px;">${flags.flag1}${flags.flag2}</span>
-          <div>
-            <b>${item.name}</b>
-            <small style="color:var(--text-muted); display:block;">1m: ${item.payout1m}% | 5m: ${item.payout5m}%</small>
-          </div>
+        <div>
+          <b>${item.name}</b>
+          <small style="color:var(--text-muted); display:block;">1 MIN CANDLE</small>
         </div>
-        <div style="text-align:right;">
-          <b style="color:var(--accent-gold); font-size:14px;">${item.payout1m}%</b>
-          <div style="font-weight:700; font-size:11px; color:${isPos ? '#00e676' : '#eb5757'};">
-            ${isPos ? '+' : ''}${item.change24h}%
-          </div>
-        </div>
+        <b style="color:var(--accent-gold); font-size:14px;">${item.payout1m}%</b>
       </div>
     `;
-  });
+  }
   box.innerHTML = html;
 }
 
 function filterAssetsList() {
-  let q = document.getElementById('assetSearchQuery')?.value || '';
-  renderOtcList(q);
-}
-
-function toggleFavorite(e, k) {
-  e.stopPropagation();
-  if (favoriteAssets.includes(k)) favoriteAssets = favoriteAssets.filter(x => x !== k);
-  else favoriteAssets.push(k);
-  localStorage.setItem('fav_assets', JSON.stringify(favoriteAssets));
   renderOtcList(document.getElementById('assetSearchQuery')?.value || '');
 }
 
@@ -336,8 +255,7 @@ function fullSync() {
   .then(r => r.json())
   .then(d => {
     if (d.success && d.history) {
-      raw5sBars = d.history.map(c => ({ ...c }));
-      candles = resampleBars(raw5sBars, selectedCandleSeconds);
+      candles = d.history.map(c => ({ ...c }));
       let last = candles[candles.length - 1];
       targetLivePrice = last.close;
       renderLivePrice = last.close;
@@ -345,7 +263,6 @@ function fullSync() {
   });
 }
 
-// ট্রেডিং ডক ও এক্সিকিউশন
 function updatePayoutCalc() {
   let amt = parseFloat(document.getElementById('investAmountInput').value) || 1;
   let total = (amt * (1 + currentPayout / 100)).toFixed(2);
@@ -353,13 +270,7 @@ function updatePayoutCalc() {
   if (pTxt) pTxt.innerText = total + ' $';
 }
 
-function selectExpirationTime(sec, label) {
-  selectedTimerSeconds = sec;
-  let d = document.getElementById('dockTimerDisplay');
-  if (d) d.innerText = label;
-  closeSheet('timerModal');
-}
-
+// পয়েন্ট ৯: ট্রেড প্লেসমেন্ট ও ডটেড মার্কার
 function placeOrder(direction) {
   let amt = parseFloat(document.getElementById('investAmountInput').value) || 1;
   fetch('/api/trade', {
@@ -370,7 +281,6 @@ function placeOrder(direction) {
       amount: amt,
       direction,
       accountType: currentAccount,
-      durationSec: selectedTimerSeconds,
       asset: activeAssetKey
     })
   })
@@ -384,25 +294,12 @@ function placeOrder(direction) {
       activeTrades.push(d.trade);
       let badge = document.getElementById('activeTradesCountBadge');
       if (badge) badge.innerText = activeTrades.length;
-      updateActiveTradesDrawerLive();
     } else {
       alert(d.message);
     }
   });
 }
 
-function triggerWinPopup(tr, profit) {
-  let winModal = document.getElementById('winResultModal');
-  let pAmt = document.getElementById('winProfitAmount');
-  let aDet = document.getElementById('winAssetDetails');
-  if (winModal && pAmt) {
-    pAmt.innerText = `+$${profit.toFixed(2)}`;
-    if (aDet) aDet.innerText = `${tr.asset || activeAssetKey} • Fixed Time`;
-    winModal.style.display = 'flex';
-  }
-}
-
-// পোর্টফোলিও লাইভ ড্রয়ার
 function updateActiveTradesDrawerLive() {
   let container = document.getElementById('activeTradesContainer');
   let badge = document.getElementById('activeTradesCountBadge');
@@ -416,676 +313,52 @@ function updateActiveTradesDrawerLive() {
 
   let nowSec = Math.floor(Date.now() / 1000);
   let html = '';
-
   activeTrades.forEach(tr => {
     let diffSec = Math.max(0, tr.expireTime - nowSec);
-    let remM = String(Math.floor(diffSec / 60)).padStart(2, '0');
-    let remS = String(diffSec % 60).padStart(2, '0');
-
-    let currentPrice = (tr.asset === activeAssetKey) ? renderLivePrice : tr.entryPrice;
-    let isWinning = false;
-    if (tr.direction === 'UP') isWinning = (currentPrice > tr.entryPrice);
-    else if (tr.direction === 'DOWN') isWinning = (currentPrice < tr.entryPrice);
-
-    let expectedProfit = (tr.amount * (currentPayout / 100)).toFixed(2);
-
     html += `
-      <div class="data-card-wrapper">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <b>${tr.asset}</b>
-          <span class="sig-badge-${tr.direction.toLowerCase()}">${tr.direction === 'UP' ? '▲ UP' : '▼ DOWN'}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:6px;">
-          <span>Invested: <b>$${parseFloat(tr.amount).toFixed(2)}</b></span>
-          <span>Time: <b>${remM}:${remS}</b></span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800;">
-          <span style="font-size:11px; color:var(--text-muted);">Current: ${currentPrice.toFixed(activeDecimals)}</span>
-          <span style="color:${isWinning ? '#00e676' : '#eb5757'};">
-            ${isWinning ? `+ $${expectedProfit}` : `-$${parseFloat(tr.amount).toFixed(2)}`}
-          </span>
-        </div>
+      <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center;">
+        <div><b>${tr.asset} (${tr.direction})</b><small style="display:block; color:var(--text-muted);">Invest: $${tr.amount} | Expire in: ${diffSec}s</small></div>
+        <span class="sig-badge-${tr.direction.toLowerCase()}">${tr.direction}</span>
       </div>
     `;
   });
   container.innerHTML = html;
 }
 
-function loadAllTrades() {
-  fetch('/api/trades/lifetime').then(r => r.json()).then(d => {
-    let box = document.getElementById('allTradesHistoryBox');
-    if (!box) return;
-    let html = '';
-    d.trades.forEach(t => {
-      let isDraw = t.isDraw;
-      let col = isDraw ? 'var(--text-muted)' : (t.isWin ? '#00e676' : '#eb5757');
-      html += `
-        <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <div>
-            <b>${t.asset} (${t.direction})</b>
-            <small style="color:var(--text-muted); display:block;">Amount: $${t.amount} | ${t.time}</small>
-          </div>
-          <div style="text-align:right;">
-            <b style="color:${col}; font-size:13px;">${isDraw ? '+$0.00' : (t.isWin ? `+$${t.profit}` : `-$${t.amount}`)}</b>
-            <small style="color:var(--text-muted); display:block;">${t.accountType.toUpperCase()}</small>
-          </div>
-        </div>
-      `;
-    });
-    box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No deals recorded yet.</p>';
-  });
-}
+// পয়েন্ট ৮: কটেক্স টাচ পিঞ্চ জুম ও প্যানিং
+let startX = 0;
+let isPanning = false;
 
-// ডিপোজিট ও গেটওয়ে হ্যান্ডলার
-function onDepMethodChange() {
-  let method = document.getElementById('depMethodSelect').value;
-  let binBox = document.getElementById('binanceCoinSelectBox');
-  let targetLbl = document.getElementById('depTargetLabel');
-  let targetAddr = document.getElementById('depTargetAddress');
-
-  fetch('/api/admin/overview').then(r => r.json()).then(d => {
-    let cfg = d.config;
-    if (method === 'Binance') {
-      if (binBox) binBox.style.display = 'block';
-      onCryptoChoiceChange();
-    } else if (method === 'Nagad') {
-      if (binBox) binBox.style.display = 'none';
-      if (targetLbl) targetLbl.innerText = "Nagad Personal Number (Send Money):";
-      if (targetAddr) targetAddr.innerText = cfg.nagadNumber;
-    } else if (method === 'bKash') {
-      if (binBox) binBox.style.display = 'none';
-      if (targetLbl) targetLbl.innerText = "bKash Personal Number (Send Money):";
-      if (targetAddr) targetAddr.innerText = cfg.bkashNumber;
+if (canvas) {
+  canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      isPanning = false;
+      initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+    } else if (e.touches.length === 1) {
+      isPanning = true;
+      startX = e.touches[0].clientX;
     }
-  });
-}
+  }, { passive: true });
 
-function onCryptoChoiceChange() {
-  let choice = document.getElementById('cryptoAssetChoice').value;
-  let targetLbl = document.getElementById('depTargetLabel');
-  let targetAddr = document.getElementById('depTargetAddress');
-
-  fetch('/api/admin/overview').then(r => r.json()).then(d => {
-    let cfg = d.config;
-    if (choice === 'USDT_TRC20') {
-      targetLbl.innerText = "Deposit Address (USDT TRC-20):";
-      targetAddr.innerText = cfg.usdtTrc20;
-    } else if (choice === 'USDT_BEP20') {
-      targetLbl.innerText = "Deposit Address (USDT BEP-20):";
-      targetAddr.innerText = cfg.usdtBep20;
-    } else if (choice === 'BTC_BEP20') {
-      targetLbl.innerText = "Deposit Address (BTC BEP-20):";
-      targetAddr.innerText = cfg.btcBep20;
-    } else {
-      targetLbl.innerText = "Deposit Address (BTC Native):";
-      targetAddr.innerText = cfg.btcNetwork;
+  canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && initialPinchDistance) {
+      let currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      let factor = currentDist / initialPinchDistance;
+      if (factor > 1.04 && candleWidth < 28) { candleWidth = Math.min(28, candleWidth + 0.35); candleSpacing = Math.min(11, candleSpacing + 0.15); }
+      else if (factor < 0.96 && candleWidth > 6) { candleWidth = Math.max(6, candleWidth - 0.35); candleSpacing = Math.max(2, candleSpacing - 0.15); }
+      initialPinchDistance = currentDist;
+    } else if (e.touches.length === 1 && isPanning) {
+      panOffset += (e.touches[0].clientX - startX) * 0.95;
+      startX = e.touches[0].clientX;
     }
-  });
-}
+  }, { passive: true });
 
-function loadDepositData() {
-  fetch('/api/admin/overview').then(r => r.json()).then(d => {
-    let rDisp = document.getElementById('depDollarRateDisplay');
-    if (rDisp) rDisp.innerText = `1 USD = ${d.config.dollarRate.toFixed(2)} BDT`;
-    onDepMethodChange();
-
-    let hTable = document.getElementById('depHistoryTable');
-    let myDeps = d.deposits.filter(x => x.userId === currentUser.id);
-    let html = '';
-    myDeps.forEach(dep => {
-      html += `
-        <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <div>
-            <b>$${dep.amount} (${dep.method})</b>
-            <small style="color:var(--text-muted); display:block;">TrxID: ${dep.trxId}</small>
-          </div>
-          <span class="verify-badge-pill ${dep.status.toLowerCase()}">${dep.status}</span>
-        </div>
-      `;
-    });
-    if (hTable) hTable.innerHTML = html || '<p style="color:var(--text-muted); font-size:12px;">No deposit transactions recorded.</p>';
-  });
-}
-
-function submitDepositOrder() {
-  let method = document.getElementById('depMethodSelect').value;
-  let amt = document.getElementById('depAmountInput').value;
-  let trx = document.getElementById('depTrxInput').value;
-  let promo = document.getElementById('depPromoInput')?.value || '';
-
-  if (!amt || !trx) return alert("Enter amount and TrxID!");
-
-  if (method === 'Nagad') {
-    let nagadSheet = document.getElementById('nagadSimulatorSheet');
-    let bdtDisp = document.getElementById('nagadTotalBdtDisplay');
-    if (nagadSheet && bdtDisp) {
-      let bdtTotal = (parseFloat(amt) * 125.00).toFixed(2);
-      bdtDisp.innerText = `BDT ${bdtTotal}`;
-      nagadSheet.style.display = 'flex';
-      return;
-    }
-  }
-
-  executeDepositPost(method, amt, trx, promo);
-}
-
-function confirmNagadSimulatedPayment() {
-  let phone = document.getElementById('nagadUserPhone')?.value.trim();
-  if (!phone) return alert("Enter your Nagad number!");
-  let amt = document.getElementById('depAmountInput').value;
-  let trx = document.getElementById('depTrxInput').value || `NAGAD-${Date.now()}`;
-  let promo = document.getElementById('depPromoInput')?.value || '';
-
-  closeSheet('nagadSimulatorSheet');
-  executeDepositPost('Nagad', amt, trx, promo);
-}
-
-function executeDepositPost(method, amt, trx, promo) {
-  fetch('/api/wallet/deposit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId: currentUser.id,
-      method,
-      amount: amt,
-      trxId: trx,
-      promoCode: promo
-    })
-  })
-  .then(r => r.json())
-  .then(d => {
-    showToast(d.message);
-    document.getElementById('depAmountInput').value = '';
-    document.getElementById('depTrxInput').value = '';
-    loadDepositData();
-  });
-}
-
-// টুর্নামেন্টস ও রিওয়ার্ডস
-function loadTournaments() {
-  fetch('/api/tournaments/list').then(r => r.json()).then(d => {
-    let box = document.getElementById('tournamentsListContainer');
-    if (!box) return;
-    let html = '';
-    d.tournaments.forEach(tour => {
-      html += `
-        <div class="tournament-item-card">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-            <b style="font-size:15px; color:#fff;">${tour.title}</b>
-            <span class="tour-badge-active">${tour.status}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:10px;">
-            <span>Prize Pool: <b style="color:var(--accent-gold);">${tour.prizePool}</b></span>
-            <span>Fee: <b>${tour.entryFee}</b></span>
-            <span>Traders: <b>${tour.participants}</b></span>
-          </div>
-          <button class="btn-primary-blue" style="background:#00b074; padding:8px 14px;" onclick="joinTournamentAction('${tour.id}')">Join Tournament</button>
-        </div>
-      `;
-    });
-    box.innerHTML = html;
-  });
-}
-
-function joinTournamentAction(tourId) {
-  fetch('/api/tournaments/join', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tournamentId: tourId, userId: currentUser.id })
-  })
-  .then(r => r.json())
-  .then(d => {
-    showToast(d.message);
-    loadTournaments();
-  });
-}
-
-function submitPromoRedeem() {
-  let code = document.getElementById('promoCodeInput')?.value.trim().toUpperCase();
-  if (!code) return alert("Enter promo code!");
-
-  fetch('/api/rewards/redeem', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: currentUser.id, code })
-  })
-  .then(r => r.json())
-  .then(d => {
-    showToast(d.message);
-    if (d.success) applyCouponToDep(code);
-  });
-}
-
-function applyCouponToDep(code) {
-  let depPromo = document.getElementById('depPromoInput');
-  if (depPromo) depPromo.value = code;
-  openSheet('depositSheet');
-  showToast(`Coupon ${code} applied to deposit form!`);
-}
-
-function loadLeaderboard() {
-  fetch('/api/leaderboard').then(r => r.json()).then(d => {
-    let box = document.getElementById('leaderboardListContainer');
-    if (!box) return;
-    let html = '';
-    d.leaderboard.forEach(l => {
-      let medal = l.rank === 1 ? '🥇' : (l.rank === 2 ? '🥈' : (l.rank === 3 ? '🥉' : `#${l.rank}`));
-      html += `
-        <div class="leader-row-item">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <b style="font-size:16px; min-width:24px;">${medal}</b>
-            <span>${l.country}</span>
-            <div>
-              <b>${l.name}</b>
-              <small style="color:var(--text-muted); display:block;">${l.deals} deals today</small>
-            </div>
-          </div>
-          <b style="color:#00e676; font-size:13px;">${l.profit}</b>
-        </div>
-      `;
-    });
-    box.innerHTML = html;
-  });
-}
-
-// সিগন্যাল ও অ্যালার্টস
-function loadSignals() {
-  fetch('/api/signals/list').then(r => r.json()).then(d => {
-    let box = document.getElementById('signalsListContainer');
-    if (!box) return;
-    let html = '';
-    d.signals.forEach(sig => {
-      let isHigher = sig.direction === 'HIGHER';
-      html += `
-        <div class="signal-item-card">
-          <div class="sig-head-row">
-            <b>${sig.company}</b>
-            <span class="${isHigher ? 'sig-badge-higher' : 'sig-badge-lower'}">${sig.direction}</span>
-          </div>
-          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:8px;">
-            <span>Algorithm: <b>${sig.strategy}</b></span>
-            <span>Strength: <b style="color:#00e676;">${sig.strength}</b></span>
-            <span>Time: <b>${sig.timeframe}</b></span>
-          </div>
-          <button class="btn-primary-blue" style="padding:6px 12px; background:var(--bg-dark); border:1px solid var(--border-subtle);" onclick="copySignalAction('${sig.asset}', '${isHigher ? 'UP' : 'DOWN'}')">
-            Copy Signal ➔
-          </button>
-        </div>
-      `;
-    });
-    box.innerHTML = html;
-  });
-}
-
-function copySignalAction(assetKey, dir) {
-  selectAsset(assetKey);
-  placeOrder(dir);
-  closeSheet('signalsSheet');
-}
-
-function loadPriceAlerts() {
-  fetch('/api/alerts/list').then(r => r.json()).then(d => {
-    let box = document.getElementById('activeAlertsList');
-    if (!box) return;
-    let html = '';
-    d.alerts.forEach(a => {
-      html += `
-        <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <b>${a.asset}</b>
-            <small style="color:var(--text-muted); display:block;">Condition: ${a.condition} ${a.targetPrice}</small>
-          </div>
-          <span class="verify-badge-pill ${a.triggered ? 'verified' : 'unverified'}">${a.triggered ? 'Triggered' : 'Active'}</span>
-        </div>
-      `;
-    });
-    box.innerHTML = html || '<p style="color:var(--text-muted); font-size:12px;">No active alerts set.</p>';
-  });
-}
-
-function submitCreatePriceAlert() {
-  let target = document.getElementById('alertTargetPriceInput')?.value;
-  let cond = document.getElementById('alertConditionSelect')?.value || 'ABOVE';
-  if (!target) return alert("Enter target price!");
-
-  fetch('/api/alerts/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ asset: activeAssetKey, targetPrice: target, condition: cond })
-  })
-  .then(r => r.json())
-  .then(d => {
-    showToast(d.message);
-    document.getElementById('alertTargetPriceInput').value = '';
-    loadPriceAlerts();
-  });
-}
-
-// প্রোফাইল, কেওয়াইসি ও স্টেটমেন্ট
-function refreshProfileUI() {
-  document.getElementById('profNameDisplay').innerText = currentUser.name;
-  document.getElementById('profIdDisplay').innerText = "ID: " + currentUser.id;
-  document.getElementById('profNameInput').value = currentUser.name;
-  document.getElementById('profDisplayNameInput').value = currentUser.displayName || currentUser.name;
-  document.getElementById('profEmailInput').value = currentUser.email;
-  document.getElementById('profPhoneInput').value = currentUser.phone || '';
-
-  let tag = document.getElementById('profVerifyTag');
-  let nidSec = document.getElementById('nidSubmitSection');
-  tag.className = "verify-badge-pill " + currentUser.verificationStatus.toLowerCase();
-  tag.innerText = currentUser.verificationStatus;
-
-  if (currentUser.verificationStatus === 'Verified') {
-    nidSec.style.display = 'none';
-  } else {
-    nidSec.style.display = 'block';
-  }
-
-  let mMail = document.getElementById('menuEmail');
-  let mId = document.getElementById('menuUserId');
-  if (mMail) mMail.innerText = currentUser.email;
-  if (mId) mId.innerText = "ID: " + currentUser.id;
-}
-
-function saveProfileDetails() {
-  fetch('/api/user/update', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: currentUser.id,
-      name: document.getElementById('profNameInput').value,
-      displayName: document.getElementById('profDisplayNameInput').value,
-      email: document.getElementById('profEmailInput').value,
-      phone: document.getElementById('profPhoneInput').value
-    })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) {
-      currentUser = d.user;
-      showToast(d.message);
-      refreshProfileUI();
-    }
-  });
-}
-
-function submitNidPhotos() {
-  let fFile = document.getElementById('nidFrontFile').files[0];
-  let bFile = document.getElementById('nidBackFile').files[0];
-  if (!fFile || !bFile) return alert("Select both front and back NID photos!");
-
-  const toBase64 = file => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-  });
-
-  Promise.all([toBase64(fFile), toBase64(bFile)]).then(([frontB64, backB64]) => {
-    fetch('/api/user/submit-nid', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: currentUser.id, nidFront: frontB64, nidBack: backB64 })
-    })
-    .then(r => r.json())
-    .then(d => {
-      showToast(d.message);
-      currentUser.verificationStatus = "Pending";
-      refreshProfileUI();
-    });
-  });
-}
-
-function generateAccountStatement() {
-  fetch('/api/user/statement', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: currentUser.id })
-  })
-  .then(r => r.json())
-  .then(d => {
-    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(d, null, 2));
-    let dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", `Statement_${currentUser.id}.json`);
-    document.body.appendChild(dlAnchor);
-    dlAnchor.click();
-    dlAnchor.remove();
-    showToast("Statement Downloaded!");
-  });
-}
-
-function submitChangePassword() {
-  let curP = document.getElementById('curPassInput')?.value;
-  let newP = document.getElementById('newPassInput')?.value;
-  if (!curP || !newP) return alert("Enter current and new password!");
-
-  fetch('/api/user/change-password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id: currentUser.id, currentPassword: curP, newPassword: newP })
-  })
-  .then(r => r.json())
-  .then(d => {
-    showToast(d.message);
-    if (d.success) {
-      document.getElementById('curPassInput').value = '';
-      document.getElementById('newPassInput').value = '';
-    }
-  });
-}
-
-function loadAnalytics() {
-  fetch(`/api/analytics/${currentUser.id}`).then(r => r.json()).then(d => {
-    let s = d.stats;
-    document.getElementById('statTotalTrades').innerText = s.totalTrades;
-    document.getElementById('statNetProfit').innerText = `$${s.netProfit}`;
-    document.getElementById('statWinRate').innerText = s.winRate;
-    document.getElementById('statBestStreak').innerText = s.bestStreak;
-  });
-}
-
-// উইথড্রয়াল ও ২X টার্নওভার
-function onWithMethodChange() {
-  let method = document.getElementById('withMethodSelect').value;
-  let lbl = document.getElementById('withDetailsLabel');
-  let inp = document.getElementById('withAccountDetails');
-  if (method === 'Binance') {
-    lbl.innerText = "Binance Wallet Address (USDT):";
-    inp.placeholder = "Enter USDT wallet address";
-  } else {
-    lbl.innerText = method + " Account Number:";
-    inp.placeholder = "01XXXXXXXXX";
-  }
-}
-
-function loadWithdrawData() {
-  fetch(`/api/user/${currentUser.id}`).then(r => r.json()).then(d => {
-    currentUser = d.user;
-    document.getElementById('wRealBal').innerText = '$' + currentUser.liveBalance.toFixed(2);
-    document.getElementById('wBonusBal').innerText = '$' + currentUser.bonusBalance.toFixed(2);
-
-    let warn = document.getElementById('turnoverWarnBox');
-    if (currentUser.hasActiveBonus && currentUser.currentTurnover < currentUser.requiredTurnover) {
-      warn.style.display = 'block';
-      let rem = (currentUser.requiredTurnover - currentUser.currentTurnover).toFixed(2);
-      warn.innerHTML = `⚠️ <b>Withdrawal Restricted!</b> Complete your 2X Turnover requirement on bonus funds. Remaining: $${rem}`;
-    } else {
-      warn.style.display = 'none';
-    }
-
-    fetch('/api/payments/all').then(r => r.json()).then(pd => {
-      let wTable = document.getElementById('withHistoryTable');
-      let myWiths = pd.withdrawals.filter(x => x.userId === currentUser.id);
-      let html = '';
-      myWiths.forEach(w => {
-        html += `
-          <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-            <div><b>$${w.amount} (${w.method})</b><small style="color:var(--text-muted); display:block;">${w.accountDetails}</small></div>
-            <span class="verify-badge-pill ${w.status.toLowerCase()}">${w.status}</span>
-          </div>
-        `;
-      });
-      wTable.innerHTML = html || '<p style="color:var(--text-muted); font-size:12px;">No withdrawal transactions recorded.</p>';
-    });
-  });
-}
-
-function submitWithdrawOrder() {
-  let amt = document.getElementById('withAmountInput').value;
-  let details = document.getElementById('withAccountDetails').value;
-  if (!amt || !details) return alert("Fill amount and details!");
-
-  fetch('/api/wallet/withdraw', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId: currentUser.id,
-      method: document.getElementById('withMethodSelect').value,
-      amount: amt,
-      accountDetails: details
-    })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.turnoverBlocked) {
-      alert(d.message);
-    } else if (d.success) {
-      showToast(d.message);
-      document.getElementById('withAmountInput').value = '';
-      document.getElementById('withAccountDetails').value = '';
-      loadWithdrawData();
-      updateBalanceUI();
-    } else {
-      alert(d.message);
-    }
-  });
-}
-
-function submitSupportTicket() {
-  let sub = document.getElementById('ticketSubject')?.value.trim();
-  let msg = document.getElementById('ticketMessage')?.value.trim();
-  if (!sub || !msg) return alert("Fill subject and message!");
-
-  fetch('/api/support/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sender: 'User', userId: currentUser.id, text: `[Ticket: ${sub}] ${msg}` })
-  })
-  .then(() => {
-    showToast("Support Ticket Submitted!");
-    document.getElementById('ticketSubject').value = '';
-    document.getElementById('ticketMessage').value = '';
-    closeSheet('helpSheet');
-  });
-}
-
-// সাপোর্ট চ্যাট
-function loadChatHistory() {
-  fetch('/api/support/messages').then(r => r.json()).then(d => {
-    let box = document.getElementById('chatMessagesContainer');
-    let html = '';
-    d.messages.forEach(m => {
-      let isUser = m.sender === 'User';
-      html += `
-        <div class="chat-bubble-msg ${isUser ? 'user' : 'admin'}">
-          <div>${m.text}</div>
-          ${m.image ? `<img src="${m.image}" style="max-width:160px; border-radius:6px; margin-top:6px; display:block;">` : ''}
-          <small style="font-size:9px; opacity:0.75; display:block; text-align:right; margin-top:2px;">${m.timeStr}</small>
-        </div>
-      `;
-    });
-    box.innerHTML = html;
-    box.scrollTop = box.scrollHeight;
-  });
-}
-
-function sendChatMessage() {
-  let txt = document.getElementById('chatTextInput').value.trim();
-  if (!txt) return;
-  fetch('/api/support/send', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sender: 'User', userId: currentUser.id, text: txt })
-  })
-  .then(() => {
-    document.getElementById('chatTextInput').value = '';
-    loadChatHistory();
-  });
-}
-
-function sendChatImage(event) {
-  let file = event.target.files[0];
-  if (!file) return;
-  let reader = new FileReader();
-  reader.onload = () => {
-    fetch('/api/support/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sender: 'User', userId: currentUser.id, text: "", image: reader.result })
-    })
-    .then(() => loadChatHistory());
-  };
-  reader.readAsDataURL(file);
-}
-
-function loadNotifications() {
-  fetch('/api/notifications').then(r => r.json()).then(d => {
-    let box = document.getElementById('notificationsList');
-    let html = '';
-    d.notifications.forEach(n => {
-      html += `
-        <div class="data-card-wrapper" style="margin-bottom:8px;">
-          <div style="display:flex; justify-content:space-between; align-items:center;">
-            <b>${n.title}</b><small style="color:var(--text-muted);">${n.time}</small>
-          </div>
-          <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">${n.body}</p>
-        </div>
-      `;
-    });
-    box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No new notifications.</p>';
-    document.getElementById('notifBadgeCount').innerText = d.notifications.length;
-  });
-}
-
-function renderBonusTasks() {
-  let box = document.getElementById('bonusTasksList');
-  let tasks = [
-    { trade: 10, free: 5 }, { trade: 30, free: 10 }, { trade: 50, free: 20 },
-    { trade: 100, free: 30 }, { trade: 200, free: 50 }, { trade: 500, free: 100 },
-    { trade: 1000, free: 250 }, { trade: 10000, free: 1000 }
-  ];
-  let html = '';
-  tasks.forEach(t => {
-    html += `
-      <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <b>Trade $${t.trade.toLocaleString()} ➔ Get $${t.free.toLocaleString()} FREE</b>
-          <small style="color:var(--text-muted); display:block;">Turnover requirement: 2X ($${(t.free * 2).toLocaleString()})</small>
-        </div>
-        <button class="btn-primary-blue" style="width:auto; padding:6px 14px; background:#00b074;" onclick="claimBonusTask(${t.trade}, ${t.free})">Join Now</button>
-      </div>
-    `;
-  });
-  box.innerHTML = html;
-}
-
-function claimBonusTask(trade, free) {
-  fetch('/api/bonus/claim', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ userId: currentUser.id, targetTrade: trade, freeAmount: free })
-  })
-  .then(r => r.json())
-  .then(d => {
-    showToast(d.message);
-    loadUserData();
-  });
+  canvas.addEventListener('touchend', () => { isPanning = false; initialPinchDistance = null; });
 }
 
 function resetPan() { panOffset = 0; }
 
-// কটেক্স ক্যান্ডেলস্টিক চার্ট ক্যানভাস ইঞ্জিন
+// পয়েন্ট ৬: ছবি ১১০১-এর লাল '1' চিহ্নিত সমস্ত ভিজ্যুয়াল সহ চার্ট রেন্ডারার
 function render() {
   requestAnimationFrame(render);
   if (!canvas || !ctx || candles.length === 0) return;
@@ -1094,14 +367,14 @@ function render() {
   const h = parseFloat(canvas.style.height) || canvas.height;
   ctx.clearRect(0, 0, w, h);
 
-  renderLivePrice += (targetLivePrice - renderLivePrice) * 0.16;
+  renderLivePrice += (targetLivePrice - renderLivePrice) * 0.18;
   let last = candles[candles.length - 1];
   last.close = parseFloat(renderLivePrice.toFixed(activeDecimals));
   last.high = Math.max(last.high, last.close);
   last.low = Math.min(last.low, last.close);
 
   let totalUnit = candleWidth + candleSpacing;
-  let baseRightX = w - 80 + panOffset;
+  let baseRightX = w - 85 + panOffset;
   let N = candles.length;
 
   function getX(i) { return baseRightX - ((N - 1 - i) * totalUnit); }
@@ -1109,27 +382,59 @@ function render() {
   let visible = [];
   for (let i = 0; i < N; i++) {
     let x = getX(i);
-    if (x >= -30 && x <= w + 30) visible.push({ ...candles[i], x });
+    if (x >= -40 && x <= w + 40) visible.push({ ...candles[i], index: i, x });
   }
-  if (visible.length === 0) visible = candles.slice(-25).map((c, i) => ({ ...c, x: getX(N - 25 + i) }));
+  if (visible.length === 0) visible = candles.slice(-25).map((c, i) => ({ ...c, index: N - 25 + i, x: getX(N - 25 + i) }));
 
   let prices = visible.flatMap(v => [v.high, v.low]);
-  let minP = Math.min(...prices) - (allAssets[activeAssetKey]?.vol || 0.0003);
-  let maxP = Math.max(...prices) + (allAssets[activeAssetKey]?.vol || 0.0003);
+  let minP = Math.min(...prices) - 0.0003;
+  let maxP = Math.max(...prices) + 0.0003;
   let range = (maxP - minP) || 0.0001;
 
-  function getY(p) { return h - 30 - ((p - minP) / range) * (h - 60); }
+  function getY(p) { return h - 35 - ((p - minP) / range) * (h - 70); }
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-  ctx.fillStyle = '#7a8ba1';
-  ctx.font = '10px monospace';
-  for (let i = 1; i <= 5; i++) {
-    let y = (h / 6) * i;
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w - 55, y); ctx.stroke();
-    let pVal = maxP - ((y - 30) / (h - 60)) * range;
-    ctx.fillText(pVal.toFixed(activeDecimals), w - 50, y + 3);
+  // সূক্ষ্ম অনুভূমিক গ্রিড লাইন ও ডানপাশের ৫ ডিজিট প্রাইস স্কেল (1101.jpg)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+  ctx.fillStyle = '#64748b';
+  ctx.font = '10px -apple-system, sans-serif';
+  for (let i = 1; i <= 6; i++) {
+    let y = (h / 7) * i;
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w - 60, y); ctx.stroke();
+    let pVal = maxP - ((y - 35) / (h - 70)) * range;
+    ctx.fillText(pVal.toFixed(activeDecimals), w - 54, y + 3);
   }
 
+  // নিচের টাইম স্কেল গ্রিড (1101.jpg - 19:20, 19:36, 19:52)
+  for (let i = 0; i < visible.length; i += 8) {
+    let c = visible[i];
+    let d = new Date(c.time * 1000);
+    let timeStr = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    ctx.fillText(timeStr, c.x - 10, h - 10);
+  }
+
+  // পয়েন্ট ৬.১: "Beginning of trade" উলম্ব সাদা ড্যাশড লাইন
+  let lastCandleX = visible[visible.length - 1].x + candleWidth / 2;
+  ctx.setLineDash([4, 4]);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.beginPath();
+  ctx.moveTo(lastCandleX, 20);
+  ctx.lineTo(lastCandleX, h - 25);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+  ctx.fillText("Beginning of trade", lastCandleX - 50, 24);
+
+  // পয়েন্ট ৬.১: "End of trade" উলম্ব এক্সপায়ারি লাইন ও 01:20
+  let endX = lastCandleX + (totalUnit * 3);
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+  ctx.beginPath();
+  ctx.moveTo(endX, 20);
+  ctx.lineTo(endX, h - 25);
+  ctx.stroke();
+  ctx.fillText("End of trade", endX + 6, 24);
+  ctx.fillText("01:20", endX + 6, 36);
+  ctx.setLineDash([]);
+
+  // কটেক্স ক্যান্ডেলস্টিক বডি ও উইক
   visible.forEach(c => {
     let isBull = c.close >= c.open;
     let col = isBull ? '#0faf59' : '#eb5757';
@@ -1146,24 +451,35 @@ function render() {
     ctx.fillRect(c.x, topY, candleWidth, ch);
   });
 
+  // পয়েন্ট ৬.৩: সুইং লো প্রাইস ট্যাগ ব্যাজ (1101.jpg - 1.35475)
+  let lowestCandle = visible.reduce((min, c) => c.low < min.low ? c : min, visible[0]);
+  let lowestY = getY(lowestCandle.low);
+  ctx.fillStyle = 'rgba(20, 28, 45, 0.85)';
+  ctx.fillRect(lowestCandle.x - 18, lowestY + 6, 50, 16);
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText(lowestCandle.low.toFixed(activeDecimals), lowestCandle.x - 14, lowestY + 18);
+
+  // পয়েন্ট ৬.২: লাইভ প্রাইস অনুভূমিক সাদা ড্যাশড লাইন
   let liveY = getY(last.close);
   ctx.setLineDash([3, 3]);
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
-  ctx.beginPath(); ctx.moveTo(0, liveY); ctx.lineTo(w - 55, liveY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(0, liveY); ctx.lineTo(w - 60, liveY); ctx.stroke();
   ctx.setLineDash([]);
 
-  ctx.fillStyle = '#0070f3';
-  ctx.fillRect(w - 55, liveY - 9, 54, 18);
-  ctx.fillStyle = '#fff';
-  ctx.fillText(last.close.toFixed(activeDecimals), w - 52, liveY + 3);
-
-  let expX = baseRightX + (candleWidth + candleSpacing);
+  // পয়েন্ট ৬.২: ডার্ক কাউন্টডাউন পিল বক্স (00:21)
   let cdStr = `00:${String(remainingCountdown).padStart(2, '0')}`;
-  ctx.fillStyle = '#1c2638';
-  ctx.fillRect(expX + 6, liveY - 9, 44, 18);
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(lastCandleX + 8, liveY - 9, 36, 18);
   ctx.fillStyle = '#fff';
-  ctx.fillText(cdStr, expX + 10, liveY + 3);
+  ctx.fillText(cdStr, lastCandleX + 11, liveY + 3);
 
+  // পয়েন্ট ৬.২: ডানপাশের উজ্জ্বল নীল লাইভ প্রাইস ট্যাগ (1.35484)
+  ctx.fillStyle = '#0070f3';
+  ctx.fillRect(w - 60, liveY - 10, 58, 20);
+  ctx.fillStyle = '#fff';
+  ctx.fillText(last.close.toFixed(activeDecimals), w - 56, liveY + 4);
+
+  // পয়েন্ট ৯: ট্রেড এন্ট্রি ডটেড লাইন ও অ্যারো মার্কার (▲ / ▼)
   activeTrades.filter(t => t.asset === activeAssetKey).forEach(tr => {
     let entryY = getY(tr.entryPrice);
     let isUp = tr.direction === 'UP';
@@ -1173,12 +489,27 @@ function render() {
     ctx.strokeStyle = tCol;
     ctx.beginPath();
     ctx.moveTo(0, entryY);
-    ctx.lineTo(w - 55, entryY);
+    ctx.lineTo(w - 60, entryY);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // এন্ট্রি অ্যারো মার্কার
+    ctx.fillStyle = tCol;
+    ctx.beginPath();
+    if (isUp) {
+      ctx.moveTo(lastCandleX, entryY - 14);
+      ctx.lineTo(lastCandleX - 5, entryY - 5);
+      ctx.lineTo(lastCandleX + 5, entryY - 5);
+    } else {
+      ctx.moveTo(lastCandleX, entryY + 14);
+      ctx.lineTo(lastCandleX - 5, entryY + 5);
+      ctx.lineTo(lastCandleX + 5, entryY + 5);
+    }
+    ctx.fill();
   });
 }
 
+// ঘড়ি ও কাউন্টডাউন
 setInterval(() => {
   let now = new Date();
   let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -1206,60 +537,16 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// টাচ স্ক্রোল ও পিঞ্চ জুম
-let startX = 0;
-let isPanning = false;
-
-if (canvas) {
-  canvas.addEventListener('touchstart', (e) => {
-    if (e.touches.length === 2) {
-      isPanning = false;
-      initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-    } else if (e.touches.length === 1) {
-      isPanning = true;
-      startX = e.touches[0].clientX;
-    }
-  }, { passive: true });
-
-  canvas.addEventListener('touchmove', (e) => {
-    if (e.touches.length === 2 && initialPinchDistance) {
-      let currentDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-      let factor = currentDist / initialPinchDistance;
-      if (factor > 1.04 && candleWidth < 26) { candleWidth = Math.min(26, candleWidth + 0.3); candleSpacing = Math.min(10, candleSpacing + 0.15); }
-      else if (factor < 0.96 && candleWidth > 8) { candleWidth = Math.max(8, candleWidth - 0.3); candleSpacing = Math.max(3, candleSpacing - 0.15); }
-      initialPinchDistance = currentDist;
-    } else if (e.touches.length === 1 && isPanning) {
-      panOffset += (e.touches[0].clientX - startX) * 0.95;
-      let maxPan = (candles.length * (candleWidth + candleSpacing)) - 80;
-      panOffset = Math.max(-60, Math.min(maxPan, panOffset));
-      startX = e.touches[0].clientX;
-    }
-  }, { passive: true });
-
-  canvas.addEventListener('touchend', () => { isPanning = false; initialPinchDistance = null; });
-}
-
-// সেন্ট্রাল ওয়েবসকেট ইঞ্জিন
+// WebSocket
 function initWS() {
   let ws = new WebSocket((location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host);
-  
-  let pingInterval = setInterval(() => {
-    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'PING' }));
-  }, 20000);
+  setInterval(() => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'PING' })); }, 20000);
 
   ws.onmessage = (e) => {
     let msg = JSON.parse(e.data);
     if (msg.type === 'TICK') {
       if (msg.assets && msg.assets[activeAssetKey]) {
         targetLivePrice = parseFloat(msg.assets[activeAssetKey].price);
-      }
-      if (msg.sentiment) {
-        let bBar = document.getElementById('sentimentBuyersBar');
-        let sBar = document.getElementById('sentimentSellersBar');
-        if (bBar && sBar) {
-          bBar.style.height = `${msg.sentiment.buyers}%`;
-          sBar.style.height = `${msg.sentiment.sellers}%`;
-        }
       }
     } else if (msg.type === 'BALANCE_UPDATE') {
       if (msg.userId === currentUser.id) {
@@ -1269,38 +556,29 @@ function initWS() {
       }
     } else if (msg.type === 'TRADE_SETTLED') {
       let r = msg.result;
-      let tr = activeTrades.find(t => t.id === r.tradeId) || { asset: activeAssetKey };
       activeTrades = activeTrades.filter(t => t.id !== r.tradeId);
       updateActiveTradesDrawerLive();
-      loadUserData();
       if (r.isWin) {
-        triggerWinPopup(tr, r.profit);
+        let winModal = document.getElementById('winResultModal');
+        let pAmt = document.getElementById('winProfitAmount');
+        if (winModal && pAmt) {
+          pAmt.innerText = `+$${r.profit.toFixed(2)}`;
+          winModal.style.display = 'flex';
+        }
       } else {
-        showToast(r.isDraw ? "Trade Drawn! Refunded." : "Trade Closed: Loss");
+        showToast("Trade Closed: Loss");
       }
-    } else if (msg.type === 'CHAT_MSG') {
-      loadChatHistory();
+      if (currentAccount === 'live') currentUser.liveBalance = parseFloat(r.balance);
+      else currentUser.demoBalance = parseFloat(r.balance);
+      updateBalanceUI();
     }
   };
 
-  ws.onclose = () => {
-    clearInterval(pingInterval);
-    setTimeout(initWS, 1500);
-  };
-}
-
-function loadUserData() {
-  let savedId = localStorage.getItem('auth_user_id') || "85857047";
-  fetch(`/api/user/${savedId}`).then(r => r.json()).then(d => {
-    currentUser = d.user;
-    updateBalanceUI();
-    refreshProfileUI();
-  });
+  ws.onclose = () => setTimeout(initWS, 1500);
 }
 
 fitCanvas();
 loadAssets();
 fullSync();
 initWS();
-loadUserData();
 requestAnimationFrame(render);
