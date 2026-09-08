@@ -1,7 +1,7 @@
 {
-  "name": "binary-trading-platform",
-  "version": "1.0.0",
-  "description": "Custom Binary Trading Platform with Admin Control",
+  "name": "tredlo-trading-platform",
+  "version": "12.0.0",
+  "description": "Institutional OTC Trading Terminal",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
