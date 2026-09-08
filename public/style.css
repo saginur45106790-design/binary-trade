@@ -66,8 +66,8 @@ html, body {
   justify-content: center;
   flex-shrink: 0;
 }
-.svg-icon.lg { width: 22px; height: 22px; }
 .svg-icon.sm { width: 14px; height: 14px; }
+.svg-icon.lg { width: 22px; height: 22px; }
 .svg-icon.xl { width: 32px; height: 32px; }
 
 /* =============================================================
@@ -358,7 +358,7 @@ html, body {
 }
 
 /* =============================================================
-   ৬. স্লাইডিং বটম-শীট মোডাল সিস্টেম (সরাসরি পকেট অপশন স্টাইল)
+   ৬. স্লাইডিং বটম-শীট মোডাল সিস্টেম
    ============================================================= */
 .modal-overlay-sheet {
   display: none;

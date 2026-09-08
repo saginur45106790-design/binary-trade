@@ -7,9 +7,23 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// ব্রাউজার ক্যাশ চিরতরে বন্ধ করার কঠোর নো-ক্যাশ হেডার (যাতে প্রতিবার নতুন কোড লোড হয়)
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '-1');
+  next();
+});
+
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  lastModified: false,
+  setHeaders: (res) => {
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  }
+}));
 
 // =============================================================
 // ১. প্ল্যাটফর্ম গ্লোবাল কনফিগারেশন ও গেটওয়ে সেটিংস
@@ -164,7 +178,7 @@ function init24HourMarket() {
 init24HourMarket();
 
 // =============================================================
-// ৫. প্রতি সেকেন্ডের রিয়েল-টাইম ক্যান্ডেল ও মসৃণ ট্রেন্ড ইঞ্জিন
+// ৫. প্রতি সেকেন্ডের ক্যান্ডেল ও স্মুথ ট্রেন্ড ইঞ্জিন
 // =============================================================
 setInterval(() => {
   let now = Date.now();
@@ -293,6 +307,20 @@ setInterval(() => {
   let payloadStr = JSON.stringify(tickPayload);
   wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(payloadStr); });
 }, 1000);
+
+// WebSocket Heartbeat Ping/Pong (প্রতি ২৫ সেকেন্ডে, যাতে Render প্রক্সি সংযোগ বিচ্ছিন্ন না করে)
+setInterval(() => {
+  wss.clients.forEach(ws => {
+    if (ws.isAlive === false) return ws.terminate();
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 25000);
+
+wss.on('connection', (ws) => {
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
+});
 
 // =============================================================
 // ৬. অথেন্টিকেশন ও ইউজার প্রোফাইল এপিআই

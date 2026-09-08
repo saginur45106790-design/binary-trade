@@ -1354,6 +1354,12 @@ if (canvas) {
 // =============================================================
 function initWS() {
   let ws = new WebSocket((location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host);
+  
+  // ক্যান্ডেল যাতে কখনো জমে না যায়: প্রতি ২০ সেকেন্ডে ক্লায়েন্ট থেকে পিং
+  let pingInterval = setInterval(() => {
+    if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'PING' }));
+  }, 20000);
+
   ws.onmessage = (e) => {
     let msg = JSON.parse(e.data);
     if (msg.type === 'TICK') {
@@ -1389,7 +1395,11 @@ function initWS() {
       loadChatHistory();
     }
   };
-  ws.onclose = () => setTimeout(initWS, 1500);
+
+  ws.onclose = () => {
+    clearInterval(pingInterval);
+    setTimeout(initWS, 1500);
+  };
 }
 
 function loadUserData() {
