@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin Master Dashboard | Tredlo Controller</title>
+  <style>
+    :root {
+      --bg-dark: #070c14;
+      --bg-card: #0f1726;
+      --border-card: #1c2b42;
+      --accent-gold: #f5a623;
+      --accent-blue: #0070f3;
+      --accent-green: #00e676;
+      --accent-red: #eb5757;
+      --accent-cyan: #38bdf8;
+      --text-main: #e2e8f0;
+      --text-muted: #8ca2ba;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg-dark); color: var(--text-main); padding: 14px; }
+    .svg-icon { width: 18px; height: 18px; fill: currentColor; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    
+    .admin-top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .brand-title { font-size: 19px; font-weight: 900; color: var(--accent-cyan); display: flex; align-items: center; gap: 7px; }
+    .brand-title span { color: var(--accent-gold); }
+    .btn-user-site { background: #131d2e; border: 1px solid #233550; color: var(--accent-cyan); padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+
+    .platform-stats-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+    .stat-chip { background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 10px; padding: 10px; text-align: center; }
+    .stat-chip small { font-size: 10px; color: var(--text-muted); font-weight: 700; display: block; }
+    .stat-chip b { font-size: 13px; margin-top: 2px; display: block; }
+
+    .dashboard-cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+    .admin-feature-card { background: linear-gradient(145deg, #111b2b, #0b1320); border: 1px solid var(--border-card); border-radius: 18px; padding: 20px 12px 16px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; box-shadow: 0 8px 24px rgba(0,0,0,0.4); transition: transform 0.15s, border-color 0.15s; }
+    .admin-feature-card:active { transform: scale(0.97); border-color: var(--accent-blue); }
+    .card-svg-icon { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; color: #cbd5e1; }
+    .card-svg-icon svg { width: 34px; height: 34px; fill: currentColor; }
+    .card-action-title { font-size: 12px; font-weight: 800; color: #ffffff; margin-bottom: 8px; line-height: 1.2; }
+    .card-status-badge { font-size: 10px; font-weight: 900; padding: 3px 10px; border-radius: 12px; border: 1px solid; }
+    .badge-gold { background: rgba(245, 166, 35, 0.12); color: var(--accent-gold); border-color: rgba(245, 166, 35, 0.4); }
+    .badge-blue { background: rgba(0, 112, 243, 0.15); color: var(--accent-cyan); border-color: rgba(0, 112, 243, 0.4); }
+    .badge-green { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border-color: rgba(0, 230, 118, 0.4); }
+
+    .global-announcement-card { background: #0d1522; border: 2px solid var(--accent-gold); border-radius: 18px; padding: 16px; margin-bottom: 16px; box-shadow: 0 0 20px rgba(245, 166, 35, 0.15); }
+    .announcement-head { font-size: 14px; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+    .announcement-input-box { background: #080d14; border: 1px solid var(--border-card); border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 12px; font-weight: 700; width: 100%; outline: none; margin-bottom: 10px; }
+    .btn-update-announcement { width: 100%; height: 44px; background: linear-gradient(135deg, #f5a623, #d98200); color: #0c121e; border: none; border-radius: 8px; font-size: 13px; font-weight: 900; cursor: pointer; }
+
+    .admin-detail-sheet { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 1000; align-items: flex-end; justify-content: center; }
+    .sheet-inner { background: #0d1522; border-top: 1px solid var(--border-card); border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; animation: sheetPop 0.2s ease-out; }
+    @keyframes sheetPop { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .sheet-title-bar { height: 52px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-card); flex-shrink: 0; }
+    .sheet-title-bar h3 { font-size: 15px; font-weight: 800; color: #fff; }
+    .btn-sheet-close { cursor: pointer; color: var(--text-muted); font-size: 20px; font-weight: 900; }
+    .sheet-body-scroll { padding: 16px; overflow-y: auto; flex: 1; }
+
+    .review-record-card { background: #080e18; border: 1px solid var(--border-card); border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 12px; }
+    .review-top { display: flex; justify-content: space-between; font-weight: 800; color: #fff; margin-bottom: 4px; }
+    .btn-action-row { display: flex; gap: 8px; margin-top: 10px; }
+    .btn-action { flex: 1; border: none; padding: 9px; border-radius: 6px; font-weight: 800; font-size: 11px; cursor: pointer; color: #fff; }
+    .btn-approve { background: var(--accent-green); }
+    .btn-reject { background: var(--accent-red); }
+    .thumb-document-img { width: 85px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-card); cursor: pointer; margin-top: 6px; }
+
+    .bb-bar-wrap { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: #1a2536; margin: 8px 0; }
+    .bb-up { background: var(--accent-green); transition: width 0.3s; }
+    .bb-down { background: var(--accent-red); transition: width 0.3s; }
+
+    .admin-chat-stream { height: 320px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-bottom: 10px; }
+    .chat-bubble { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 12px; line-height: 1.4; }
+    .chat-bubble.user { background: #172437; color: #cbd5e1; align-self: flex-start; }
+    .chat-bubble.admin { background: var(--accent-blue); color: #fff; align-self: flex-end; }
+
+    .admin-toast { display: none; position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: var(--accent-green); color: #0c121e; padding: 8px 18px; border-radius: 6px; font-size: 12px; font-weight: 900; z-index: 2000; box-shadow: 0 4px 14px rgba(0,0,0,0.5); }
+  </style>
+</head>
+<body>
+
+  <div class="admin-top-header">
+    <div class="brand-title">
+      <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-cyan);"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      Admin Master <span>Dashboard</span>
+    </div>
+    <a href="/" class="btn-user-site">User Site ➔</a>
+  </div>
+
+  <div class="platform-stats-strip">
+    <div class="stat-chip">
+      <small>Total Deposits</small>
+      <b style="color:var(--accent-green);" id="dispTotalDep">$0.00</b>
+    </div>
+    <div class="stat-chip">
+      <small>Total Payouts</small>
+      <b style="color:var(--accent-cyan);" id="dispTotalWith">$0.00</b>
+    </div>
+    <div class="stat-chip">
+      <small>Trade Volume</small>
+      <b style="color:var(--accent-gold);" id="dispTotalVol">$0.00</b>
+    </div>
+  </div>
+
+  <!-- ১২টি মডিউলের কার্ড গ্রিড (স্ক্রিনশট ১০১৩) -->
+  <div class="dashboard-cards-grid">
+    <div class="admin-feature-card" onclick="openAdminSheet('kycSheet')">
+      <div class="card-svg-icon" style="color:#60a5fa;"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58v.23z"/></svg></div>
+      <div class="card-action-title">KYC / NID Review</div>
+      <div class="card-status-badge badge-gold" id="badgeKycCount">0 Pending</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('trendSheet')">
+      <div class="card-svg-icon" style="color:#00e676;"><svg viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg></div>
+      <div class="card-action-title">OTC Smooth Trend</div>
+      <div class="card-status-badge badge-green">5m No Spike</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('depositSheet')">
+      <div class="card-svg-icon" style="color:#f5a623;"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
+      <div class="card-action-title">Deposit Review</div>
+      <div class="card-status-badge badge-gold" id="badgeDepositCount">0 Pending</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('withdrawSheet')">
+      <div class="card-svg-icon" style="color:#4ade80;"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
+      <div class="card-action-title">Withdraw Review</div>
+      <div class="card-status-badge badge-gold" id="badgeWithdrawCount">0 Pending</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('chatSheet')">
+      <div class="card-svg-icon" style="color:#a78bfa;"><svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg></div>
+      <div class="card-action-title">Support Messages</div>
+      <div class="card-status-badge badge-blue" id="badgeChatCount">0 Messages</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('usersSheet')">
+      <div class="card-svg-icon" style="color:var(--accent-cyan);"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+      <div class="card-action-title">User Database</div>
+      <div class="card-status-badge badge-blue" id="badgeUserCount">1 User</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('signalsSheet')">
+      <div class="card-svg-icon" style="color:#f43f5e;"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg></div>
+      <div class="card-action-title">Trading Signals</div>
+      <div class="card-status-badge badge-green">4 Active</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('tournamentsSheet')">
+      <div class="card-svg-icon" style="color:var(--accent-gold);"><svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg></div>
+      <div class="card-action-title">Tournaments Hub</div>
+      <div class="card-status-badge badge-gold">3 Active</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('orderbookSheet')">
+      <div class="card-svg-icon" style="color:#10b981;"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></div>
+      <div class="card-action-title">Orderbook Billboard</div>
+      <div class="card-status-badge badge-green">Real-time</div>
+    </div>
+
+    <div class="admin-feature-card" onclick="openAdminSheet('gatewaySheet')">
+      <div class="card-svg-icon" style="color:#eab308;"><svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg></div>
+      <div class="card-action-title">Gateway Settings</div>
+      <div class="card-status-badge badge-blue">Rates & MFS</div>
+    </div>
+  </div>
+
+  <!-- গোল্ডেন নোটিশ ব্যানার (স্ক্রিনশট ১০১৩) -->
+  <div class="global-announcement-card">
+    <div class="announcement-head">
+      <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-gold);"><path d="M20 2v3h-2V4h-1.5c-.83 0-1.5.67-1.5 1.5v1.2L9.62 9H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h5.62l5.38 2.3v1.2c0 .83.67 1.5 1.5 1.5H18v-1h2v3h2V2h-2zm-7 12.35L8.7 12H4v-2h4.7L13 7.65v6.7z"/></svg>
+      Global Notice & Announcement Banner
+    </div>
+    <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:6px; font-weight:700;">Top Announcement Notice Text</label>
+    <input type="text" id="announcementNoticeInput" class="announcement-input-box" value="📢 স্বাগতম Tredlo V12.0 এ! প্রথম ডিপোজিটে +৭০% বোনাস (কুপন: WELCOME70) উপভোগ করুন।">
+    <button class="btn-update-announcement" onclick="updateGlobalNotice()">Update Announcement Banner</button>
+  </div>
+
+  <!-- মডিউল ২: KYC / NID Review -->
+  <div id="kycSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>KYC / NID Identity Review</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('kycSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="kycListContent"></div>
+    </div>
+  </div>
+
+  <!-- মডিউল ৩: Deposit Review & Credit Balance -->
+  <div id="depositSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Deposit Review & Credit Balance</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('depositSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="depositListContent"></div>
+    </div>
+  </div>
+
+  <!-- মডিউল ৪: Withdraw Review & 2X Turnover -->
+  <div id="withdrawSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Withdrawal Review & Compliance</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('withdrawSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="withdrawListContent"></div>
+    </div>
+  </div>
+
+  <!-- মডিউল ৫: Support Messages Desk -->
+  <div id="chatSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Support Messenger (24h Memory)</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('chatSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <div class="admin-chat-stream" id="adminChatStream"></div>
+        <div style="display:flex; gap:8px; margin-top:8px;">
+          <input type="text" id="adminReplyMsgInput" class="announcement-input-box" placeholder="Reply to user as Admin..." style="margin-bottom:0;">
+          <button class="btn-update-announcement" style="width:auto; padding:0 16px; background:var(--accent-blue);" onclick="sendAdminReply()">Reply</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- মডিউল ৬: User Database & Ban/Suspend -->
+  <div id="usersSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>User Directory & Account Controls</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('usersSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <input type="text" id="userSearchTerm" class="announcement-input-box" placeholder="Search User ID, Name, or Email..." oninput="renderUsersList()">
+        <div id="usersListContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- মডিউল ৭: OTC Smooth Trend & Payouts -->
+  <div id="trendSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Smooth OTC Trend (5m No Spike)</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('trendSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <label style="font-size:11px; color:var(--text-muted);">Select OTC Pair</label>
+        <select id="trendAssetChoice" class="announcement-input-box" style="margin-top:4px;"></select>
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Direction</label>
+        <select id="trendDirChoice" class="announcement-input-box" style="margin-top:4px;">
+          <option value="UP">▲ Smooth UP (৫ মিনিটে ৫টি স্বাভাবিক ক্যান্ডেলে ওপরে)</option>
+          <option value="DOWN">▼ Smooth DOWN (৫ মিনিটে ৫টি স্বাভাবিক ক্যান্ডেলে নিচে)</option>
+          <option value="NORMAL">⚪ Normal Trend</option>
+        </select>
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Duration (Minutes)</label>
+        <input type="number" id="trendMinutesChoice" class="announcement-input-box" value="5" min="1" max="120" style="margin-top:4px;">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
+          <div>
+            <label style="font-size:11px; color:var(--text-muted);">1m Payout %</label>
+            <input type="number" id="trendP1Choice" class="announcement-input-box" value="92" style="margin-top:4px;">
+          </div>
+          <div>
+            <label style="font-size:11px; color:var(--text-muted);">5m Payout %</label>
+            <input type="number" id="trendP5Choice" class="announcement-input-box" value="85" style="margin-top:4px;">
+          </div>
+        </div>
+
+        <button class="btn-update-announcement" style="background:#00b074; margin-top:8px;" onclick="applySmoothTrend()">Apply Trend & Payouts</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- মডিউল ৮: Trading Signals Generator -->
+  <div id="signalsSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Live Signals Engine</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('signalsSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <div class="review-record-card" style="border-color:var(--accent-blue);">
+          <b style="color:var(--accent-cyan); display:block; margin-bottom:8px;">Broadcast New Trade Signal</b>
+          <select id="sigAssetInput" class="announcement-input-box">
+            <option value="EUR_USD">EUR/USD (OTC)</option>
+            <option value="BTC">Bitcoin (OTC)</option>
+            <option value="GOLD">Gold (OTC)</option>
+            <option value="ETH">Ethereum (OTC)</option>
+          </select>
+          <select id="sigStrategyInput" class="announcement-input-box">
+            <option value="RSI Divergence">RSI Divergence</option>
+            <option value="AI Trend Follow">AI Trend Follow</option>
+            <option value="MACD Crossover">MACD Crossover</option>
+            <option value="Bollinger Bands">Bollinger Bands</option>
+          </select>
+          <select id="sigDirInput" class="announcement-input-box">
+            <option value="HIGHER">HIGHER (Green ▲)</option>
+            <option value="LOWER">LOWER (Red ▼)</option>
+          </select>
+          <button class="btn-update-announcement" style="background:var(--accent-blue);" onclick="createSignalAction()">Broadcast Signal to Users</button>
+        </div>
+        <h4>Active Signals</h4>
+        <div id="adminSignalsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- মডিউল ৯: Tournaments Manager -->
+  <div id="tournamentsSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Tournaments Manager</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('tournamentsSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <div id="adminTournamentsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- মডিউল ১০: Orderbook Billboard -->
+  <div id="orderbookSheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Live Orderbook Exposure Billboard</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('orderbookSheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll" id="orderbookBillboardContainer"></div>
+    </div>
+  </div>
+
+  <!-- মডিউল ১১: Gateway Settings & Crypto -->
+  <div id="gatewaySheet" class="admin-detail-sheet">
+    <div class="sheet-inner">
+      <div class="sheet-title-bar">
+        <h3>Gateway Rates, Numbers & Crypto</h3>
+        <span class="btn-sheet-close" onclick="closeAdminSheet('gatewaySheet')">✕</span>
+      </div>
+      <div class="sheet-body-scroll">
+        <label style="font-size:11px; color:var(--text-muted);">1 USD = (BDT Exchange Rate)</label>
+        <input type="number" id="cfgDollarRate" class="announcement-input-box" style="margin-top:4px;">
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">bKash Personal Number</label>
+        <input type="text" id="cfgBkash" class="announcement-input-box" style="margin-top:4px;">
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Nagad Personal Number</label>
+        <input type="text" id="cfgNagad" class="announcement-input-box" style="margin-top:4px;">
+
+        <label style="font-size:11px; color:var(--text-muted); margin-top:8px; display:block;">Official Telegram Partner Link</label>
+        <input type="text" id="cfgTeleLink" class="announcement-input-box" style="margin-top:4px;">
+
+        <button class="btn-update-announcement" style="background:var(--accent-blue); margin-top:8px;" onclick="saveGatewayConfig()">Save Gateway Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ফটো জুম মোডাল -->
+  <div id="zoomModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center;" onclick="this.style.display='none'">
+    <img id="zoomedImgSrc" src="" alt="Document Preview" style="max-width:92%; max-height:85vh; border-radius:8px; border:2px solid #fff;">
+  </div>
+
+  <div id="adminToast" class="admin-toast">Saved!</div>
+
+  <script>
+    let adminState = { config: {}, users: {}, deposits: [], withdrawals: [], assets: {}, counts: {}, signals: [], tournaments: [] };
+
+    function showToast(msg) {
+      let t = document.getElementById('adminToast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2600);
+    }
+
+    function openAdminSheet(id) {
+      document.querySelectorAll('.admin-detail-sheet').forEach(s => s.style.display = 'none');
+      let el = document.getElementById(id);
+      if (el) el.style.display = 'flex';
+      if (id === 'kycSheet') renderKYC();
+      if (id === 'depositSheet') renderDeposits();
+      if (id === 'withdrawSheet') renderWithdrawals();
+      if (id === 'chatSheet') renderChatMessages();
+      if (id === 'usersSheet') renderUsersList();
+      if (id === 'trendSheet') renderTrendAssets();
+      if (id === 'signalsSheet') renderSignals();
+      if (id === 'tournamentsSheet') renderTournaments();
+      if (id === 'orderbookSheet') renderOrderbook();
+    }
+
+    function closeAdminSheet(id) {
+      let el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    }
+
+    function zoomPhoto(src) {
+      if (!src) return;
+      document.getElementById('zoomedImgSrc').src = src;
+      document.getElementById('zoomModal').style.display = 'flex';
+    }
+
+    function fetchAdminOverview() {
+      fetch('/api/admin/overview')
+      .then(r => r.json())
+      .then(d => {
+        adminState = d;
+        document.getElementById('badgeKycCount').innerText = `${d.counts.pendingKyc} Pending`;
+        document.getElementById('badgeDepositCount').innerText = `${d.counts.pendingDeposits} Pending`;
+        document.getElementById('badgeWithdrawCount').innerText = `${d.counts.pendingWithdrawals} Pending`;
+        document.getElementById('badgeChatCount').innerText = `${d.counts.supportMessages} Messages`;
+        document.getElementById('badgeUserCount').innerText = `${d.counts.totalUsers} Users`;
+
+        document.getElementById('dispTotalDep').innerText = `$${d.counts.totalDepositsVolume}`;
+        document.getElementById('dispTotalWith').innerText = `$${d.counts.totalWithdrawalsVolume}`;
+        document.getElementById('dispTotalVol').innerText = `$${d.counts.totalVolume}`;
+
+        document.getElementById('announcementNoticeInput').value = d.config.announcementNotice || '';
+        document.getElementById('cfgDollarRate').value = d.config.dollarRate || 125;
+        document.getElementById('cfgTeleLink').value = d.config.telegramLink || '';
+        document.getElementById('cfgBkash').value = d.config.bkashNumber || '';
+        document.getElementById('cfgNagad').value = d.config.nagadNumber || '';
+      });
+
+      fetch('/api/support/messages').then(r => r.json()).then(cd => renderChatMessages(cd.messages || []));
+    }
+    setInterval(fetchAdminOverview, 4000);
+
+    function updateGlobalNotice() {
+      let text = document.getElementById('announcementNoticeInput').value.trim();
+      if (!text) return alert("Enter announcement text!");
+      fetch('/api/admin/update-announcement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ noticeText: text })
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    function saveGatewayConfig() {
+      fetch('/api/admin/config-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dollarRate: document.getElementById('cfgDollarRate').value,
+          telegramLink: document.getElementById('cfgTeleLink').value,
+          bkashNumber: document.getElementById('cfgBkash').value,
+          nagadNumber: document.getElementById('cfgNagad').value
+        })
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    function renderKYC() {
+      let box = document.getElementById('kycListContent');
+      let html = '';
+      for (let id in adminState.users) {
+        let u = adminState.users[id];
+        if (u.verificationStatus === 'Pending') {
+          html += `
+            <div class="review-record-card">
+              <div class="review-top">
+                <span>${u.name} (ID: ${u.id})</span>
+                <span style="color:var(--accent-gold);">Pending Review</span>
+              </div>
+              <p style="color:var(--text-muted); font-size:11px;">Email: ${u.email} | Phone: ${u.phone}</p>
+              <div style="display:flex; gap:8px; margin:6px 0;">
+                ${u.nidFront ? `<img src="${u.nidFront}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Front Side" alt="NID Front">` : ''}
+                ${u.nidBack ? `<img src="${u.nidBack}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Back Side" alt="NID Back">` : ''}
+              </div>
+              <div class="btn-action-row">
+                <button class="btn-action btn-approve" onclick="actionKyc('${u.id}', 'approve')">Approve (Verified)</button>
+                <button class="btn-action btn-reject" onclick="actionKyc('${u.id}', 'reject')">Reject</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No pending KYC submissions.</p>';
+    }
+
+    function actionKyc(userId, action) {
+      fetch('/api/admin/action-kyc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderKYC(); });
+    }
+
+    function renderDeposits() {
+      let box = document.getElementById('depositListContent');
+      let html = '';
+      adminState.deposits.filter(d => d.status === 'Pending').forEach(dep => {
+        html += `
+          <div class="review-record-card">
+            <div class="review-top">
+              <span>Deposit $${dep.amount} (${dep.method})</span>
+              <span style="color:var(--accent-gold);">${dep.status}</span>
+            </div>
+            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${dep.userId}</b> | TrxID: <b style="color:var(--accent-cyan);">${dep.trxId}</b></p>
+            ${dep.bonusAmount ? `<p style="color:#00e676; font-size:11px;">+ Promo Bonus: $${dep.bonusAmount.toFixed(2)}</p>` : ''}
+            ${dep.screenshot ? `<img src="${dep.screenshot}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Payment Slip" alt="Slip">` : ''}
+            <div class="btn-action-row">
+              <button class="btn-action btn-approve" onclick="actionDep('${dep.id}', 'approve')">Approve & Credit Balance</button>
+              <button class="btn-action btn-reject" onclick="actionDep('${dep.id}', 'reject')">Reject</button>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No pending deposits.</p>';
+    }
+
+    function actionDep(id, action) {
+      fetch('/api/admin/action-deposit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderDeposits(); });
+    }
+
+    function renderWithdrawals() {
+      let box = document.getElementById('withdrawListContent');
+      let html = '';
+      adminState.withdrawals.filter(w => w.status === 'Pending').forEach(w => {
+        let user = adminState.users[w.userId] || {};
+        let turnoverMsg = user.hasActiveBonus ? `Turnover Remaining: $${(user.requiredTurnover - user.currentTurnover).toFixed(2)}` : 'Turnover Fulfilled';
+        html += `
+          <div class="review-record-card">
+            <div class="review-top">
+              <span>Withdrawal $${w.amount} (${w.method})</span>
+              <span style="color:var(--accent-gold);">${w.status}</span>
+            </div>
+            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${w.userId}</b> | Target: <b style="color:var(--accent-cyan);">${w.accountDetails}</b></p>
+            <p style="color:${user.hasActiveBonus ? '#f5a623' : '#00e676'}; font-size:11px; font-weight:700;">${turnoverMsg}</p>
+            <div class="btn-action-row">
+              <button class="btn-action btn-approve" onclick="actionWith('${w.id}', 'approve')">Approve Payout</button>
+              <button class="btn-action btn-reject" onclick="actionWith('${w.id}', 'reject')">Reject & Refund Balance</button>
+            </div>
+          </div>
+        `;
+      });
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No pending withdrawals.</p>';
+    }
+
+    function actionWith(id, action) {
+      fetch('/api/admin/action-withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, action })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderWithdrawals(); });
+    }
+
+    function renderChatMessages(messages) {
+      let box = document.getElementById('adminChatStream');
+      if (!box) return;
+      let msgs = messages || [];
+      let html = '';
+      msgs.forEach(m => {
+        let isAdm = m.sender === 'Admin';
+        html += `
+          <div class="chat-bubble ${isAdm ? 'admin' : 'user'}">
+            <b>${m.sender} (ID: ${m.userId || 'Guest'}):</b>
+            <div>${m.text}</div>
+            ${m.image ? `<img src="${m.image}" class="thumb-document-img" onclick="zoomPhoto(this.src)" alt="Chat Image">` : ''}
+            <small style="opacity:0.7; font-size:9px; display:block; text-align:right;">${m.timeStr}</small>
+          </div>
+        `;
+      });
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No chat history.</p>';
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function sendAdminReply() {
+      let txt = document.getElementById('adminReplyMsgInput').value.trim();
+      if (!txt) return;
+      fetch('/api/support/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender: 'Admin', text: txt })
+      }).then(() => {
+        document.getElementById('adminReplyMsgInput').value = '';
+        fetch('/api/support/messages').then(r => r.json()).then(cd => renderChatMessages(cd.messages || []));
+      });
+    }
+
+    function renderUsersList() {
+      let q = (document.getElementById('userSearchTerm')?.value || '').trim().toLowerCase();
+      let box = document.getElementById('usersListContent');
+      let html = '';
+
+      for (let id in adminState.users) {
+        let u = adminState.users[id];
+        if (u.id.includes(q) || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)) {
+          let isBanned = u.accountStatus === 'Banned';
+          let isSuspended = u.accountStatus === 'Suspended';
+          html += `
+            <div class="review-record-card">
+              <div class="review-top">
+                <span>${u.name} (ID: ${u.id})</span>
+                <span style="color:${u.accountStatus === 'Active' ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:900;">${u.accountStatus || 'Active'}</span>
+              </div>
+              <p style="color:var(--text-muted); font-size:11px;">📧 ${u.email} | 📱 ${u.phone} | 📍 ${u.city || 'Bangladesh'}</p>
+              <div style="margin:6px 0; font-size:12px; font-weight:800;">
+                Live: <b style="color:var(--accent-green);">$${u.liveBalance.toFixed(2)}</b> | Demo: $${u.demoBalance.toFixed(2)} | Bonus: $${u.bonusBalance.toFixed(2)}
+              </div>
+              
+              <div style="display:flex; gap:6px; margin:6px 0;">
+                <input type="number" id="bal_amt_${u.id}" placeholder="Amount" style="width:75px; background:#000; border:1px solid var(--border-card); color:#fff; padding:4px; font-size:11px; border-radius:4px;">
+                <button onclick="creditUserBal('${u.id}', 'add')" style="background:var(--accent-green); border:none; color:#000; padding:4px 8px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">+ Add $</button>
+                <button onclick="creditUserBal('${u.id}', 'deduct')" style="background:var(--accent-red); border:none; color:#fff; padding:4px 8px; border-radius:4px; font-weight:800; font-size:11px; cursor:pointer;">- Cut $</button>
+              </div>
+
+              <div style="display:flex; gap:6px; margin-top:8px;">
+                <button onclick="changeUserStatus('${u.id}', 'Active')" style="flex:1; background:#1e293b; border:1px solid #334155; color:#fff; padding:6px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">Set Active</button>
+                <button onclick="changeUserStatus('${u.id}', 'Suspended')" style="flex:1; background:${isSuspended ? '#f5a623' : '#1e293b'}; border:1px solid #334155; color:#fff; padding:6px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">Suspend</button>
+                <button onclick="changeUserStatus('${u.id}', 'Banned')" style="flex:1; background:${isBanned ? '#eb5757' : '#1e293b'}; border:1px solid #334155; color:#fff; padding:6px; border-radius:4px; font-size:11px; font-weight:700; cursor:pointer;">Ban User</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+      box.innerHTML = html || '<p style="color:var(--text-muted); text-align:center; padding:20px;">No users found.</p>';
+    }
+
+    function creditUserBal(userId, actionType) {
+      let amt = document.getElementById(`bal_amt_${userId}`).value;
+      if (!amt || amt <= 0) return alert("Enter amount!");
+      fetch('/api/admin/adjust-balance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, amount: amt, actionType })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    function changeUserStatus(userId, status) {
+      fetch('/api/admin/user-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, status })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); });
+    }
+
+    function renderTrendAssets() {
+      let sel = document.getElementById('trendAssetChoice');
+      if (sel.options.length === 0) {
+        let h = '';
+        for (let k in adminState.assets) h += `<option value="${k}">${adminState.assets[k].name}</option>`;
+        sel.innerHTML = h;
+      }
+    }
+
+    function applySmoothTrend() {
+      let asset = document.getElementById('trendAssetChoice').value;
+      let dir = document.getElementById('trendDirChoice').value;
+      let mins = document.getElementById('trendMinutesChoice').value;
+      let p1 = document.getElementById('trendP1Choice').value;
+      let p5 = document.getElementById('trendP5Choice').value;
+
+      fetch('/api/admin/set-trend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asset, direction: dir, minutes: mins })
+      })
+      .then(() => {
+        return fetch('/api/admin/set-payout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ asset, payout1m: p1, payout5m: p5 })
+        });
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); closeAdminSheet('trendSheet'); fetchAdminOverview(); });
+    }
+
+    function renderSignals() {
+      let box = document.getElementById('adminSignalsList');
+      let html = '';
+      adminState.signals.forEach(s => {
+        html += `
+          <div class="review-record-card" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b>${s.company}</b>
+              <small style="color:${s.direction === 'HIGHER' ? '#00e676' : '#eb5757'}; font-weight:800; display:block;">${s.direction} • ${s.strategy} (${s.timeframe})</small>
+            </div>
+            <button onclick="deleteSignalAction('${s.id}')" style="background:var(--accent-red); border:none; color:#fff; padding:6px 12px; border-radius:4px; font-weight:800; cursor:pointer;">Delete</button>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    function createSignalAction() {
+      let asset = document.getElementById('sigAssetInput').value;
+      let strategy = document.getElementById('sigStrategyInput').value;
+      let direction = document.getElementById('sigDirInput').value;
+
+      fetch('/api/admin/signals/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ asset, strategy, direction, timeframe: '5m' })
+      })
+      .then(r => r.json())
+      .then(d => { showToast(d.message); fetchAdminOverview(); renderSignals(); });
+    }
+
+    function deleteSignalAction(id) {
+      fetch('/api/admin/signals/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ signalId: id })
+      }).then(r => r.json()).then(d => { showToast(d.message); fetchAdminOverview(); renderSignals(); });
+    }
+
+    function renderTournaments() {
+      let box = document.getElementById('adminTournamentsList');
+      let html = '';
+      adminState.tournaments.forEach(t => {
+        html += `
+          <div class="review-record-card">
+            <div class="review-top"><span>${t.title}</span><span style="color:var(--accent-gold);">${t.status}</span></div>
+            <p style="color:var(--text-muted); font-size:11px;">Prize Pool: ${t.prizePool} | Fee: ${t.entryFee} | Participants: ${t.participants}</p>
+          </div>
+        `;
+      });
+      box.innerHTML = html;
+    }
+
+    function renderOrderbook() {
+      let box = document.getElementById('orderbookBillboardContainer');
+      let html = '';
+      for (let k in adminState.assets) {
+        let a = adminState.assets[k];
+        let upVol = 0, downVol = 0, upCount = 0, downCount = 0;
+        (adminState.trades || []).filter(t => t.asset === k).forEach(t => {
+          if (t.direction === 'UP') { upVol += Number(t.amount); upCount++; }
+          else { downVol += Number(t.amount); downCount++; }
+        });
+        let total = upVol + downVol;
+        let upPct = total > 0 ? (upVol / total) * 100 : 50;
+        let downPct = total > 0 ? (downVol / total) * 100 : 50;
+
+        html += `
+          <div class="review-record-card">
+            <div class="review-top"><span>${a.name}</span><small style="color:var(--text-muted);">Deals: ${upCount + downCount}</small></div>
+            <div class="bb-bar-wrap">
+              <div class="bb-up" style="width:${upPct}%;"></div>
+              <div class="bb-down" style="width:${downPct}%;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:800;">
+              <span style="color:var(--accent-green);">▲ UP: $${upVol.toFixed(2)} (${upCount})</span>
+              <span style="color:var(--accent-red);">▼ DOWN: $${downVol.toFixed(2)} (${downCount})</span>
+            </div>
+          </div>
+        `;
+      }
+      box.innerHTML = html;
+    }
+
+    fetchAdminOverview();
+  </script>
+</body>
+</html>

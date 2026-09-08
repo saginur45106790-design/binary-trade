@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Tredlo | Institutional Trading Terminal</title>
+  <link rel="stylesheet" href="style.css?v=12.0">
+</head>
+<body>
+  <div class="app-root">
+
+    <!-- পেজ ১: ল্যান্ডিং ইন্টারফেস -->
+    <div id="landingModal" class="modal-overlay-sheet" style="display:flex; z-index:300; background:radial-gradient(circle at 50% 20%, #172a45 0%, #070c14 100%);">
+      <div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <svg class="svg-icon lg" style="color:#00e676;" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            <b style="font-size:19px; letter-spacing:1px; color:#fff;">TREDLO</b>
+          </div>
+          <button onclick="openAuthModal('log')" style="background:transparent; border:1px solid rgba(255,255,255,0.25); color:#fff; padding:6px 14px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer;">Log In</button>
+        </div>
+
+        <div style="text-align:center; padding:20px 0;">
+          <span style="background:rgba(0,176,116,0.15); color:#00e676; border:1px solid rgba(0,176,116,0.3); font-size:11px; font-weight:800; padding:4px 12px; border-radius:14px; text-transform:uppercase;">Institutional OTC Platform</span>
+          <h1 style="font-size:28px; font-weight:900; line-height:1.25; margin:14px 0 10px; color:#fff;">Trade the global markets <br><span style="color:#00e676;">from anywhere</span></h1>
+          <p style="font-size:12px; color:var(--text-muted); line-height:1.6; max-width:320px; margin:auto;">
+            Access 100+ assets, Quotex-standard candlestick execution, real-time indicators, and instant 2X turnover bonus benefits.
+          </p>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <button class="btn-primary-blue" style="background:#00b074; font-size:15px; padding:14px; border-radius:8px;" onclick="openAuthModal('reg')">Get Started ➔</button>
+          <button class="btn-primary-blue" style="background:transparent; border:1px solid rgba(255,255,255,0.2); font-size:14px; padding:12px; border-radius:8px;" onclick="enterQuickDemo()">Explore Demo ($11,068.77)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ১ ও ৬: অথেন্টিকেশন গেটওয়ে -->
+    <div id="authModal" class="modal-overlay-sheet" style="z-index:350;">
+      <div class="sheet-container" style="max-height:92vh;">
+        <div class="sheet-head">
+          <h3 id="authHeaderTitle">Welcome Back</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('authModal')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div id="authBoxLogin">
+            <div class="floating-input-group">
+              <label>Email or User ID</label>
+              <input type="text" id="authLogEmail" class="pocket-input" placeholder="name@example.com or ID">
+            </div>
+            <div class="floating-input-group">
+              <label>Password</label>
+              <input type="password" id="authLogPass" class="pocket-input" placeholder="••••••••">
+            </div>
+            <button class="btn-primary-blue" style="background:#00b074;" onclick="submitLogin()">Log In ➔</button>
+            <p style="text-align:center; font-size:12px; margin-top:14px; color:var(--text-muted);">
+              Don't have an account? <a href="#" onclick="switchAuthTab('reg')" style="color:#00b074; font-weight:700;">Sign Up</a>
+            </p>
+          </div>
+
+          <div id="authBoxReg" style="display:none;">
+            <div class="floating-input-group">
+              <label>Email Address</label>
+              <input type="email" id="authRegEmail" class="pocket-input" placeholder="name@example.com">
+            </div>
+            <div class="floating-input-group">
+              <label>Mobile Number (+880)</label>
+              <input type="text" id="authRegPhone" class="pocket-input" placeholder="01700000000">
+            </div>
+            <div class="floating-input-group">
+              <label>Create Strong Password</label>
+              <input type="password" id="authRegPass" class="pocket-input" placeholder="••••••••">
+            </div>
+            <button class="btn-primary-blue" style="background:#00b074;" onclick="submitRegister()">Create Account ➔</button>
+            <p style="text-align:center; font-size:12px; margin-top:14px; color:var(--text-muted);">
+              Already have an account? <a href="#" onclick="switchAuthTab('log')" style="color:#00b074; font-weight:700;">Log In</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ২: রিয়েল বনাম ডেমো অ্যাকাউন্ট স্যুইচার -->
+    <div id="accountSwitcherModal" class="modal-overlay-sheet">
+      <div class="sheet-container" style="max-height:55vh;">
+        <div class="sheet-head">
+          <h3>Accounts</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('accountSwitcherModal')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="selectAccountType('live')">
+            <div>
+              <b style="color:var(--accent-green);">Real Account</b>
+              <h3 id="switchRealBal" style="margin-top:2px;">$10.00</h3>
+            </div>
+            <input type="radio" name="acc_type_radio" id="radioLiveAcc">
+          </div>
+          <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="selectAccountType('demo')">
+            <div>
+              <b style="color:var(--accent-gold);">Demo Account</b>
+              <h3 id="switchDemoBal" style="margin-top:2px;">$11,068.77</h3>
+            </div>
+            <input type="radio" name="acc_type_radio" id="radioDemoAcc" checked>
+          </div>
+          <button class="btn-primary-blue" style="background:#00b074;" onclick="openSheet('depositSheet'); closeSheet('accountSwitcherModal');">+ Deposit Funds</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- টপ হেডার বার -->
+    <header class="top-header">
+      <div class="account-pill-btn" onclick="openSheet('accountSwitcherModal')">
+        <span class="svg-icon" style="color:#38bdf8;">
+          <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        </span>
+        <span id="accountModeText" style="color:var(--accent-gold);">DEMO</span>
+        <span id="accountBalanceText" style="font-weight:800;">$11,068.77</span>
+        <span style="font-size:9px; color:var(--text-muted);">▼</span>
+      </div>
+
+      <div class="top-right-group">
+        <div class="notif-bell-btn" onclick="openSheet('notifSheet')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+          <span class="notif-bubble-count" id="notifBadgeCount">1</span>
+        </div>
+        <button class="btn-header-deposit" onclick="openSheet('depositSheet')">Deposit</button>
+      </div>
+    </header>
+
+    <!-- চার্ট ভিউপোর্ট ও কটেক্স টুলস -->
+    <main class="chart-container">
+      <div class="sentiment-bar-vertical" title="Buyer/Seller Sentiment">
+        <div class="sentiment-buyers" id="sentimentBuyersBar" style="height: 55%;"></div>
+        <div class="sentiment-sellers" id="sentimentSellersBar" style="height: 45%;"></div>
+      </div>
+
+      <div class="chart-tools-row">
+        <div class="chart-pill-btn" onclick="openSheet('menuSheet')">•••</div>
+        <div class="chart-pill-btn" onclick="openSheet('activeTradesSheet')">
+          <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
+          <span id="activeTradesCountBadge">0</span>
+        </div>
+        <div class="chart-pill-btn" onclick="openSheet('timeframeModal')">
+          <span id="chartTfLabel">1m</span>
+          <span style="font-size:8px;">▼</span>
+        </div>
+        <div class="chart-pill-btn" style="pointer-events:none;">
+          <span class="live-green-dot"></span> <span id="clockUtcLive">00:00:00 UTC+6</span>
+        </div>
+      </div>
+
+      <canvas id="tradeCanvas"></canvas>
+      <div class="recenter-chart-btn" onclick="resetPan()">➔</div>
+    </main>
+
+    <!-- পেজ ৩: টাইমফ্রেম ও ক্যান্ডেল পিরিয়ড প্যানেল -->
+    <div id="timeframeModal" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Timeframe & Chart Period</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('timeframeModal')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper">
+            <label style="font-size:11px; color:var(--text-muted); font-weight:700; margin-bottom:6px; display:block;">Candle Period</label>
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px;">
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(5, '5s')">5s</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(10, '10s')">10s</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(15, '15s')">15s</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(30, '30s')">30s</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(60, '1m')">1m</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(120, '2m')">2m</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(300, '5m')">5m</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(600, '10m')">10m</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(900, '15m')">15m</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(1800, '30m')">30m</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(3600, '1h')">1h</button>
+              <button class="btn-primary-blue" style="background:var(--bg-dark); border:1px solid var(--border-subtle); padding:8px 0;" onclick="selectCandlePeriod(86400, '1d')">1d</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ৪: অ্যাসেট সিলেক্টর পেজ -->
+    <div id="assetSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Select Asset / Market</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('assetSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <input type="text" id="assetSearchQuery" class="pocket-input" placeholder="Search assets..." oninput="filterAssetsList()" style="margin-bottom:12px;">
+          <div id="otcAssetsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ৫: ট্রেড কন্ট্রোল ডক -->
+    <section class="dock-trade-panel">
+      <div class="dock-header-bar">
+        <div class="otc-pair-selector" onclick="openSheet('assetSheet')">
+          <b id="activeAssetLabel">EUR/USD (OTC)</b>
+          <span style="color:var(--accent-gold); font-size:12px;" id="activeAssetPayout">92% ▼</span>
+        </div>
+        <span style="font-size:11px; color:var(--text-muted); font-weight:700;">1 MIN CANDLE</span>
+      </div>
+
+      <div class="dock-inputs-grid">
+        <div class="metric-box" onclick="openSheet('timerModal')">
+          <label>Expiration</label>
+          <span class="metric-val" id="dockTimerDisplay">00:01:00</span>
+        </div>
+        <div class="metric-box">
+          <label>Investment ($)</label>
+          <input type="number" id="investAmountInput" value="1" min="1" class="metric-val" style="background:none; border:none; color:var(--text-pure); outline:none;" oninput="updatePayoutCalc()">
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted);">
+        <span>Payout:</span>
+        <b style="color:var(--text-pure);" id="payoutCalcText">1.92 $</b>
+      </div>
+
+      <div class="trade-buttons-row">
+        <button class="btn-up-down up" onclick="placeOrder('UP')">
+          <span>Up</span>
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg>
+        </button>
+        <button class="btn-up-down down" onclick="placeOrder('DOWN')">
+          <span>Down</span>
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M20 12l-1.41-1.41L13 16.17V4h-2v12.17l-5.58-5.59L4 12l8 8 8-8z"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- পেজ ৭: ট্রেড উইন রেজাল্ট মোডাল -->
+    <div id="winResultModal" class="modal-overlay-sheet" style="background:rgba(0,0,0,0.85); align-items:center;">
+      <div class="sheet-container" style="max-width:340px; border-radius:18px; text-align:center; padding:24px 16px;">
+        <div style="width:64px; height:64px; border-radius:50%; background:rgba(0,230,118,0.15); border:2px solid #00e676; margin:auto; display:flex; align-items:center; justify-content:center;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="#00e676"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <h2 style="color:#00e676; font-size:24px; font-weight:900; margin:12px 0 4px;" id="winProfitAmount">+$0.92</h2>
+        <h4 style="color:#fff; font-size:16px; margin-bottom:4px;">YOU WON</h4>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;" id="winAssetDetails">EUR/USD (OTC)</p>
+        <button class="btn-primary-blue" style="background:#00b074; margin-bottom:8px;" onclick="openSheet('depositSheet'); closeSheet('winResultModal');">Cash in for real</button>
+        <button class="btn-primary-blue" style="background:transparent; border:1px solid rgba(255,255,255,0.2);" onclick="closeSheet('winResultModal')">Maybe later</button>
+      </div>
+    </div>
+
+    <!-- পেজ ৮: পোর্টফোলিও / সক্রিয় ট্রেড ড্রয়ার -->
+    <div id="activeTradesSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Portfolio</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('activeTradesSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" id="activeTradesContainer"></div>
+      </div>
+    </div>
+
+    <!-- পেজ ৯: ট্রেড হিস্টোরি পেজ -->
+    <div id="tradesHistorySheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Trades History</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('tradesHistorySheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" id="allTradesHistoryBox"></div>
+      </div>
+    </div>
+
+    <!-- পেজ ১০: ডিপোজিট হাব -->
+    <div id="depositSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Deposit Funds</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('depositSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="text-align:center; background:rgba(0,112,243,0.12); border-color:rgba(0,112,243,0.3);">
+            <small style="font-size:11px; color:var(--text-muted); font-weight:700;">PLATFORM EXCHANGE RATE</small>
+            <h2 id="depDollarRateDisplay" style="color:#38bdf8; font-weight:900; margin-top:2px;">1 USD = 125.00 BDT</h2>
+          </div>
+
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Payment Method</label>
+              <select id="depMethodSelect" class="pocket-input" onchange="onDepMethodChange()">
+                <option value="Binance">Binance Pay (USDT / BTC) — Recommended [Instant]</option>
+                <option value="Nagad">Nagad (MFS Instant)</option>
+                <option value="bKash">bKash (MFS Instant)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group" id="binanceCoinSelectBox">
+              <label>Crypto Asset</label>
+              <select id="cryptoAssetChoice" class="pocket-input" onchange="onCryptoChoiceChange()">
+                <option value="USDT_TRC20">USDT (TRC-20 Network)</option>
+                <option value="USDT_BEP20">USDT (BEP-20 Network)</option>
+                <option value="BTC_BEP20">Bitcoin (BEP-20 Network)</option>
+                <option value="BTC_MAIN">Bitcoin (Native Network)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group">
+              <label id="depTargetLabel">Deposit Address (USDT TRC-20):</label>
+              <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); border:1px solid var(--border-subtle); padding:10px; border-radius:6px;">
+                <b id="depTargetAddress" style="font-size:13px; font-family:monospace; word-break:break-all;">TX9...TRC20_USDT_ADDR</b>
+                <button onclick="copyToClipboard('depTargetAddress')" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:4px; font-size:11px; font-weight:800; cursor:pointer; margin-left:8px;">Copy</button>
+              </div>
+            </div>
+
+            <div class="floating-input-group">
+              <label>Amount (USD $)</label>
+              <input type="number" id="depAmountInput" class="pocket-input" placeholder="e.g. 50" min="5">
+            </div>
+
+            <div class="floating-input-group">
+              <label>Transaction ID (TrxID / Hash)</label>
+              <input type="text" id="depTrxInput" class="pocket-input" placeholder="Enter Transaction ID">
+            </div>
+
+            <div class="floating-input-group">
+              <label>Promo Code</label>
+              <input type="text" id="depPromoInput" class="pocket-input" placeholder="WELCOME70 (+70% Bonus)">
+            </div>
+
+            <button class="btn-primary-blue" style="background:#00b074;" onclick="submitDepositOrder()">Proceed to Payment</button>
+          </div>
+
+          <h4 style="font-size:13px; font-weight:800; margin:14px 0 8px;">Deposit History</h4>
+          <div id="depHistoryTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ১২: নগদ এমএফএস গেটওয়ে সিমুলেটর -->
+    <div id="nagadSimulatorSheet" class="modal-overlay-sheet" style="z-index:400;">
+      <div class="sheet-container" style="max-width:380px;">
+        <div class="sheet-head">
+          <h3 style="color:#eb5757;">Nagad Online Checkout</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('nagadSimulatorSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" style="text-align:center;">
+          <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Merchant: <b>GRAMEEN TELECOM</b></p>
+          <h2 style="color:#fff; font-size:24px; font-weight:900;" id="nagadTotalBdtDisplay">BDT 6,600.00</h2>
+          <div class="floating-input-group" style="text-align:left; margin-top:16px;">
+            <label>Your Nagad Account Number</label>
+            <input type="text" id="nagadUserPhone" class="pocket-input" placeholder="01XXXXXXXXX">
+          </div>
+          <button class="btn-primary-blue" style="background:#eb5757; margin-top:10px;" onclick="confirmNagadSimulatedPayment()">Proceed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ১৩: টুর্নামেন্ট হাব -->
+    <div id="tournamentsSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Tournaments</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('tournamentsSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" id="tournamentsListContainer"></div>
+      </div>
+    </div>
+
+    <!-- পেজ ১৪: মেনু নেভিগেশন স্লাইডার (১০০% ভেক্টর SVG) -->
+    <div id="menuSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Menu</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('menuSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="background:#1a2538; border-color:#253752;">
+            <h4 id="menuEmail" style="font-size:15px; font-weight:800; color:#fff;">teachsajib@gmail.com</h4>
+            <small id="menuUserId" style="color:var(--text-muted); display:block; margin:2px 0 6px;">ID: 85857047</small>
+            <div style="font-size:11px; color:#00e676; font-weight:800;">● STANDARD ACCOUNT: +0% PROFIT</div>
+          </div>
+
+          <div class="data-card-wrapper" style="padding:0 8px;">
+            <div class="menu-action-row" onclick="openSheet('depositSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#f5a623;"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                <span>Deposit</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('withdrawSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#38bdf8;"><path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6L12 1z"/></svg>
+                <span>Withdrawals</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('signalsSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#f43f5e;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <span>Signals <span style="background:var(--accent-red); color:#fff; font-size:9px; padding:1px 4px; border-radius:4px; font-weight:800;">LIVE</span></span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('tournamentsSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-gold);"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+                <span>Tournaments</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('leaderboardSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#eab308;"><path d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 8h4v6H4v-6zm16 6h-4v-6h4v6z"/></svg>
+                <span>Leaderboard</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('rewardsSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#a855f7;"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76V14h2V8.76L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+                <span>Rewards & Perks</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('analyticsSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#10b981;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                <span>Trading Stats & Analytics</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('priceAlertsSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#fbbf24;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <span>Price Alerts</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('helpSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#64748b;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+                <span>Help & Support</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" onclick="openSheet('accountSettingsSheet')">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#94a3b8;"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                <span>Settings & Security</span>
+              </div>
+              <span>➔</span>
+            </div>
+            <div class="menu-action-row" style="color:var(--accent-red); border-bottom:none;" onclick="handleUserLogout()">
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-red);"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                <span>Logout</span>
+              </div>
+              <span>➔</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ১৫: রিওয়ার্ডস ও কুপন পেজ -->
+    <div id="rewardsSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Rewards & Promo Codes</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('rewardsSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper">
+            <h4>Trader Level: Starter (0%)</h4>
+            <div style="background:var(--bg-dark); height:6px; border-radius:4px; margin:8px 0; overflow:hidden;">
+              <div style="background:#00e676; width:15%; height:100%;"></div>
+            </div>
+            <small style="color:var(--text-muted);">Points: $0 / $500 to Pro Level</small>
+          </div>
+
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Redeem Promo Code</label>
+              <div style="display:flex; gap:8px;">
+                <input type="text" id="promoCodeInput" class="pocket-input" placeholder="e.g. WELCOME70">
+                <button class="btn-primary-blue" style="width:auto; padding:0 16px; background:#00b074;" onclick="submitPromoRedeem()">Redeem</button>
+              </div>
+            </div>
+          </div>
+
+          <h4>Available Coupons</h4>
+          <div class="data-card-wrapper" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <b style="color:#00e676;">WELCOME70</b>
+              <small style="display:block; color:var(--text-muted);">+70% Bonus on first deposit</small>
+            </div>
+            <button class="btn-primary-blue" style="width:auto; padding:6px 12px;" onclick="applyCouponToDep('WELCOME70')">Apply</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ১৭: গ্লোবাল লিডারবোর্ড -->
+    <div id="leaderboardSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Global Leaderboard</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('leaderboardSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" id="leaderboardListContainer"></div>
+      </div>
+    </div>
+
+    <!-- পেজ ১৮: লাইভ ট্রেডিং সিগন্যালস হাব -->
+    <div id="signalsSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Trading Signals <span style="background:var(--accent-red); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:800;">LIVE</span></h3>
+          <span class="close-sheet-btn" onclick="closeSheet('signalsSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" id="signalsListContainer"></div>
+      </div>
+    </div>
+
+    <!-- পেজ ১৯: প্রাইস অ্যালার্ট পেজ -->
+    <div id="priceAlertsSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Price Alerts</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('priceAlertsSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Target Price</label>
+              <input type="number" id="alertTargetPriceInput" class="pocket-input" placeholder="e.g. 1.08600">
+            </div>
+            <div class="floating-input-group">
+              <label>Condition</label>
+              <select id="alertConditionSelect" class="pocket-input">
+                <option value="ABOVE">Price goes ABOVE</option>
+                <option value="BELOW">Price goes BELOW</option>
+              </select>
+            </div>
+            <button class="btn-primary-blue" onclick="submitCreatePriceAlert()">Set Price Alert</button>
+          </div>
+          <h4>Active Alerts</h4>
+          <div id="activeAlertsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ২১: পার্সোনাল ডাটা, প্রোফাইল ও কেওয়াইসি পেজ -->
+    <div id="profileSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Personal Data & KYC</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('profileSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="user-avatar-badge-row">
+            <div class="avatar-circle-blue">
+              <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
+            <div class="user-meta-details">
+              <h4 id="profNameDisplay">MD Sajib Hossain</h4>
+              <small id="profIdDisplay">ID: 85857047</small>
+              <div id="profVerifyTag" class="verify-badge-pill unverified">Unverified</div>
+            </div>
+          </div>
+
+          <div class="data-card-wrapper">
+            <button class="btn-primary-blue" style="background:#1e293b; margin-bottom:12px;" onclick="generateAccountStatement()">Generate Account Statement (PDF/JSON)</button>
+            <div class="floating-input-group">
+              <label>Full Name</label>
+              <input type="text" id="profNameInput" class="pocket-input">
+            </div>
+            <div class="floating-input-group">
+              <label>Display Name</label>
+              <input type="text" id="profDisplayNameInput" class="pocket-input">
+            </div>
+            <div class="floating-input-group">
+              <label>Email</label>
+              <input type="text" id="profEmailInput" class="pocket-input">
+            </div>
+            <div class="floating-input-group">
+              <label>Phone</label>
+              <input type="text" id="profPhoneInput" class="pocket-input">
+            </div>
+            <button class="btn-primary-blue" onclick="saveProfileDetails()">Save Details</button>
+          </div>
+
+          <div class="data-card-wrapper" id="nidSubmitSection">
+            <h4 style="margin-bottom:8px;">Identity Verification (NID Card)</h4>
+            <input type="file" id="nidFrontFile" class="pocket-input" accept="image/*" style="margin-bottom:6px;">
+            <input type="file" id="nidBackFile" class="pocket-input" accept="image/*" style="margin-bottom:10px;">
+            <button class="btn-primary-blue" style="background:#0070f3;" onclick="submitNidPhotos()">Submit Documents</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ২৩: অ্যাকাউন্ট সেটিংস ও সিকিউরিটি -->
+    <div id="accountSettingsSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Settings & Security</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('accountSettingsSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper">
+            <h4>Safety & Security</h4>
+            <div class="floating-input-group" style="margin-top:10px;">
+              <label>Current Password</label>
+              <input type="password" id="curPassInput" class="pocket-input">
+            </div>
+            <div class="floating-input-group">
+              <label>New Password</label>
+              <input type="password" id="newPassInput" class="pocket-input">
+            </div>
+            <button class="btn-primary-blue" onclick="submitChangePassword()">Update Password</button>
+          </div>
+
+          <div class="data-card-wrapper">
+            <h4>Active Sessions</h4>
+            <p style="font-size:12px; color:var(--text-muted); margin-top:4px;">Mobile Chrome / Android 14 • 103.145.78.22 (Active Now)</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ২৪: ট্রেডিং স্ট্যাটস ও অ্যানালিটিক্স -->
+    <div id="analyticsSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Trading Analytics</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('analyticsSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center;">
+            <div><small style="color:var(--text-muted);">Total Trades</small><h3 id="statTotalTrades">0</h3></div>
+            <div><small style="color:var(--text-muted);">Net Profit</small><h3 id="statNetProfit" style="color:#00e676;">$0.00</h3></div>
+            <div><small style="color:var(--text-muted);">Win Rate</small><h3 id="statWinRate">0.0%</h3></div>
+            <div><small style="color:var(--text-muted);">Best Streak</small><h3 id="statBestStreak">0</h3></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ২৫: উইথড্রয়াল পোর্টাল (২X টার্নওভার ভ্যালিডেশন সহ) -->
+    <div id="withdrawSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Withdraw Funds</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('withdrawSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div id="turnoverWarnBox" class="data-card-wrapper" style="display:none; background:rgba(235,87,87,0.15); border-color:var(--accent-red); color:#ff6b6b; font-size:12px; font-weight:800;">
+            ⚠️ Turnover Incomplete: Complete 2X turnover requirement before submitting withdrawals.
+          </div>
+
+          <div class="data-card-wrapper" style="display:flex; justify-content:space-between;">
+            <div><small style="color:var(--text-muted);">Real Balance</small><h3 id="wRealBal" style="color:#00e676;">$10.00</h3></div>
+            <div style="text-align:right;"><small style="color:var(--text-muted);">Bonus Balance</small><h3 id="wBonusBal" style="color:#f5a623;">$0.00</h3></div>
+          </div>
+
+          <div class="data-card-wrapper">
+            <div class="floating-input-group">
+              <label>Select Gateway</label>
+              <select id="withMethodSelect" class="pocket-input" onchange="onWithMethodChange()">
+                <option value="bKash">bKash (MFS)</option>
+                <option value="Nagad">Nagad (MFS)</option>
+                <option value="Binance">Binance Pay (USDT)</option>
+              </select>
+            </div>
+
+            <div class="floating-input-group">
+              <label>Withdrawal Amount ($)</label>
+              <input type="number" id="withAmountInput" class="pocket-input" placeholder="Minimum $10">
+            </div>
+
+            <div class="floating-input-group">
+              <label id="withDetailsLabel">bKash Account Number</label>
+              <input type="text" id="withAccountDetails" class="pocket-input" placeholder="01700000000">
+            </div>
+
+            <button class="btn-primary-blue" onclick="submitWithdrawOrder()">Submit Withdrawal</button>
+          </div>
+
+          <h4>Withdrawal History</h4>
+          <div id="withHistoryTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- পেজ ২৬: হেল্প সেন্টার ও টিকিট সাবমিশন -->
+    <div id="helpSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Help Center & Report Issue</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('helpSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper">
+            <h4>Frequently Asked Questions</h4>
+            <details style="margin:8px 0; font-size:12px;"><summary>How to deposit?</summary><p style="color:var(--text-muted); margin-top:4px;">Use bKash, Nagad or Binance Pay with instant processing.</p></details>
+            <details style="margin:8px 0; font-size:12px;"><summary>How does 2X bonus turnover work?</summary><p style="color:var(--text-muted); margin-top:4px;">Free bonuses require 2X trade volume before withdrawals unlock.</p></details>
+          </div>
+
+          <div class="data-card-wrapper">
+            <h4>Submit a Ticket / Report Issue</h4>
+            <input type="text" id="ticketSubject" class="pocket-input" placeholder="Subject" style="margin-bottom:8px;">
+            <textarea id="ticketMessage" class="pocket-input" rows="3" placeholder="Describe the problem..."></textarea>
+            <button class="btn-primary-blue" style="margin-top:8px;" onclick="submitSupportTicket()">Send Ticket</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- এক্সপায়ারেশন টাইমার ডায়ালগ -->
+    <div id="timerModal" class="modal-overlay-sheet">
+      <div class="sheet-container" style="max-height:40vh;">
+        <div class="sheet-head">
+          <h3>Expiration Duration</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('timerModal')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(60, '00:01:00')">1m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(300, '00:05:00')">5m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(600, '00:10:00')">10m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(1800, '00:30:00')">30m</button>
+          <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(3600, '01:00:00')">1h</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- নোটিফিকেশন পেজ -->
+    <div id="notifSheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>System Notifications</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('notifSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" id="notificationsList"></div>
+      </div>
+    </div>
+
+    <!-- লাইভ সাপোর্ট মেসেঞ্জার পেজ (২৪ ঘণ্টা মেমোরি) -->
+    <div id="chatSheet" class="modal-overlay-sheet">
+      <div class="sheet-container" style="height:80vh;">
+        <div class="sheet-head">
+          <h3>Live Support Desk</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('chatSheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body" style="display:flex; flex-direction:column; padding:12px;">
+          <div class="chat-stream" id="chatMessagesContainer"></div>
+          <div class="chat-footer-bar">
+            <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="sendChatImage(event)">
+            <span onclick="document.getElementById('chatImgInput').click()" style="cursor:pointer; display:flex; color:var(--text-muted);">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0 3.2 3.2 0 1 0-6.4 0M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+            </span>
+            <input type="text" id="chatTextInput" placeholder="Type your message..." style="flex:1; background:none; border:none; color:#fff; outline:none; font-size:13px;">
+            <button onclick="sendChatMessage()" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:6px; font-weight:800; cursor:pointer;">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ট্রফি বোনাস ও টাস্ক পেজ -->
+    <div id="trophySheet" class="modal-overlay-sheet">
+      <div class="sheet-container">
+        <div class="sheet-head">
+          <h3>Trading Tasks & Rewards</h3>
+          <span class="close-sheet-btn" onclick="closeSheet('trophySheet')">✕</span>
+        </div>
+        <div class="sheet-scroll-body">
+          <div class="data-card-wrapper" style="background:rgba(0,112,243,0.1); border-color:rgba(0,112,243,0.25);">
+            <b style="color:var(--accent-blue); font-size:12px;">Notice:</b>
+            <p style="font-size:11px; color:var(--text-muted); margin-top:3px; line-height:1.5;">
+              Claiming bonus adds free cash. 2X turnover applies only to bonus funds before withdrawals unlock.
+            </p>
+          </div>
+          <div id="bonusTasksList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ফুটার বার (১০০% ভেক্টর SVG) -->
+    <nav class="footer-tab-bar">
+      <div class="tab-icon-item active" onclick="closeAllSheets()">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
+      </div>
+      <div class="tab-icon-item" onclick="openSheet('chatSheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 9h12v2H6V9zm8 5H6v-2h8v2zm4-6H6V6h12v2z"/></svg>
+      </div>
+      <div class="tab-icon-item" onclick="openSheet('profileSheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </div>
+      <div class="tab-icon-item" onclick="openSheet('trophySheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+      </div>
+      <div class="tab-icon-item" onclick="openSheet('menuSheet')">
+        <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </div>
+    </nav>
+
+  </div>
+
+  <div id="toastMessage" class="toast-popup">Action Saved</div>
+
+  <script src="script.js?v=12.0"></script>
+</body>
+</html>
