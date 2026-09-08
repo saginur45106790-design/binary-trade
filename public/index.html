@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Tredlo | Pocket Trading Terminal</title>
-  <link rel="stylesheet" href="style.css?v=60.0">
+  <title>Tredlo | Institutional Trading Terminal</title>
+  <link rel="stylesheet" href="style.css?v=65.0">
 </head>
 <body>
   <div class="app-root">
 
+    <!-- ==============================================
+         পেজ ১: ল্যান্ডিং পেজ (Hero Interface - Screen 994)
+         ============================================== -->
     <div id="landingModal" class="modal-overlay-sheet" style="display:flex; z-index:300; background:radial-gradient(circle at 50% 20%, #172a45 0%, #070c14 100%);">
       <div style="width:100%; height:100%; display:flex; flex-direction:column; justify-content:space-between; padding:20px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -34,6 +37,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১ ও ৬: অথেন্টিকেশন গেটওয়ে (লগইন ও রেজিস্ট্রেশন)
+         ============================================== -->
     <div id="authModal" class="modal-overlay-sheet" style="z-index:350;">
       <div class="sheet-container" style="max-height:92vh;">
         <div class="sheet-head">
@@ -80,6 +86,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২: রিয়েল বনাম ডেমো অ্যাকাউন্ট স্যুইচার
+         ============================================== -->
     <div id="accountSwitcherModal" class="modal-overlay-sheet">
       <div class="sheet-container" style="max-height:55vh;">
         <div class="sheet-head">
@@ -108,9 +117,13 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২: মূল টার্মিনাল হেডার (কাগজের প্লেন ও বেল SVG)
+         ============================================== -->
     <header class="top-header">
       <div class="account-pill-btn" onclick="openSheet('accountSwitcherModal')">
         <span class="svg-icon" style="color:#38bdf8;">
+          <!-- কাগজের প্লেন SVG আইকন -->
           <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
         </span>
         <span id="accountModeText" style="color:var(--accent-gold);">DEMO</span>
@@ -127,7 +140,11 @@
       </div>
     </header>
 
+    <!-- ==============================================
+         পেজ ২ ও ৩: চার্ট ভিউপোর্ট ও কটেক্স টুলস
+         ============================================== -->
     <main class="chart-container">
+      <!-- সেন্টিমেন্ট ইন্ডিকেটর বার (বায়ার বনাম সেলার লাইভ রেশিও) -->
       <div class="sentiment-bar-vertical" title="Trader Sentiment Ratio">
         <div class="sentiment-buyers" id="sentimentBuyersBar" style="height: 55%;"></div>
         <div class="sentiment-sellers" id="sentimentSellersBar" style="height: 45%;"></div>
@@ -135,10 +152,12 @@
 
       <div class="chart-tools-row">
         <div class="chart-pill-btn" onclick="openSheet('menuSheet')">•••</div>
+        <!-- পোর্টফোলিও ব্রিফকেস SVG -->
         <div class="chart-pill-btn" onclick="openSheet('activeTradesSheet')">
           <svg class="svg-icon sm" viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg>
           <span id="activeTradesCountBadge">0</span>
         </div>
+        <!-- টাইমফ্রেম সিলেক্টর পিল -->
         <div class="chart-pill-btn" onclick="openSheet('timeframeModal')">
           <span id="chartTfLabel">1m</span>
           <span style="font-size:8px;">▼</span>
@@ -152,10 +171,13 @@
       <div class="recenter-chart-btn" onclick="resetPan()">➔</div>
     </main>
 
+    <!-- ==============================================
+         পেজ ৩: টাইমফ্রেম ও ক্যান্ডেল পিরিয়ড প্যানেল
+         ============================================== -->
     <div id="timeframeModal" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
-          <h3>Timeframe & Chart Style</h3>
+          <h3>Timeframe & Chart Period</h3>
           <span class="close-sheet-btn" onclick="closeSheet('timeframeModal')">
             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
           </span>
@@ -182,6 +204,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ৪: অ্যাসেট সিলেক্টর পেজ (সার্চ, ফেভারিট, ওটিসি)
+         ============================================== -->
     <div id="assetSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
@@ -191,12 +216,15 @@
           </span>
         </div>
         <div class="sheet-scroll-body">
-          <input type="text" id="assetSearchQuery" class="pocket-input" placeholder="🔍 Search assets..." oninput="filterAssetsList()" style="margin-bottom:12px;">
+          <input type="text" id="assetSearchQuery" class="pocket-input" placeholder="Search assets..." oninput="filterAssetsList()" style="margin-bottom:12px;">
           <div id="otcAssetsList"></div>
         </div>
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ৫: ট্রেড কন্ট্রোল ডক (ফিক্সড ১ মিনিট)
+         ============================================== -->
     <section class="dock-trade-panel">
       <div class="dock-header-bar">
         <div class="otc-pair-selector" onclick="openSheet('assetSheet')">
@@ -234,6 +262,9 @@
       </div>
     </section>
 
+    <!-- ==============================================
+         পেজ ৭: ট্রেড উইন রেজাল্ট মোডাল
+         ============================================== -->
     <div id="winResultModal" class="modal-overlay-sheet" style="background:rgba(0,0,0,0.85); align-items:center;">
       <div class="sheet-container" style="max-width:340px; border-radius:18px; text-align:center; padding:24px 16px;">
         <div style="width:64px; height:64px; border-radius:50%; background:rgba(0,230,118,0.15); border:2px solid #00e676; margin:auto; display:flex; align-items:center; justify-content:center;">
@@ -247,6 +278,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ৮: পোর্টফোলিও / সক্রিয় ট্রেড ড্রয়ার
+         ============================================== -->
     <div id="activeTradesSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
@@ -259,6 +293,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ৯: ট্রেড হিস্টোরি পেজ (Real vs Demo)
+         ============================================== -->
     <div id="tradesHistorySheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
@@ -271,6 +308,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১০: ডিপোজিট হাব
+         ============================================== -->
     <div id="depositSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
@@ -337,6 +377,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১২: নগদ এমএফএস গেটওয়ে সিমুলেটর
+         ============================================== -->
     <div id="nagadSimulatorSheet" class="modal-overlay-sheet" style="z-index:400;">
       <div class="sheet-container" style="max-width:380px;">
         <div class="sheet-head">
@@ -355,6 +398,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১৩: টুর্নামেন্ট হাব
+         ============================================== -->
     <div id="tournamentsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
@@ -367,6 +413,9 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১৪: মেনু নেভিগেশন স্লাইডার (More Drawer)
+         ============================================== -->
     <div id="menuSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
@@ -384,47 +433,80 @@
 
           <div class="data-card-wrapper" style="padding:0 8px;">
             <div class="menu-action-row" onclick="openSheet('depositSheet')">
-              <div class="menu-action-left"><span>💳</span> <span>Deposit</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#f5a623;"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>
+                <span>Deposit</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('withdrawSheet')">
-              <div class="menu-action-left"><span>🏦</span> <span>Withdrawals</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#38bdf8;"><path d="M4 10h3v7H4zm6.5 0h3v7h-3zM2 19h20v3H2zm15-9h3v7h-3zm-5-9L2 6v2h20V6L12 1z"/></svg>
+                <span>Withdrawals</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('signalsSheet')">
-              <div class="menu-action-left"><span>📡</span> <span>Signals <span style="background:var(--accent-red); color:#fff; font-size:9px; padding:1px 4px; border-radius:4px;">LIVE</span></span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#f43f5e;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                <span>Signals <span style="background:var(--accent-red); color:#fff; font-size:9px; padding:1px 4px; border-radius:4px; font-weight:800;">LIVE</span></span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('tournamentsSheet')">
-              <div class="menu-action-left"><span>🏆</span> <span>Tournaments</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-gold);"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2z"/></svg>
+                <span>Tournaments</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('leaderboardSheet')">
-              <div class="menu-action-left"><span>🥇</span> <span>Leaderboard</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#eab308;"><path d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 8h4v6H4v-6zm16 6h-4v-6h4v6z"/></svg>
+                <span>Leaderboard</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('rewardsSheet')">
-              <div class="menu-action-left"><span>🎁</span> <span>Rewards & Perks</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#a855f7;"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76V14h2V8.76L15.38 12 17 10.83 14.92 8H20v6z"/></svg>
+                <span>Rewards & Perks</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('analyticsSheet')">
-              <div class="menu-action-left"><span>📈</span> <span>Trading Stats & Analytics</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#10b981;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                <span>Trading Stats & Analytics</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('priceAlertsSheet')">
-              <div class="menu-action-left"><span>🔔</span> <span>Price Alerts</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#fbbf24;"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>
+                <span>Price Alerts</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('helpSheet')">
-              <div class="menu-action-left"><span>❓</span> <span>Help & Support</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#64748b;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 16h-2v-2h2v2zm1.07-7.75l-.9.92C12.45 11.9 12 12.5 12 14h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+                <span>Help & Support</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" onclick="openSheet('accountSettingsSheet')">
-              <div class="menu-action-left"><span>⚙️</span> <span>Settings & Security</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:#94a3b8;"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                <span>Settings & Security</span>
+              </div>
               <span>➔</span>
             </div>
             <div class="menu-action-row" style="color:var(--accent-red); border-bottom:none;" onclick="handleUserLogout()">
-              <div class="menu-action-left"><span>🚪</span> <span>Logout</span></div>
+              <div class="menu-action-left">
+                <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-red);"><path d="M10.09 15.59L11.5 17l5-5-5-5-1.41 1.41L12.67 11H3v2h9.67l-2.58 2.59zM19 3H5c-1.11 0-2 .9-2 2v4h2V5h14v14H5v-4H3v4c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/></svg>
+                <span>Logout</span>
+              </div>
               <span>➔</span>
             </div>
           </div>
@@ -432,11 +514,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১৫: রিওয়ার্ডস ও কুপন পেজ
+         ============================================== -->
     <div id="rewardsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Rewards & Promo Codes</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('rewardsSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('rewardsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper">
@@ -444,7 +531,7 @@
             <div style="background:var(--bg-dark); height:6px; border-radius:4px; margin:8px 0; overflow:hidden;">
               <div style="background:#00e676; width:15%; height:100%;"></div>
             </div>
-            <small style="color:var(--text-muted);">Points: $0 / $500 to Pro</small>
+            <small style="color:var(--text-muted);">Points: $0 / $500 to Pro Level</small>
           </div>
 
           <div class="data-card-wrapper">
@@ -469,11 +556,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১৬: টেলিগ্রাম কমিউনিটি বোনাস মোডাল
+         ============================================== -->
     <div id="telegramBonusModal" class="modal-overlay-sheet">
       <div class="sheet-container" style="max-height:60vh;">
         <div class="sheet-head">
           <h3>Telegram Community Bonus</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('telegramBonusModal')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('telegramBonusModal')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body" style="text-align:center;">
           <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Step 1: Join our official Telegram channel.</p>
@@ -484,31 +576,46 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১৭: লিডারবোর্ড ও র‍্যাংকিং হাব
+         ============================================== -->
     <div id="leaderboardSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Global Leaderboard</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('leaderboardSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('leaderboardSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body" id="leaderboardListContainer"></div>
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১৮: ট্রেডিং সিগন্যালস হাব (Live Engine)
+         ============================================== -->
     <div id="signalsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
-          <h3>Trading Signals <span style="background:var(--accent-red); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px;">LIVE</span></h3>
-          <span class="close-sheet-btn" onclick="closeSheet('signalsSheet')">✕</span>
+          <h3>Trading Signals <span style="background:var(--accent-red); color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:800;">LIVE</span></h3>
+          <span class="close-sheet-btn" onclick="closeSheet('signalsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body" id="signalsListContainer"></div>
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ১৯: প্রাইস অ্যালার্ট পেজ
+         ============================================== -->
     <div id="priceAlertsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Price Alerts</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('priceAlertsSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('priceAlertsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper">
@@ -531,11 +638,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২০: কমিউনিটি জয়েন মোডাল
+         ============================================== -->
     <div id="joinCommunityModal" class="modal-overlay-sheet">
       <div class="sheet-container" style="max-height:45vh; text-align:center;">
         <div class="sheet-head">
           <h3>Join Our Community</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('joinCommunityModal')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('joinCommunityModal')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <p style="font-size:12px; color:var(--text-muted); margin-bottom:16px;">Get live trade alerts, direct VIP support, and institutional analysis.</p>
@@ -544,15 +656,22 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২১: পার্সোনাল ডাটা, প্রোফাইল ও কেওয়াইসি পেজ
+         ============================================== -->
     <div id="profileSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Personal Data & KYC</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('profileSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('profileSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="user-avatar-badge-row">
-            <div class="avatar-circle-blue">👤</div>
+            <div class="avatar-circle-blue">
+              <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            </div>
             <div class="user-meta-details">
               <h4 id="profNameDisplay">MD Sajib Hossain</h4>
               <small id="profIdDisplay">ID: 85857047</small>
@@ -591,11 +710,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২২: নোটিফিকেশন সেটিংস পেজ
+         ============================================== -->
     <div id="notificationSettingsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Notification Preferences</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('notificationSettingsSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('notificationSettingsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper">
@@ -618,11 +742,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২৩: অ্যাকাউন্ট সেটিংস ও সিকিউরিটি
+         ============================================== -->
     <div id="accountSettingsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Settings & Security</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('accountSettingsSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('accountSettingsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper">
@@ -646,11 +775,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২৪: ট্রেডিং স্ট্যাটস ও অ্যানালিটিক্স
+         ============================================== -->
     <div id="analyticsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Trading Analytics</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('analyticsSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('analyticsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center;">
@@ -663,11 +797,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২৫: উইথড্রয়াল পোর্টাল (২X টার্নওভার ভ্যালিডেশন সহ)
+         ============================================== -->
     <div id="withdrawSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Withdraw Funds</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('withdrawSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('withdrawSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div id="turnoverWarnBox" class="data-card-wrapper" style="display:none; background:rgba(235,87,87,0.15); border-color:var(--accent-red); color:#ff6b6b; font-size:12px; font-weight:800;">
@@ -708,11 +847,16 @@
       </div>
     </div>
 
+    <!-- ==============================================
+         পেজ ২৬: হেল্প সেন্টার ও রিপোর্ট ইস্যু
+         ============================================== -->
     <div id="helpSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Help Center & Report Issue</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('helpSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('helpSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper">
@@ -731,11 +875,14 @@
       </div>
     </div>
 
+    <!-- এক্সপায়ারেশন টাইমার ডায়ালগ -->
     <div id="timerModal" class="modal-overlay-sheet">
       <div class="sheet-container" style="max-height:40vh;">
         <div class="sheet-head">
           <h3>Expiration Duration</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('timerModal')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('timerModal')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;">
           <button class="btn-primary-blue" style="background:var(--bg-subcard); border:1px solid var(--border-subtle);" onclick="selectExpirationTime(60, '00:01:00')">1m</button>
@@ -747,27 +894,35 @@
       </div>
     </div>
 
+    <!-- নোটিফিকেশন পেজ -->
     <div id="notifSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>System Notifications</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('notifSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('notifSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body" id="notificationsList"></div>
       </div>
     </div>
 
+    <!-- লাইভ চ্যাট মেসেঞ্জার পেজ -->
     <div id="chatSheet" class="modal-overlay-sheet">
       <div class="sheet-container" style="height:80vh;">
         <div class="sheet-head">
           <h3>Live Support Desk</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('chatSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('chatSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body" style="display:flex; flex-direction:column; padding:12px;">
           <div class="chat-stream" id="chatMessagesContainer"></div>
           <div class="chat-footer-bar">
             <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="sendChatImage(event)">
-            <span onclick="document.getElementById('chatImgInput').click()" style="cursor:pointer; display:flex; color:var(--text-muted);">📷</span>
+            <span onclick="document.getElementById('chatImgInput').click()" style="cursor:pointer; display:flex; color:var(--text-muted);">
+              <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 12m-3.2 0a3.2 3.2 0 1 0 6.4 0 3.2 3.2 0 1 0-6.4 0M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+            </span>
             <input type="text" id="chatTextInput" placeholder="Type your message..." style="flex:1; background:none; border:none; color:#fff; outline:none; font-size:13px;">
             <button onclick="sendChatMessage()" style="background:var(--accent-blue); border:none; color:#fff; padding:6px 12px; border-radius:6px; font-weight:800; cursor:pointer;">Send</button>
           </div>
@@ -775,11 +930,14 @@
       </div>
     </div>
 
+    <!-- ট্রফি বোনাস পেজ -->
     <div id="trophySheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Trading Tasks & Rewards</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('trophySheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('trophySheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper" style="background:rgba(0,112,243,0.1); border-color:rgba(0,112,243,0.25);">
@@ -793,11 +951,14 @@
       </div>
     </div>
 
+    <!-- গ্লোবাল সেটিংস পেজ -->
     <div id="settingsSheet" class="modal-overlay-sheet">
       <div class="sheet-container">
         <div class="sheet-head">
           <h3>Global Settings</h3>
-          <span class="close-sheet-btn" onclick="closeSheet('settingsSheet')">✕</span>
+          <span class="close-sheet-btn" onclick="closeSheet('settingsSheet')">
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </span>
         </div>
         <div class="sheet-scroll-body">
           <div class="data-card-wrapper">
@@ -825,6 +986,7 @@
       </div>
     </div>
 
+    <!-- ফুটার বার (১০০% ভেক্টর SVG) -->
     <nav class="footer-tab-bar">
       <div class="tab-icon-item active" onclick="closeAllSheets()">
         <svg class="svg-icon lg" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>
@@ -847,6 +1009,6 @@
 
   <div id="toastMessage" class="toast-popup">Action Saved</div>
 
-  <script src="script.js?v=60.0"></script>
+  <script src="script.js?v=65.0"></script>
 </body>
 </html>

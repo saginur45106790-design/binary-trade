@@ -1,10 +1,13 @@
+// =============================================================
+// ১. গ্লোবাল স্টেট ও কনফিগারেশন
+// =============================================================
 const canvas = document.getElementById('tradeCanvas');
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 
 let raw5sBars = [];
 let candles = [];
 let activeTrades = [];
-let currentAccount = 'demo';
+let currentAccount = 'demo'; // 'live' | 'demo'
 let currentUser = {
   id: "85857047",
   name: "MD Sajib Hossain",
@@ -57,7 +60,9 @@ const FLAG_ICONS = {
   'GOLD':    { flag1: '🪙', flag2: '🇺🇸' }
 };
 
-// গ্লোবাল নোটিফিকেশন টোস্ট
+// =============================================================
+// ২. ইউটিলিটি ও নোটিফিকেশন টোস্ট
+// =============================================================
 function showToast(msg) {
   let t = document.getElementById('toastMessage');
   if (t) {
@@ -76,7 +81,9 @@ function copyToClipboard(elemId) {
   }
 }
 
-// ২৬টি ক্লায়েন্ট পেজ ওপেন ও ক্লোজ রাউটার
+// =============================================================
+// ৩. ২৬টি ক্লায়েন্ট পেজ ও মডাল রাউটিং সিস্টেম
+// =============================================================
 function openSheet(id) {
   closeAllSheets();
   let el = document.getElementById(id);
@@ -107,7 +114,9 @@ function closeAllSheets() {
   document.querySelectorAll('.modal-overlay-sheet').forEach(m => m.style.display = 'none');
 }
 
-// ১ ও ৬. অথেন্টিকেশন ও ল্যান্ডিং হ্যান্ডলার
+// =============================================================
+// ৪. অথেন্টিকেশন ও ল্যান্ডিং হ্যান্ডলার (পেজ ১ ও ৬)
+// =============================================================
 function openAuthModal(tab) {
   let authModal = document.getElementById('authModal');
   if (authModal) authModal.style.display = 'flex';
@@ -193,7 +202,9 @@ function handleUserLogout() {
   location.reload();
 }
 
-// ২. অ্যাকাউন্ট স্যুইচার
+// =============================================================
+// ৫. রিয়েল বনাম ডেমো অ্যাকাউন্ট স্যুইচার (পেজ ২)
+// =============================================================
 function selectAccountType(type) {
   currentAccount = type;
   let modeTxt = document.getElementById('accountModeText');
@@ -223,7 +234,9 @@ function updateBalanceUI() {
   if (switchDemo) switchDemo.innerText = '$' + currentUser.demoBalance.toFixed(2);
 }
 
-// ৩. টাইমফ্রেম ও ক্যান্ডেল পিরিয়ড সিলেকশন
+// =============================================================
+// ৬. টাইমফ্রেম ও ক্যান্ডেল পিরিয়ড সিলেকশন (পেজ ৩)
+// =============================================================
 function selectCandlePeriod(sec, label) {
   selectedCandleSeconds = sec;
   let lbl = document.getElementById('chartTfLabel');
@@ -263,7 +276,9 @@ function resampleBars(baseBars, intervalSec) {
   return resampled;
 }
 
-// ৪. অ্যাসেট ও মার্কেট সিলেক্টর
+// =============================================================
+// ৭. ওটিসি অ্যাসেট ও মার্কেট সিলেক্টর (পেজ ৪)
+// =============================================================
 function loadAssets() {
   fetch('/api/assets')
   .then(r => r.json())
@@ -354,7 +369,9 @@ function fullSync() {
   });
 }
 
-// ৫ ও ৬. ট্রেড কন্ট্রোল ডক ও এক্সপায়ারেশন
+// =============================================================
+// ৮. ট্রেড কন্ট্রোল ডক ও অর্ডার এক্সিকিউশন (পেজ ৫ ও ৭)
+// =============================================================
 function updatePayoutCalc() {
   let amt = parseFloat(document.getElementById('investAmountInput').value) || 1;
   let total = (amt * (1 + currentPayout / 100)).toFixed(2);
@@ -400,7 +417,6 @@ function placeOrder(direction) {
   });
 }
 
-// ৭. ট্রেড উইন মোডাল ট্রিগার
 function triggerWinPopup(tr, profit) {
   let winModal = document.getElementById('winResultModal');
   let pAmt = document.getElementById('winProfitAmount');
@@ -412,7 +428,9 @@ function triggerWinPopup(tr, profit) {
   }
 }
 
-// ৮. পোর্টফোলিও / সক্রিয় ট্রেড লাইভ ড্রয়ার
+// =============================================================
+// ৯. পোর্টফোলিও ও লাইভ রানিং ট্রেডস (পেজ ৮)
+// =============================================================
 function updateActiveTradesDrawerLive() {
   let container = document.getElementById('activeTradesContainer');
   let badge = document.getElementById('activeTradesCountBadge');
@@ -461,7 +479,9 @@ function updateActiveTradesDrawerLive() {
   container.innerHTML = html;
 }
 
-// ৯. ট্রেডস হিস্ট্রি (Real vs Demo)
+// =============================================================
+// ১০. লাইফটাইম ট্রেড হিস্ট্রি (পেজ ৯)
+// =============================================================
 function loadAllTrades() {
   fetch('/api/trades/lifetime').then(r => r.json()).then(d => {
     let box = document.getElementById('allTradesHistoryBox');
@@ -487,7 +507,9 @@ function loadAllTrades() {
   });
 }
 
-// ১০ ও ১১. ডিপোজিট গেটওয়ে
+// =============================================================
+// ১১. ডিপোজিট ও নগদ গেটওয়ে সিমুলেটর (পেজ ১০, ১১ ও ১২)
+// =============================================================
 function onDepMethodChange() {
   let method = document.getElementById('depMethodSelect').value;
   let binBox = document.getElementById('binanceCoinSelectBox');
@@ -566,7 +588,6 @@ function submitDepositOrder() {
 
   if (!amt || !trx) return alert("Please specify the amount and Transaction ID!");
 
-  // ১২. নগদ সিমুলেটর হ্যান্ডলিং
   if (method === 'Nagad') {
     let nagadSheet = document.getElementById('nagadSimulatorSheet');
     let bdtDisp = document.getElementById('nagadTotalBdtDisplay');
@@ -613,7 +634,9 @@ function executeDepositPost(method, amt, trx, promo) {
   });
 }
 
-// ১৩. টুর্নামেন্টস হাব
+// =============================================================
+// ১২. টুর্নামেন্টস হাব (পেজ ১৩)
+// =============================================================
 function loadTournaments() {
   fetch('/api/tournaments/list').then(r => r.json()).then(d => {
     let box = document.getElementById('tournamentsListContainer');
@@ -652,7 +675,9 @@ function joinTournamentAction(tourId) {
   });
 }
 
-// ১৫. রিওয়ার্ডস ও প্রোমো কুপন
+// =============================================================
+// ১৩. রিওয়ার্ডস ও কুপন কোড (পেজ ১৫ ও ১৬)
+// =============================================================
 function submitPromoRedeem() {
   let code = document.getElementById('promoCodeInput')?.value.trim().toUpperCase();
   if (!code) return alert("Enter promo code!");
@@ -676,7 +701,9 @@ function applyCouponToDep(code) {
   showToast(`Coupon ${code} applied to deposit form!`);
 }
 
-// ১৭. লিডারবোর্ড হাব
+// =============================================================
+// ১৪. গ্লোবাল লিডারবোর্ড (পেজ ১৭)
+// =============================================================
 function loadLeaderboard() {
   fetch('/api/leaderboard').then(r => r.json()).then(d => {
     let box = document.getElementById('leaderboardListContainer');
@@ -702,7 +729,9 @@ function loadLeaderboard() {
   });
 }
 
-// ১৮. সিগন্যালস ইঞ্জিন
+// =============================================================
+// ১৫. লাইভ সিগন্যালস ইঞ্জিন (পেজ ১৮)
+// =============================================================
 function loadSignals() {
   fetch('/api/signals/list').then(r => r.json()).then(d => {
     let box = document.getElementById('signalsListContainer');
@@ -737,7 +766,9 @@ function copySignalAction(assetKey, dir) {
   closeSheet('signalsSheet');
 }
 
-// ১৯. প্রাইস অ্যালার্টস
+// =============================================================
+// ১৬. প্রাইস অ্যালার্টস ইঞ্জিন (পেজ ১৯)
+// =============================================================
 function loadPriceAlerts() {
   fetch('/api/alerts/list').then(r => r.json()).then(d => {
     let box = document.getElementById('activeAlertsList');
@@ -776,7 +807,9 @@ function submitCreatePriceAlert() {
   });
 }
 
-// ২১. পার্সোনাল ডাটা, কেওয়াইসি ও স্টেটমেন্ট
+// =============================================================
+// ১৭. পার্সোনাল ডাটা, কেওয়াইসি ও অ্যাকাউন্ট স্টেটমেন্ট (পেজ ২১)
+// =============================================================
 function refreshProfileUI() {
   document.getElementById('profNameDisplay').innerText = currentUser.name;
   document.getElementById('profIdDisplay').innerText = "ID: " + currentUser.id;
@@ -870,7 +903,9 @@ function generateAccountStatement() {
   });
 }
 
-// ২৩. পাসওয়ার্ড আপডেট
+// =============================================================
+// ১৮. পাসওয়ার্ড চেঞ্জ ও সিকিউরিটি (পেজ ২৩)
+// =============================================================
 function submitChangePassword() {
   let curP = document.getElementById('curPassInput')?.value;
   let newP = document.getElementById('newPassInput')?.value;
@@ -891,7 +926,9 @@ function submitChangePassword() {
   });
 }
 
-// ২৪. ট্রেডিং স্ট্যাটস ও অ্যানালিটিক্স
+// =============================================================
+// ১৯. অ্যানালিটিক্স ও ট্রেডিং স্ট্যাটস (পেজ ২৪)
+// =============================================================
 function loadAnalytics() {
   fetch(`/api/analytics/${currentUser.id}`).then(r => r.json()).then(d => {
     let s = d.stats;
@@ -902,7 +939,9 @@ function loadAnalytics() {
   });
 }
 
-// ২৫. উইথড্রয়াল ও ২X টার্নওভার কমপ্লায়েন্স
+// =============================================================
+// ২০. উইথড্রয়াল হাব ও ২X টার্নওভার কমপ্লায়েন্স (পেজ ২৫)
+// =============================================================
 function onWithMethodChange() {
   let method = document.getElementById('withMethodSelect').value;
   let lbl = document.getElementById('withDetailsLabel');
@@ -979,7 +1018,9 @@ function submitWithdrawOrder() {
   });
 }
 
-// ২৬. হেল্প সেন্টার ও টিকিট সাবমিশন
+// =============================================================
+// ২১. হেল্প সেন্টার ও টিকিট সাবমিশন (পেজ ২৬)
+// =============================================================
 function submitSupportTicket() {
   let sub = document.getElementById('ticketSubject')?.value.trim();
   let msg = document.getElementById('ticketMessage')?.value.trim();
@@ -998,7 +1039,9 @@ function submitSupportTicket() {
   });
 }
 
-// লাইভ সাপোর্ট মেসেঞ্জার (২৪ ঘণ্টা মেমোরি)
+// =============================================================
+// ২২. লাইভ সাপোর্ট মেসেঞ্জার (২৪ ঘণ্টা মেমোরি)
+// =============================================================
 function loadChatHistory() {
   fetch('/api/support/messages').then(r => r.json()).then(d => {
     let box = document.getElementById('chatMessagesContainer');
@@ -1047,7 +1090,9 @@ function sendChatImage(event) {
   reader.readAsDataURL(file);
 }
 
-// নোটিফিকেশন ও পেমেন্ট হিস্ট্রি লোডার
+// =============================================================
+// ২৩. নোটিফিকেশন ও পেমেন্টস হিস্ট্রি
+// =============================================================
 function loadNotifications() {
   fetch('/api/notifications').then(r => r.json()).then(d => {
     let box = document.getElementById('notificationsList');
@@ -1082,7 +1127,9 @@ function loadAllPayments() {
   });
 }
 
-// বোনাস টাস্ক ক্লেইম
+// =============================================================
+// ২৪. বোনাস টাস্ক ক্লেইম ইঞ্জিন
+// =============================================================
 function renderBonusTasks() {
   let box = document.getElementById('bonusTasksList');
   let tasks = [
@@ -1118,7 +1165,9 @@ function claimBonusTask(trade, free) {
   });
 }
 
-// সেটিংস: থিম ও ভাষা
+// =============================================================
+// ২৫. সেটিংস: থিম, ভাষা ও পার্টনার
+// =============================================================
 function applyThemeMode(mode) {
   document.body.className = mode === 'light' ? 'theme-light' : '';
   localStorage.setItem('app_theme', mode);
@@ -1138,7 +1187,9 @@ function openPartnerTelegram() {
 
 function resetPan() { panOffset = 0; }
 
-// কটেক্স ক্যান্ডেলস্টিক চার্ট রেন্ডার ইঞ্জিন
+// =============================================================
+// ২৬. কটেক্স ক্যান্ডেলস্টিক চার্ট ক্যানভাস রেন্ডার ইঞ্জিন
+// =============================================================
 function render() {
   requestAnimationFrame(render);
   if (!canvas || !ctx || candles.length === 0) return;
@@ -1184,7 +1235,7 @@ function render() {
     ctx.fillText(pVal.toFixed(activeDecimals), w - 50, y + 3);
   }
 
-  // কটেক্স ক্যান্ডেলস্টিক রেন্ডার
+  // কটেক্স ক্যান্ডেলস্টিক বডি ও উইক
   visible.forEach(c => {
     let isBull = c.close >= c.open;
     let col = isBull ? '#0faf59' : '#eb5757';
@@ -1201,7 +1252,7 @@ function render() {
     ctx.fillRect(c.x, topY, candleWidth, ch);
   });
 
-  // লাইভ প্রাইস বার
+  // লাইভ প্রাইস ড্যাশড লাইন ও ট্যাগ
   let liveY = getY(last.close);
   ctx.setLineDash([3, 3]);
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
@@ -1237,7 +1288,7 @@ function render() {
   });
 }
 
-// ঘড়ি ও কাউন্টডাউন
+// ঘড়ি ও কাউন্টডাউন টাইমার
 setInterval(() => {
   let now = new Date();
   let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
@@ -1265,7 +1316,7 @@ function fitCanvas() {
 }
 window.addEventListener('resize', fitCanvas);
 
-// টাচ স্ক্রোল ও জুম
+// টাচ স্ক্রোল ও জুম হ্যান্ডলার
 let startX = 0;
 let isPanning = false;
 
@@ -1298,7 +1349,9 @@ if (canvas) {
   canvas.addEventListener('touchend', () => { isPanning = false; initialPinchDistance = null; });
 }
 
-// সেন্ট্রাল ওয়েবসকেট ইঞ্জিন
+// =============================================================
+// ২৭. সেন্ট্রাল ওয়েবসকেট ইঞ্জিন ও রিয়েল-টাইম ব্যালেন্স সিঙ্ক
+// =============================================================
 function initWS() {
   let ws = new WebSocket((location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host);
   ws.onmessage = (e) => {
@@ -1314,6 +1367,12 @@ function initWS() {
           bBar.style.height = `${msg.sentiment.buyers}%`;
           sBar.style.height = `${msg.sentiment.sellers}%`;
         }
+      }
+    } else if (msg.type === 'BALANCE_UPDATE') {
+      if (msg.userId === currentUser.id) {
+        currentUser.liveBalance = parseFloat(msg.liveBalance);
+        currentUser.demoBalance = parseFloat(msg.demoBalance);
+        updateBalanceUI();
       }
     } else if (msg.type === 'TRADE_SETTLED') {
       let r = msg.result;
@@ -1342,7 +1401,9 @@ function loadUserData() {
   });
 }
 
-// টার্মিনাল বুটস্ট্র্যাপ
+// =============================================================
+// ২৮. টার্মিনাল ইনিশিয়ালাইজেশন ও বুটস্ট্র্যাপ
+// =============================================================
 fitCanvas();
 loadAssets();
 fullSync();

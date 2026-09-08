@@ -7,11 +7,13 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-app.use(express.json({ limit: '80mb' }));
-app.use(express.urlencoded({ limit: '80mb', extended: true }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// গ্লোবাল কনফিগারেশন
+// =============================================================
+// ১. প্ল্যাটফর্ম গ্লোবাল কনফিগারেশন ও গেটওয়ে সেটিংস
+// =============================================================
 let PLATFORM_CONFIG = {
   maintenanceMode: false,
   dollarRate: 125.00,
@@ -31,7 +33,9 @@ let RISK_CONFIG = {
   sentimentRatio: { buyers: 55, sellers: 45 }
 };
 
-// ইউজার ডাটাবেস
+// =============================================================
+// ২. সেন্ট্রাল ইউজার ডাটাবেস (কেওয়াইসি, ২X টার্নওভার ও সিকিউরিটি)
+// =============================================================
 let users = {
   "85857047": {
     id: "85857047",
@@ -54,8 +58,8 @@ let users = {
     currentTurnover: 0.00,
     hasActiveBonus: false,
     traderLevel: "Starter",
-    verificationStatus: "Unverified",
-    accountStatus: "Active",
+    verificationStatus: "Unverified", // Unverified | Pending | Verified
+    accountStatus: "Active",          // Active | Suspended | Banned
     nidFront: "",
     nidBack: "",
     registeredAt: "2026-09-08",
@@ -64,7 +68,9 @@ let users = {
   }
 };
 
-// ১০টি সম্পূর্ণ স্বতন্ত্র OTC পেয়ার
+// =============================================================
+// ৩. ১০টি সম্পূর্ণ স্বতন্ত্র OTC অ্যাসেট (ভিন্ন প্রাইস ও চার্ট গতি)
+// =============================================================
 let ASSETS = {
   'EUR_USD': { name: 'EUR/USD (OTC)', ticker: 'EUR_USD', type: 'currency', price: 1.08540, basePrice: 1.08540, decimals: 5, vol: 0.00030, payout1m: 92, payout5m: 85, change24h: -1.27, trend: 'NORMAL', trendUntil: 0, enabled: true },
   'GBP_JPY': { name: 'GBP/JPY (OTC)', ticker: 'GBP_JPY', type: 'currency', price: 191.450, basePrice: 191.450, decimals: 3, vol: 0.045, payout1m: 88, payout5m: 80, change24h: 0.21, trend: 'NORMAL', trendUntil: 0, enabled: true },
@@ -116,6 +122,9 @@ let promoCoupons = {
 let candleHistories = {};
 let currentCandleMinute = Math.floor(Date.now() / 60000) * 60;
 
+// =============================================================
+// ৪. ২৪ ঘণ্টার ১,৪৪০টি কটেক্স ক্যান্ডেলস্টিক জেনারেশন
+// =============================================================
 function init24HourMarket() {
   let nowSec = Math.floor(Date.now() / 1000);
   currentCandleMinute = Math.floor(nowSec / 60) * 60;
@@ -154,7 +163,9 @@ function init24HourMarket() {
 }
 init24HourMarket();
 
-// প্রতি সেকেন্ডের ইঞ্জিন ও স্মুথ মার্কেট টিক
+// =============================================================
+// ৫. প্রতি সেকেন্ডের রিয়েল-টাইম ক্যান্ডেল ও মসৃণ ট্রেন্ড ইঞ্জিন
+// =============================================================
 setInterval(() => {
   let now = Date.now();
   let sec = Math.floor(now / 1000);
@@ -200,7 +211,7 @@ setInterval(() => {
 
   if (isNewMinute) currentCandleMinute = nowMinute;
 
-  // ট্রেড সেটেলমেন্ট ও ২X টার্নওভার গণনা
+  // ট্রেড সেটেলমেন্ট ও শতভাগ সঠিক গাণিতিক ফলাফল
   for (let i = activeServerTrades.length - 1; i >= 0; i--) {
     let tr = activeServerTrades[i];
     if (sec >= tr.expireTime) {
@@ -283,7 +294,9 @@ setInterval(() => {
   wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(payloadStr); });
 }, 1000);
 
-// অথেন্টিকেশন এপিআই
+// =============================================================
+// ৬. অথেন্টিকেশন ও ইউজার প্রোফাইল এপিআই
+// =============================================================
 app.post('/api/auth/register', (req, res) => {
   const { email, password, phone } = req.body;
   if (!email || !password) return res.json({ success: false, message: "Email and password required!" });
@@ -340,7 +353,6 @@ app.post('/api/auth/login', (req, res) => {
   res.json({ success: false, message: "Invalid credentials provided!" });
 });
 
-// প্রোফাইল ও কেওয়াইসি
 app.get('/api/user/:id', (req, res) => {
   let u = users[req.params.id] || users["85857047"];
   res.json({ success: true, user: u });
@@ -386,7 +398,9 @@ app.post('/api/user/statement', (req, res) => {
   res.json({ success: true, trades: myTrades, deposits: myDeposits, generatedAt: new Date().toLocaleString() });
 });
 
-// ট্রেডিং
+// =============================================================
+// ৭. ট্রেডিং অর্ডার এক্সিকিউশন
+// =============================================================
 app.post('/api/trade', (req, res) => {
   const { userId, amount, direction, accountType, durationSec, asset } = req.body;
   let u = users[userId] || users["85857047"];
@@ -423,7 +437,9 @@ app.post('/api/trade', (req, res) => {
   res.json({ success: true, trade, balance: (accountType === 'live' ? u.liveBalance : u.demoBalance).toFixed(2) });
 });
 
-// ডিপোজিট ও উইথড্রয়াল
+// =============================================================
+// ৮. ডিপোজিট ও উইথড্রয়াল এপিআই (২X টার্নওভার সহ)
+// =============================================================
 app.post('/api/wallet/deposit', (req, res) => {
   const { userId, method, amount, trxId, screenshot, promoCode } = req.body;
   let amt = parseFloat(amount);
@@ -478,7 +494,9 @@ app.post('/api/wallet/withdraw', (req, res) => {
   res.json({ success: true, message: "Withdrawal request placed!", balance: u.liveBalance.toFixed(2) });
 });
 
-// সিগন্যালস, অ্যালার্টস ও টুর্নামেন্টস
+// =============================================================
+// ৯. সিগন্যালস, অ্যালার্টস, টুর্নামেন্টস ও রিওয়ার্ডস
+// =============================================================
 app.get('/api/signals/list', (req, res) => res.json({ success: true, signals: liveSignals }));
 app.post('/api/alerts/create', (req, res) => {
   const { asset, targetPrice, condition } = req.body;
@@ -522,7 +540,9 @@ app.post('/api/bonus/claim', (req, res) => {
   res.json({ success: true, message: `Bonus claimed! $${free} added. 2X Turnover ($${u.requiredTurnover.toFixed(2)}) activated.`, user: u });
 });
 
-// লাইভ সাপোর্ট মেসেঞ্জার
+// =============================================================
+// ১০. লাইভ সাপোর্ট মেসেঞ্জার ডেস্ক (২৪ ঘণ্টা মেমোরি)
+// =============================================================
 app.get('/api/support/messages', (req, res) => {
   let cutoff = Date.now() - (24 * 60 * 60 * 1000);
   chatMessages = chatMessages.filter(m => m.timestamp >= cutoff);
@@ -569,9 +589,9 @@ app.get('/api/analytics/:userId', (req, res) => {
   });
 });
 
-// -------------------------------------------------------------
-// অ্যাডমিন মাস্টার ড্যাশবোর্ড API (স্ক্রিনশট ১০১৩)
-// -------------------------------------------------------------
+// =============================================================
+// ১১. অ্যাডমিন মাস্টার ড্যাশবোর্ড API (১২টি মডিউল ও ৭২টি অপশন)
+// =============================================================
 app.get(['/admin', '/admin-secret-panel'], (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
 app.get('/api/admin/overview', (req, res) => {
@@ -615,7 +635,6 @@ app.post('/api/admin/user-status', (req, res) => {
   res.json({ success: false, message: "User not found!" });
 });
 
-// লাইভ ব্যালেন্স অ্যাডজাস্টমেন্ট ও তাৎক্ষণিক WebSocket ব্রডকাস্ট
 app.post('/api/admin/adjust-balance', (req, res) => {
   const { userId, amount, actionType } = req.body;
   let u = users[userId];

@@ -13,11 +13,32 @@
       --accent-blue: #0070f3;
       --accent-green: #00e676;
       --accent-red: #eb5757;
+      --accent-cyan: #38bdf8;
       --text-main: #e2e8f0;
       --text-muted: #8ca2ba;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg-dark); color: var(--text-main); padding: 14px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      padding: 14px;
+    }
+
+    .svg-icon {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
 
     /* ১. ড্যাশবোর্ড হেডার (স্ক্রিনশট ১০১৩) */
     .admin-top-header {
@@ -29,7 +50,7 @@
     .brand-title {
       font-size: 19px;
       font-weight: 900;
-      color: #38bdf8;
+      color: var(--accent-cyan);
       display: flex;
       align-items: center;
       gap: 7px;
@@ -39,7 +60,7 @@
     .btn-user-site {
       background: #131d2e;
       border: 1px solid #233550;
-      color: #38bdf8;
+      color: var(--accent-cyan);
       padding: 6px 14px;
       border-radius: 20px;
       font-size: 12px;
@@ -51,7 +72,7 @@
       gap: 4px;
     }
 
-    /* ফিনান্সিয়াল কুইক স্ট্যাটস স্ট্রিপ */
+    /* প্ল্যাটফর্ম ফিনান্সিয়াল স্ট্যাটাস স্ট্রিপ */
     .platform-stats-strip {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -68,7 +89,7 @@
     .stat-chip small { font-size: 10px; color: var(--text-muted); font-weight: 700; display: block; }
     .stat-chip b { font-size: 13px; margin-top: 2px; display: block; }
 
-    /* স্ক্রিনশট ১০১৩-এর হুবহু ২ কলামের গ্রিড কার্ডস */
+    /* স্ক্রিনশট ১০১৩-এর ২ কলামের প্রিমিয়াম গ্রিড কার্ডস */
     .dashboard-cards-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -121,7 +142,7 @@
       border: 1px solid;
     }
     .badge-gold { background: rgba(245, 166, 35, 0.12); color: var(--accent-gold); border-color: rgba(245, 166, 35, 0.4); }
-    .badge-blue { background: rgba(0, 112, 243, 0.15); color: #38bdf8; border-color: rgba(0, 112, 243, 0.4); }
+    .badge-blue { background: rgba(0, 112, 243, 0.15); color: var(--accent-cyan); border-color: rgba(0, 112, 243, 0.4); }
     .badge-green { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border-color: rgba(0, 230, 118, 0.4); }
 
     /* গ্লোবাল নোটিশ ব্যানার কার্ড (স্ক্রিনশট ১০১৩ গোল্ডেন বর্ডার) */
@@ -136,7 +157,7 @@
     .announcement-head {
       font-size: 14px;
       font-weight: 800;
-      color: #38bdf8;
+      color: var(--accent-cyan);
       display: flex;
       align-items: center;
       gap: 6px;
@@ -257,7 +278,7 @@
 
   <div class="admin-top-header">
     <div class="brand-title">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="#38bdf8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-cyan);"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
       Admin Master <span>Dashboard</span>
     </div>
     <a href="/" class="btn-user-site">
@@ -272,7 +293,7 @@
     </div>
     <div class="stat-chip">
       <small>Total Payouts</small>
-      <b style="color:#38bdf8;" id="dispTotalWith">$0.00</b>
+      <b style="color:var(--accent-cyan);" id="dispTotalWith">$0.00</b>
     </div>
     <div class="stat-chip">
       <small>Trade Volume</small>
@@ -322,7 +343,7 @@
     </div>
 
     <div class="admin-feature-card" onclick="openAdminSheet('usersSheet')">
-      <div class="card-svg-icon" style="color:#38bdf8;">
+      <div class="card-svg-icon" style="color:var(--accent-cyan);">
         <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
       </div>
       <div class="card-action-title">User Database</div>
@@ -364,7 +385,7 @@
 
   <div class="global-announcement-card">
     <div class="announcement-head">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="#f5a623"><path d="M20 2v3h-2V4h-1.5c-.83 0-1.5.67-1.5 1.5v1.2L9.62 9H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h5.62l5.38 2.3v1.2c0 .83.67 1.5 1.5 1.5H18v-1h2v3h2V2h-2zm-7 12.35L8.7 12H4v-2h4.7L13 7.65v6.7z"/></svg>
+      <svg class="svg-icon" viewBox="0 0 24 24" style="color:var(--accent-gold);"><path d="M20 2v3h-2V4h-1.5c-.83 0-1.5.67-1.5 1.5v1.2L9.62 9H4c-1.1 0-2 .9-2 2v2c0 1.1.9 2 2 2h5.62l5.38 2.3v1.2c0 .83.67 1.5 1.5 1.5H18v-1h2v3h2V2h-2zm-7 12.35L8.7 12H4v-2h4.7L13 7.65v6.7z"/></svg>
       Global Notice & Announcement Banner
     </div>
     <label style="font-size:11px; color:var(--text-muted); display:block; margin-bottom:6px; font-weight:700;">Top Announcement Notice Text</label>
@@ -425,7 +446,7 @@
         <span class="btn-sheet-close" onclick="closeAdminSheet('usersSheet')">✕</span>
       </div>
       <div class="sheet-body-scroll">
-        <input type="text" id="userSearchTerm" class="announcement-input-box" placeholder="🔍 Search User ID, Name, or Email..." oninput="renderUsersList()">
+        <input type="text" id="userSearchTerm" class="announcement-input-box" placeholder="Search User ID, Name, or Email..." oninput="renderUsersList()">
         <div id="usersListContent"></div>
       </div>
     </div>
@@ -475,7 +496,7 @@
       </div>
       <div class="sheet-body-scroll">
         <div class="review-record-card" style="border-color:var(--accent-blue);">
-          <b style="color:#38bdf8; display:block; margin-bottom:8px;">Broadcast New Trade Signal</b>
+          <b style="color:var(--accent-cyan); display:block; margin-bottom:8px;">Broadcast New Trade Signal</b>
           <select id="sigAssetInput" class="announcement-input-box">
             <option value="EUR_USD">EUR/USD (OTC)</option>
             <option value="BTC">Bitcoin (OTC)</option>
@@ -547,7 +568,7 @@
   </div>
 
   <div id="zoomModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:3000; align-items:center; justify-content:center;" onclick="this.style.display='none'">
-    <img id="zoomedImgSrc" src="" style="max-width:92%; max-height:85vh; border-radius:8px; border:2px solid #fff;">
+    <img id="zoomedImgSrc" src="" alt="Document Preview" style="max-width:92%; max-height:85vh; border-radius:8px; border:2px solid #fff;">
   </div>
 
   <div id="adminToast" class="admin-toast">Saved!</div>
@@ -659,8 +680,8 @@
               </div>
               <p style="color:var(--text-muted); font-size:11px;">Email: ${u.email} | Phone: ${u.phone}</p>
               <div style="display:flex; gap:8px; margin:6px 0;">
-                ${u.nidFront ? `<img src="${u.nidFront}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Front Side">` : ''}
-                ${u.nidBack ? `<img src="${u.nidBack}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Back Side">` : ''}
+                ${u.nidFront ? `<img src="${u.nidFront}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Front Side" alt="NID Front">` : ''}
+                ${u.nidBack ? `<img src="${u.nidBack}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Back Side" alt="NID Back">` : ''}
               </div>
               <div class="btn-action-row">
                 <button class="btn-action btn-approve" onclick="actionKyc('${u.id}', 'approve')">Approve (Verified)</button>
@@ -692,9 +713,9 @@
               <span>Deposit $${dep.amount} (${dep.method})</span>
               <span style="color:var(--accent-gold);">${dep.status}</span>
             </div>
-            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${dep.userId}</b> | TrxID: <b style="color:#38bdf8;">${dep.trxId}</b></p>
+            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${dep.userId}</b> | TrxID: <b style="color:var(--accent-cyan);">${dep.trxId}</b></p>
             ${dep.bonusAmount ? `<p style="color:#00e676; font-size:11px;">+ Promo Bonus: $${dep.bonusAmount.toFixed(2)}</p>` : ''}
-            ${dep.screenshot ? `<img src="${dep.screenshot}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Payment Slip">` : ''}
+            ${dep.screenshot ? `<img src="${dep.screenshot}" class="thumb-document-img" onclick="zoomPhoto(this.src)" title="Payment Slip" alt="Slip">` : ''}
             <div class="btn-action-row">
               <button class="btn-action btn-approve" onclick="actionDep('${dep.id}', 'approve')">Approve & Credit Balance</button>
               <button class="btn-action btn-reject" onclick="actionDep('${dep.id}', 'reject')">Reject</button>
@@ -726,7 +747,7 @@
               <span>Withdrawal $${w.amount} (${w.method})</span>
               <span style="color:var(--accent-gold);">${w.status}</span>
             </div>
-            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${w.userId}</b> | Target: <b style="color:#38bdf8;">${w.accountDetails}</b></p>
+            <p style="color:var(--text-muted); font-size:11px;">User ID: <b>${w.userId}</b> | Target: <b style="color:var(--accent-cyan);">${w.accountDetails}</b></p>
             <p style="color:${user.hasActiveBonus ? '#f5a623' : '#00e676'}; font-size:11px; font-weight:700;">${turnoverMsg}</p>
             <div class="btn-action-row">
               <button class="btn-action btn-approve" onclick="actionWith('${w.id}', 'approve')">Approve Payout</button>
@@ -758,7 +779,7 @@
           <div class="chat-bubble ${isAdm ? 'admin' : 'user'}">
             <b>${m.sender} (ID: ${m.userId || 'Guest'}):</b>
             <div>${m.text}</div>
-            ${m.image ? `<img src="${m.image}" class="thumb-document-img" onclick="zoomPhoto(this.src)">` : ''}
+            ${m.image ? `<img src="${m.image}" class="thumb-document-img" onclick="zoomPhoto(this.src)" alt="Chat Image">` : ''}
             <small style="opacity:0.7; font-size:9px; display:block; text-align:right;">${m.timeStr}</small>
           </div>
         `;
